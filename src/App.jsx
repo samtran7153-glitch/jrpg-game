@@ -1,131 +1,401 @@
-import { useState, useCallback, useEffect } from 'react'
-import { createInitialState, PHASES, SKILLS, ITEMS, calculateDamage } from './gameState'
-import { HeroSprite, GoblinSprite, DeathSprite } from './Sprites'
+import { useState, useCallback, useEffect, useRef } from 'react'
+import {
+  createInitialState, PHASES, SKILLS, ITEMS, AREAS,
+  calculateDamage, rollCrit, startBattle, advanceDialogue,
+  checkBattleEnd, applyXpAndLevelUps, computeTurnOrder,
+} from './gameState'
+import { BattleScreen } from './components/BattleScreen'
+import {
+  TitleScreen, AreaMapScreen, ShopScreen, DialogueScreen,
+  VictoryScreen, DefeatScreen, GameCompleteScreen,
+} from './components/Overworld'
+import { GoldDisplay } from './components/Shared'
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+let floatId = 0
 
 export default function App() {
   const [state, setState] = useState(createInitialState)
   const [anim, setAnim] = useState({ type: null, target: null })
+  const animRef = useRef(null)
 
   const addLog = (prev, msg) => [...prev, msg].slice(-6)
 
-  const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
-
-  const startBattle = () => {
-    setState((s) => ({ ...s, phase: PHASES.PLAYER_MENU, log: ['Battle Start!'] }))
+  const addFloatText = (s, text, x, y, color) => {
+    const id = ++floatId
+    const floats = [...s.floatTexts, { id, text, x, y, color }]
+    setTimeout(() => {
+      setState((prev) => ({ ...prev, floatTexts: prev.floatTexts.filter((f) => f.id !== id) }))
+    }, 1200)
+    return floats
   }
 
-  const playerAttack = useCallback(async () => {
+  const triggerShake = (s) => {
+    setTimeout(() => setState((prev) => ({ ...prev, screenShake: 0 })), 300)
+    return { ...s, screenShake: 1 }
+  }
+
+  // ============ GAME FLOW ============
+  const startGame = () => {
+    setState((s) => ({ ...s, phase: PHASES.AREA_MAP }))
+  }
+
+  const selectBattle = (battleIndex) => {
+    setState((s) => {
+      const area = AREAS[s.currentAreaIndex]
+      const battle = area.battles[battleIndex]
+      return startBattle(s, battle.enemies, battle.dialogue?.before, battle.dialogue?.after)
+    })
+  }
+
+  const advanceDialogueHandler = () => {
+    setState((s) => advanceDialogue(s))
+  }
+
+  const continueAfterVictory = () => {
+    setState((s) => {
+      const area = AREAS[s.currentAreaIndex]
+      const nextBattleIndex = s.currentBattleIndex + 1
+
+      if (nextBattleIndex >= area.battles.length) {
+        const nextAreaIndex = s.currentAreaIndex + 1
+        if (nextAreaIndex >= AREAS.length) {
+          return { ...s, phase: PHASES.GAME_COMPLETE }
+        }
+        return {
+          ...s,
+          currentAreaIndex: nextAreaIndex,
+          currentBattleIndex: 0,
+          phase: PHASES.AREA_MAP,
+          battleResult: null,
+          enemies: [],
+        }
+      }
+
+      const afterDialogue = s.dialogueAfter
+      if (afterDialogue && afterDialogue.length > 0) {
+        return {
+          ...s,
+          currentBattleIndex: nextBattleIndex,
+          phase: PHASES.DIALOGUE,
+          dialogueLines: afterDialogue,
+          dialogueIndex: 0,
+          enemies: [],
+          battleResult: null,
+        }
+      }
+
+      return {
+        ...s,
+        currentBattleIndex: nextBattleIndex,
+        phase: PHASES.AREA_MAP,
+        battleResult: null,
+        enemies: [],
+      }
+    })
+  }
+
+  const retry = () => {
+    setState((s) => {
+      const area = AREAS[s.currentAreaIndex]
+      const battle = area.battles[s.currentBattleIndex]
+      return startBattle(s, battle.enemies, battle.dialogue?.before, battle.dialogue?.after)
+    })
+  }
+
+  const newGame = () => {
+    setState(createInitialState())
+  }
+
+  // ============ SHOP ============
+  const buyItem = (itemId) => {
+    setState((s) => {
+      const item = ITEMS[itemId]
+      if (s.gold < item.price) return s
+      const inventory = { ...s.inventory, [itemId]: (s.inventory[itemId] || 0) + 1 }
+      return { ...s, gold: s.gold - item.price, inventory }
+    })
+  }
+
+  // ============ COMBAT ACTIONS ============
+  const advanceTurn = (s) => {
+    let idx = s.currentTurnIndex + 1
+    let order = s.turnOrder
+    for (let i = 0; i < order.length; i++) {
+      const actor = order[idx % order.length]
+      if (actor && actor.alive && actor.hp > 0) break
+      idx++
+    }
+    const nextActor = order[idx % order.length]
+    const isEnemy = nextActor && !nextActor.isPlayer
+    return {
+      ...s,
+      currentTurnIndex: idx,
+      activeActor: nextActor,
+      phase: isEnemy ? PHASES.ENEMY_TURN : PHASES.PLAYER_MENU,
+    }
+  }
+
+  const executeAttack = async (attacker, target) => {
     setState((s) => ({ ...s, busy: true }))
-    setAnim({ type: 'hero-attack', target: 'enemy' })
+    setAnim({ type: 'attack', target: target.id })
     await sleep(400)
 
     setState((s) => {
-      const dmg = calculateDamage(s.hero, s.enemy, s.hero.attack)
-      const newEnemyHp = Math.max(0, s.enemy.hp - dmg)
-      const log = addLog(s.log, `${s.hero.name} attacks! ${dmg} damage!`)
-      const enemy = { ...s.enemy, hp: newEnemyHp }
-      const phase = newEnemyHp <= 0 ? PHASES.VICTORY : PHASES.ENEMY_TURN
-      return { ...s, enemy, log, phase, busy: false }
+      const isCrit = rollCrit()
+      const dmg = calculateDamage(attacker, target, attacker.attack, isCrit)
+      const updatedTarget = { ...target, hp: Math.max(0, target.hp - dmg) }
+      const party = updatedTarget.isPlayer
+        ? s.party.map((h) => h.id === updatedTarget.id ? updatedTarget : h)
+        : s.party
+      const enemies = !updatedTarget.isPlayer
+        ? s.enemies.map((e) => e.id === updatedTarget.id ? updatedTarget : e)
+        : s.enemies
+      const log = addLog(s.log, `${attacker.name} attacks! ${dmg} damage!${isCrit ? ' CRIT!' : ''}`)
+      const floats = addFloatText(s, `-${dmg}${isCrit ? '!' : ''}`, 50, 50, isCrit ? '#f5c518' : '#e94560')
+      const shaken = triggerShake({ ...s, party, enemies, log, floatTexts: floats, busy: false })
+      const ended = checkBattleEnd(shaken)
+      if (ended) return ended
+      return advanceTurn(shaken)
     })
     setAnim(null)
-  }, [])
+  }
 
-  const playerDefend = useCallback(async () => {
-    setState((s) => {
-      const hero = { ...s.hero, defending: true }
-      const log = addLog(s.log, `${s.hero.name} raises their shield!`)
-      return { ...s, hero, log, phase: PHASES.ENEMY_TURN }
-    })
-  }, [])
-
-  const playerSkill = useCallback(async (skillId) => {
+  const executeSkill = async (actor, skillId, target) => {
     const skill = SKILLS[skillId]
-    setState((s) => {
-      if (s.hero.mp < skill.mpCost) return s
-      return { ...s, busy: true }
-    })
-
-    setAnim({ type: 'hero-skill', target: 'enemy' })
+    setState((s) => ({ ...s, busy: true }))
+    setAnim({ type: 'skill', target: target?.id })
     await sleep(500)
 
     setState((s) => {
-      if (s.hero.mp < skill.mpCost) return s
-
-      const hero = { ...s.hero, mp: s.hero.mp - skill.mpCost }
-      let enemy = { ...s.enemy }
+      const updatedActor = { ...actor, mp: actor.mp - skill.mpCost }
+      let party = s.party.map((h) => h.id === actor.id ? updatedActor : h)
+      let enemies = s.enemies
       let log = [...s.log]
+      let floats = s.floatTexts
 
       if (skill.type === 'support') {
-        const healAmt = skill.heal
-        hero.hp = Math.min(hero.maxHp, hero.hp + healAmt)
-        log = addLog(log, `${s.hero.name} casts ${skill.name}! +${healAmt} HP!`)
+        const healed = { ...target, hp: Math.min(target.maxHp, target.hp + skill.heal) }
+        party = party.map((h) => h.id === healed.id ? healed : h)
+        log = addLog(log, `${actor.name} casts ${skill.name}! +${skill.heal} HP!`)
+        floats = addFloatText(s, `+${skill.heal}`, 50, 50, '#4ecca3')
+      } else if (skill.type === 'buff') {
+        if (skill.effect === 'defense_up') {
+          const buffed = { ...updatedActor, defending: true }
+          party = party.map((h) => h.id === buffed.id ? buffed : h)
+          log = addLog(log, `${actor.name} uses ${skill.name}! Defense up!`)
+        } else if (skill.effect === 'attack_up') {
+          const buffed = { ...target, attack: target.attack + 5 }
+          party = party.map((h) => h.id === buffed.id ? buffed : h)
+          log = addLog(log, `${actor.name} casts ${skill.name} on ${target.name}! ATK up!`)
+        }
       } else {
-        const dmg = calculateDamage(hero, s.enemy, skill.damage)
-        enemy.hp = Math.max(0, enemy.hp - dmg)
-        log = addLog(log, `${s.hero.name} casts ${skill.name}! ${dmg} damage!`)
+        const hits = skill.hits || 1
+        let totalDmg = 0
+        let currentTarget = target
+        for (let h = 0; h < hits; h++) {
+          const isCrit = rollCrit(skill.critBonus || 0)
+          const dmg = calculateDamage(updatedActor, currentTarget, skill.damage, isCrit)
+          totalDmg += dmg
+          currentTarget = { ...currentTarget, hp: Math.max(0, currentTarget.hp - dmg) }
+        }
+        if (currentTarget.isPlayer) {
+          party = party.map((p) => p.id === currentTarget.id ? currentTarget : p)
+        } else {
+          enemies = enemies.map((e) => e.id === currentTarget.id ? currentTarget : e)
+        }
+        log = addLog(log, `${actor.name} casts ${skill.name}! ${totalDmg} damage!`)
+        floats = addFloatText(s, `-${totalDmg}`, 50, 50, '#e94560')
       }
 
-      const phase = enemy.hp <= 0 ? PHASES.VICTORY : PHASES.ENEMY_TURN
-      return { ...s, hero, enemy, log, phase, busy: false }
+      const newState = { ...s, party, enemies, log, floatTexts: floats, busy: false }
+      const shaken = triggerShake(newState)
+      const ended = checkBattleEnd(shaken)
+      if (ended) return ended
+      return advanceTurn(shaken)
     })
     setAnim(null)
-  }, [])
+  }
 
-  const playerItem = useCallback(async (itemId) => {
+  const executeItem = async (actor, itemId, target) => {
     const item = ITEMS[itemId]
-    setState((s) => {
-      if (!s.hero.items[itemId] || s.hero.items[itemId] <= 0) return s
-      return { ...s, busy: true }
-    })
-
+    setState((s) => ({ ...s, busy: true }))
     await sleep(300)
 
     setState((s) => {
-      if (!s.hero.items[itemId] || s.hero.items[itemId] <= 0) return s
-      const items = { ...s.hero.items, [itemId]: s.hero.items[itemId] - 1 }
-      const hero = { ...s.hero, items }
+      const inventory = { ...s.inventory, [itemId]: s.inventory[itemId] - 1 }
+      let party = s.party
       let log = [...s.log]
+      let targetHero = target || actor
 
-      if (item.heal) {
-        hero.hp = Math.min(hero.maxHp, s.hero.hp + item.heal)
-        log = addLog(log, `${s.hero.name} uses ${item.name}! +${item.heal} HP!`)
-      }
-      if (item.mpRestore) {
-        hero.mp = Math.min(hero.maxMp, s.hero.mp + item.mpRestore)
-        log = addLog(log, `${s.hero.name} uses ${item.name}! +${item.mpRestore} MP!`)
+      if (item.revive) {
+        const revived = s.party.find((h) => !h.alive || h.hp <= 0)
+        if (revived) {
+          const r = { ...revived, alive: true, hp: Math.min(revived.maxHp, item.heal) }
+          party = s.party.map((h) => h.id === r.id ? r : h)
+          log = addLog(log, `${actor.name} uses ${item.name}! ${r.name} is revived!`)
+        }
+      } else if (item.heal) {
+        const healed = { ...targetHero, hp: Math.min(targetHero.maxHp, targetHero.hp + item.heal) }
+        party = s.party.map((h) => h.id === healed.id ? healed : h)
+        log = addLog(log, `${actor.name} uses ${item.name}! +${item.heal} HP!`)
+      } else if (item.mpRestore) {
+        const restored = { ...targetHero, mp: Math.min(targetHero.maxMp, targetHero.mp + item.mpRestore) }
+        party = s.party.map((h) => h.id === restored.id ? restored : h)
+        log = addLog(log, `${actor.name} uses ${item.name}! +${item.mpRestore} MP!`)
       }
 
-      return { ...s, hero, log, phase: PHASES.ENEMY_TURN, busy: false }
+      const newState = { ...s, party, inventory, log, busy: false }
+      const ended = checkBattleEnd(newState)
+      if (ended) return ended
+      return advanceTurn(newState)
     })
-  }, [])
+  }
 
+  const executeDefend = (actor) => {
+    setState((s) => {
+      const party = s.party.map((h) => h.id === actor.id ? { ...h, defending: true } : h)
+      const log = addLog(s.log, `${actor.name} raises their guard!`)
+      const newState = { ...s, party, log }
+      return advanceTurn(newState)
+    })
+  }
+
+  // ============ ACTION HANDLER ============
+  const handleAction = useCallback((action, payload) => {
+    const actor = state.turnOrder[state.currentTurnIndex % state.turnOrder.length]
+
+    switch (action) {
+      case 'attack':
+        setState((s) => ({ ...s, phase: PHASES.PLAYER_TARGET, pendingAction: { type: 'attack' } }))
+        break
+      case 'target_enemy': {
+        if (state.pendingAction?.type === 'attack') {
+          executeAttack(actor, payload)
+        } else if (state.pendingAction?.type === 'skill') {
+          executeSkill(actor, state.pendingAction.skillId, payload)
+        }
+        setState((s) => ({ ...s, pendingAction: null }))
+        break
+      }
+      case 'target_ally': {
+        if (state.pendingAction?.type === 'skill') {
+          executeSkill(actor, state.pendingAction.skillId, payload)
+        } else if (state.pendingAction?.type === 'item') {
+          executeItem(actor, state.pendingAction.itemId, payload)
+        }
+        setState((s) => ({ ...s, pendingAction: null }))
+        break
+      }
+      case 'open_skills':
+        setState((s) => ({ ...s, phase: PHASES.PLAYER_SKILLS }))
+        break
+      case 'select_skill': {
+        const skill = SKILLS[payload]
+        if (skill.target === 'self') {
+          executeSkill(actor, payload, actor)
+        } else if (skill.target === 'ally') {
+          setState((s) => ({ ...s, phase: PHASES.PLAYER_ALLY_TARGET, pendingAction: { type: 'skill', skillId: payload } }))
+        } else {
+          setState((s) => ({ ...s, phase: PHASES.PLAYER_TARGET, pendingAction: { type: 'skill', skillId: payload } }))
+        }
+        break
+      }
+      case 'open_items':
+        setState((s) => ({ ...s, phase: PHASES.PLAYER_ITEMS }))
+        break
+      case 'use_item': {
+        const item = ITEMS[payload]
+        if (item.revive) {
+          executeItem(actor, payload, null)
+        } else if (item.heal || item.mpRestore) {
+          setState((s) => ({ ...s, phase: PHASES.PLAYER_ALLY_TARGET, pendingAction: { type: 'item', itemId: payload } }))
+        } else {
+          executeItem(actor, payload, actor)
+        }
+        break
+      }
+      case 'defend':
+        executeDefend(actor)
+        break
+      case 'back_to_menu':
+        setState((s) => ({ ...s, phase: PHASES.PLAYER_MENU, pendingAction: null }))
+        break
+      default:
+        break
+    }
+  }, [state])
+
+  // ============ ENEMY AI ============
   const enemyTurn = useCallback(async () => {
-    await sleep(800)
+    await sleep(700)
 
     setState((s) => {
       if (s.phase !== PHASES.ENEMY_TURN) return s
-      const enemy = { ...s.enemy }
-      const hero = { ...s.hero, defending: false }
-      let log = [...s.log]
-
-      // Enemy AI: 70% attack, 30% skill if enough MP
-      const useSkill = enemy.mp >= 8 && Math.random() < 0.3
-      let dmg
-
-      if (useSkill) {
-        const skill = SKILLS.fireball
-        enemy.mp -= skill.mpCost
-        dmg = calculateDamage(enemy, hero, skill.damage)
-        log = addLog(log, `${enemy.name} casts ${skill.name}! ${dmg} damage!`)
-      } else {
-        dmg = calculateDamage(enemy, hero, enemy.attack)
-        log = addLog(log, `${enemy.name} attacks! ${dmg} damage!`)
+      const actor = s.turnOrder[s.currentTurnIndex % s.turnOrder.length]
+      if (!actor || actor.isPlayer || !actor.alive) {
+        return advanceTurn(s)
       }
 
-      hero.hp = Math.max(0, hero.hp - dmg)
-      const phase = hero.hp <= 0 ? PHASES.DEFEAT : PHASES.PLAYER_MENU
+      const aliveParty = s.party.filter((h) => h.alive && h.hp > 0)
+      if (aliveParty.length === 0) return s
 
-      return { ...s, enemy, hero, log, phase }
+      const target = aliveParty[Math.floor(Math.random() * aliveParty.length)]
+      const ai = actor.ai || { skillChance: 0.2 }
+      const useSkill = actor.mp >= 8 && Math.random() < (ai.skillChance || 0.2)
+
+      let log = [...s.log]
+      let party = s.party
+      let floats = s.floatTexts
+
+      if (useSkill) {
+        const skillId = actor.skills[Math.floor(Math.random() * actor.skills.length)]
+        const skill = SKILLS[skillId]
+        if (actor.mp >= skill.mpCost) {
+          const updatedActor = { ...actor, mp: actor.mp - skill.mpCost }
+          const enemies = s.enemies.map((e) => e.id === actor.id ? updatedActor : e)
+
+          if (skill.target === 'enemy_all') {
+            let totalDmg = 0
+            let newParty = s.party.map((h) => {
+              if (!h.alive || h.hp <= 0) return h
+              const dmg = calculateDamage(updatedActor, h, skill.damage)
+              totalDmg += dmg
+              return { ...h, hp: Math.max(0, h.hp - dmg) }
+            })
+            party = newParty
+            log = addLog(log, `${actor.name} casts ${skill.name}! Hits all for ${totalDmg} total!`)
+            floats = addFloatText(s, `-${totalDmg}`, 50, 50, '#e94560')
+            const newState = { ...s, party, enemies, log, floatTexts: floats }
+            const shaken = triggerShake(newState)
+            const ended = checkBattleEnd(shaken)
+            if (ended) return ended
+            return advanceTurn(shaken)
+          } else {
+            const dmg = calculateDamage(updatedActor, target, skill.damage)
+            const hit = { ...target, hp: Math.max(0, target.hp - dmg) }
+            party = s.party.map((h) => h.id === hit.id ? hit : h)
+            log = addLog(log, `${actor.name} casts ${skill.name}! ${dmg} damage!`)
+            floats = addFloatText(s, `-${dmg}`, 50, 50, '#e94560')
+            const newState = { ...s, party, enemies, log, floatTexts: floats }
+            const shaken = triggerShake(newState)
+            const ended = checkBattleEnd(shaken)
+            if (ended) return ended
+            return advanceTurn(shaken)
+          }
+        }
+      }
+
+      const dmg = calculateDamage(actor, target, actor.attack)
+      const hit = { ...target, hp: Math.max(0, target.hp - dmg) }
+      party = s.party.map((h) => h.id === hit.id ? hit : h)
+      log = addLog(log, `${actor.name} attacks ${target.name}! ${dmg} damage!`)
+      floats = addFloatText(s, `-${dmg}`, 50, 50, '#e94560')
+      const newState = { ...s, party, log, floatTexts: floats }
+      const shaken = triggerShake(newState)
+      const ended = checkBattleEnd(shaken)
+      if (ended) return ended
+      return advanceTurn(shaken)
     })
   }, [])
 
@@ -135,301 +405,87 @@ export default function App() {
     }
   }, [state.phase, state.busy, enemyTurn])
 
-  const restart = () => {
-    setState(createInitialState())
-  }
+  useEffect(() => {
+    if (state.phase === PHASES.BATTLE_INTRO) {
+      const t = setTimeout(() => {
+        setState((s) => ({ ...s, phase: PHASES.PLAYER_MENU }))
+      }, 800)
+      return () => clearTimeout(t)
+    }
+  }, [state.phase])
 
-  const goToSkills = () => {
-    setState((s) => ({ ...s, phase: PHASES.PLAYER_SKILLS }))
-  }
+  useEffect(() => {
+    if (state.phase === PHASES.BATTLE_VICTORY) {
+      setState((s) => applyXpAndLevelUps(s))
+    }
+  }, [state.phase])
 
-  const goToItems = () => {
-    setState((s) => ({ ...s, phase: PHASES.PLAYER_ITEMS }))
-  }
-
-  const backToMenu = () => {
-    setState((s) => ({ ...s, phase: PHASES.PLAYER_MENU }))
+  // ============ RENDER ============
+  const renderPhase = () => {
+    switch (state.phase) {
+      case PHASES.TITLE:
+        return <TitleScreen onStart={startGame} />
+      case PHASES.AREA_MAP:
+        return (
+          <AreaMapScreen
+            state={state}
+            onSelectBattle={selectBattle}
+            onShop={() => setState((s) => ({ ...s, phase: PHASES.SHOP }))}
+            onContinue={() => {
+              setState((s) => {
+                const nextArea = s.currentAreaIndex + 1
+                if (nextArea >= AREAS.length) return { ...s, phase: PHASES.GAME_COMPLETE }
+                return { ...s, currentAreaIndex: nextArea, currentBattleIndex: 0 }
+              })
+            }}
+          />
+        )
+      case PHASES.SHOP:
+        return (
+          <ShopScreen
+            state={state}
+            onBuy={buyItem}
+            onBack={() => setState((s) => ({ ...s, phase: PHASES.AREA_MAP }))}
+          />
+        )
+      case PHASES.DIALOGUE:
+        return <DialogueScreen state={state} onAdvance={advanceDialogueHandler} />
+      case PHASES.BATTLE_INTRO:
+      case PHASES.PLAYER_MENU:
+      case PHASES.PLAYER_SKILLS:
+      case PHASES.PLAYER_ITEMS:
+      case PHASES.PLAYER_TARGET:
+      case PHASES.PLAYER_ALLY_TARGET:
+      case PHASES.ENEMY_TURN:
+        return <BattleScreen state={state} anim={anim} onAction={handleAction} />
+      case PHASES.BATTLE_VICTORY:
+        return <VictoryScreen state={state} onContinue={continueAfterVictory} />
+      case PHASES.BATTLE_DEFEAT:
+        return <DefeatScreen onRetry={retry} />
+      case PHASES.GAME_COMPLETE:
+        return <GameCompleteScreen onRestart={newGame} />
+      default:
+        return <TitleScreen onStart={startGame} />
+    }
   }
 
   return (
     <div className="min-h-screen bg-retro-bg flex items-center justify-center p-2 sm:p-4">
-      <div className="w-full max-w-md mx-auto flex flex-col gap-3" style={{ minHeight: '100dvh' }}>
-        <Header />
-        <BattleField state={state} anim={anim} />
-        <StatusBar hero={state.hero} enemy={state.enemy} />
-        <BattleLog log={state.log} />
-        <ActionMenu
-          state={state}
-          hero={state.hero}
-          onAttack={playerAttack}
-          onDefend={playerDefend}
-          onSkill={playerSkill}
-          onItem={playerItem}
-          onSkills={goToSkills}
-          onItems={goToItems}
-          onBack={backToMenu}
-          onStart={startBattle}
-          onRestart={restart}
-        />
+      <div className="w-full max-w-md mx-auto flex flex-col gap-2" style={{ minHeight: '100dvh' }}>
+        <Header gold={state.gold} showGold={state.phase !== PHASES.TITLE} />
+        {renderPhase()}
       </div>
     </div>
   )
 }
 
-function Header() {
+function Header({ gold, showGold }) {
   return (
-    <div className="text-center pt-2">
-      <h1 className="font-pixel text-sm sm:text-base text-retro-gold tracking-wider">
+    <div className="flex items-center justify-between pt-2">
+      <h1 className="font-pixel text-[10px] sm:text-xs text-retro-gold tracking-wider">
         PIXEL QUEST
       </h1>
-      <p className="font-pixel text-[8px] text-retro-dim mt-1">— A JRPG Adventure —</p>
-    </div>
-  )
-}
-
-function BattleField({ state, anim }) {
-  const { hero, enemy, phase } = state
-
-  return (
-    <div className="pixel-panel p-4 flex-1 flex flex-col justify-between min-h-[200px] relative overflow-hidden">
-      <div className="absolute inset-0 opacity-10 pointer-events-none">
-        <div className="w-full h-full" style={{
-          backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)',
-        }} />
-      </div>
-
-      {/* Enemy area */}
-      <div className="flex justify-center items-start relative z-10">
-        <CharacterSprite
-          name={enemy.name}
-          title={enemy.title}
-          sprite={<GoblinSprite size={64} defeated={enemy.hp <= 0} />}
-          hp={enemy.hp}
-          maxHp={enemy.maxHp}
-          isEnemy
-          anim={anim?.target === 'enemy' ? anim.type : null}
-          defeated={enemy.hp <= 0}
-        />
-      </div>
-
-      {/* VS divider */}
-      <div className="flex items-center justify-center my-1 relative z-10">
-        <div className="h-px flex-1 bg-retro-border" />
-        <span className="font-pixel text-[8px] text-retro-accent px-2">VS</span>
-        <div className="h-px flex-1 bg-retro-border" />
-      </div>
-
-      {/* Hero area */}
-      <div className="flex justify-center items-end relative z-10">
-        <CharacterSprite
-          name={hero.name}
-          title={hero.title}
-          sprite={<HeroSprite size={64} defeated={hero.hp <= 0} />}
-          hp={hero.hp}
-          maxHp={hero.maxHp}
-          mp={hero.mp}
-          maxMp={hero.maxMp}
-          anim={anim?.target === 'enemy' && anim.type === 'hero-attack' ? 'enemy-hit' : null}
-          defeated={hero.hp <= 0}
-        />
-      </div>
-
-      {phase === PHASES.VICTORY && (
-        <Overlay title="VICTORY!" color="text-retro-green" subtitle="The Goblin King is defeated!" />
-      )}
-      {phase === PHASES.DEFEAT && (
-        <Overlay title="DEFEAT..." color="text-retro-accent" subtitle="You have fallen in battle." />
-      )}
-      {phase === PHASES.INTRO && (
-        <Overlay title="READY?" color="text-retro-gold" subtitle="Press START to begin!" />
-      )}
-    </div>
-  )
-}
-
-function CharacterSprite({ name, title, sprite, hp, maxHp, mp, maxMp, isEnemy, anim, defeated }) {
-  const hpPercent = (hp / maxHp) * 100
-  const hpColor = hpPercent > 50 ? 'bg-retro-green' : hpPercent > 25 ? 'bg-retro-gold' : 'bg-retro-accent'
-
-  let animClass = ''
-  if (anim === 'hero-attack') animClass = 'animate-bounce'
-  if (anim === 'hero-skill') animClass = 'animate-pulse'
-  if (anim === 'enemy-hit') animClass = 'animate-pulse'
-  if (defeated) animClass = 'opacity-20 grayscale'
-
-  return (
-    <div className={`flex flex-col items-center ${isEnemy ? '' : 'flex-col-reverse'}`}>
-      <div className={`${animClass} transition-all duration-300`}>
-        {defeated ? <DeathSprite size={64} /> : sprite}
-      </div>
-      <div className="mt-1 text-center">
-        <div className="font-pixel text-[8px] text-retro-text">{name}</div>
-        <div className="font-pixel text-[6px] text-retro-dim mt-0.5">{title}</div>
-      </div>
-      <div className="w-32 mt-1">
-        <Bar label="HP" value={hp} max={maxHp} color={hpColor} />
-        {mp !== undefined && <Bar label="MP" value={mp} max={maxMp} color="bg-retro-blue" />}
-      </div>
-    </div>
-  )
-}
-
-function Bar({ label, value, max, color }) {
-  const percent = (value / max) * 100
-  return (
-    <div className="mb-1">
-      <div className="flex justify-between font-pixel text-[6px] text-retro-dim mb-0.5">
-        <span>{label}</span>
-        <span>{value}/{max}</span>
-      </div>
-      <div className="h-2 bg-retro-bg border border-retro-border">
-        <div className={`h-full ${color} transition-all duration-300`} style={{ width: `${percent}%` }} />
-      </div>
-    </div>
-  )
-}
-
-function StatusBar({ hero, enemy }) {
-  return (
-    <div className="pixel-panel p-2 grid grid-cols-2 gap-2 text-center">
-      <div>
-        <div className="font-pixel text-[7px] text-retro-green">{hero.name}</div>
-        <div className="font-pixel text-[6px] text-retro-dim">Lv.{hero.level} · ATK {hero.attack} · DEF {hero.defense}</div>
-      </div>
-      <div>
-        <div className="font-pixel text-[7px] text-retro-accent">{enemy.name}</div>
-        <div className="font-pixel text-[6px] text-retro-dim">Lv.{enemy.level} · ATK {enemy.attack} · DEF {enemy.defense}</div>
-      </div>
-    </div>
-  )
-}
-
-function BattleLog({ log }) {
-  return (
-    <div className="pixel-panel p-2 h-20 overflow-hidden">
-      <div className="font-pixel text-[6px] text-retro-dim mb-1">BATTLE LOG</div>
-      <div className="space-y-0.5">
-        {log.slice(-3).map((entry, i) => (
-          <div key={i} className="font-pixel text-[7px] text-retro-text leading-relaxed">
-            {entry}
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function ActionMenu({ state, hero, onAttack, onDefend, onSkill, onItem, onSkills, onItems, onBack, onStart, onRestart }) {
-  const { phase, busy } = state
-
-  if (phase === PHASES.INTRO) {
-    return (
-      <div className="pixel-panel p-3">
-        <button className="pixel-btn w-full" onClick={onStart}>
-          START BATTLE
-        </button>
-      </div>
-    )
-  }
-
-  if (phase === PHASES.VICTORY || phase === PHASES.DEFEAT) {
-    return (
-      <div className="pixel-panel p-3">
-        <button className="pixel-btn w-full" onClick={onRestart}>
-          FIGHT AGAIN
-        </button>
-      </div>
-    )
-  }
-
-  if (phase === PHASES.ENEMY_TURN || busy) {
-    return (
-      <div className="pixel-panel p-3 text-center">
-        <div className="font-pixel text-[8px] text-retro-dim animate-pulse">
-          Enemy is thinking...
-        </div>
-      </div>
-    )
-  }
-
-  if (phase === PHASES.PLAYER_SKILLS) {
-    return (
-      <div className="pixel-panel p-2 space-y-1">
-        <div className="font-pixel text-[7px] text-retro-gold px-1 pb-1">SKILLS</div>
-        {hero.skills.map((skillId) => {
-          const skill = SKILLS[skillId]
-          const canUse = hero.mp >= skill.mpCost
-          return (
-            <button
-              key={skillId}
-              className="pixel-btn w-full text-left flex justify-between items-center"
-              disabled={!canUse}
-              onClick={() => onSkill(skillId)}
-            >
-              <span>{skill.name}</span>
-              <span className="text-retro-blue text-[6px]">{skill.mpCost} MP</span>
-            </button>
-          )
-        })}
-        <button className="pixel-btn w-full text-retro-dim mt-1" onClick={onBack}>
-          ← Back
-        </button>
-      </div>
-    )
-  }
-
-  if (phase === PHASES.PLAYER_ITEMS) {
-    const itemIds = Object.keys(hero.items).filter((id) => hero.items[id] > 0)
-    return (
-      <div className="pixel-panel p-2 space-y-1">
-        <div className="font-pixel text-[7px] text-retro-gold px-1 pb-1">ITEMS</div>
-        {itemIds.length === 0 && (
-          <div className="font-pixel text-[7px] text-retro-dim px-1 py-2">No items left!</div>
-        )}
-        {itemIds.map((itemId) => {
-          const item = ITEMS[itemId]
-          return (
-            <button
-              key={itemId}
-              className="pixel-btn w-full text-left flex justify-between items-center"
-              onClick={() => onItem(itemId)}
-            >
-              <span>{item.name}</span>
-              <span className="text-retro-dim text-[6px]">x{hero.items[itemId]}</span>
-            </button>
-          )
-        })}
-        <button className="pixel-btn w-full text-retro-dim mt-1" onClick={onBack}>
-          ← Back
-        </button>
-      </div>
-    )
-  }
-
-  // Main menu
-  return (
-    <div className="pixel-panel p-2 grid grid-cols-2 gap-1">
-      <button className="pixel-btn" onClick={onAttack} disabled={busy}>
-        Attack
-      </button>
-      <button className="pixel-btn" onClick={onSkills} disabled={busy}>
-        Skills
-      </button>
-      <button className="pixel-btn" onClick={onItems} disabled={busy}>
-        Items
-      </button>
-      <button className="pixel-btn" onClick={onDefend} disabled={busy}>
-        Defend
-      </button>
-    </div>
-  )
-}
-
-function Overlay({ title, color, subtitle }) {
-  return (
-    <div className="absolute inset-0 bg-retro-bg/80 flex flex-col items-center justify-center z-20">
-      <div className={`font-pixel text-lg ${color} mb-2`}>{title}</div>
-      <div className="font-pixel text-[8px] text-retro-text text-center px-4">{subtitle}</div>
+      {showGold && <GoldDisplay gold={gold} />}
     </div>
   )
 }

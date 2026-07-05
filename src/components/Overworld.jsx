@@ -1,0 +1,220 @@
+import { Sprite } from '../Sprites'
+import { CharacterCard, GoldDisplay } from './Shared'
+import { AREAS, ITEMS } from '../gameState'
+
+export function TitleScreen({ onStart }) {
+  return (
+    <div className="flex flex-col items-center justify-center flex-1 gap-4">
+      <div className="text-center">
+        <div className="flex justify-center gap-2 mb-3">
+          <Sprite type="knight" size={40} />
+          <Sprite type="mage" size={40} />
+          <Sprite type="archer" size={40} />
+          <Sprite type="healer" size={40} />
+        </div>
+        <h1 className="font-pixel text-base text-retro-gold tracking-wider">PIXEL QUEST</h1>
+        <p className="font-pixel text-[7px] text-retro-dim mt-2">A JRPG Adventure</p>
+      </div>
+      <div className="flex justify-center gap-3 mt-2">
+        <Sprite type="goblinKing" size={36} />
+        <Sprite type="dragon" size={48} />
+        <Sprite type="darkKnight" size={36} />
+      </div>
+      <button className="pixel-btn w-48 mt-4" onClick={onStart}>
+        PRESS START
+      </button>
+    </div>
+  )
+}
+
+export function AreaMapScreen({ state, onSelectBattle, onShop, onContinue }) {
+  const area = AREAS[state.currentAreaIndex]
+  if (!area) return null
+
+  return (
+    <div className="flex flex-col gap-2 flex-1">
+      <div className="pixel-panel p-2 text-center">
+        <div className="font-pixel text-[8px] text-retro-gold">{area.name}</div>
+        <div className="font-pixel text-[5px] text-retro-dim mt-1">{area.description}</div>
+      </div>
+
+      <div className="flex justify-between items-center pixel-panel p-2">
+        <div className="font-pixel text-[6px] text-retro-text">Party Status</div>
+        <GoldDisplay gold={state.gold} />
+      </div>
+
+      <div className="pixel-panel p-2 flex gap-1 flex-wrap justify-center">
+        {state.party.map((hero) => (
+          <CharacterCard key={hero.id} actor={hero} size={32} />
+        ))}
+      </div>
+
+      <div className="pixel-panel p-2 flex-1">
+        <div className="font-pixel text-[6px] text-retro-gold mb-2">BATTLES</div>
+        <div className="space-y-2">
+          {area.battles.map((battle, i) => {
+            const isCompleted = i < state.currentBattleIndex
+            const isCurrent = i === state.currentBattleIndex
+            const isLocked = i > state.currentBattleIndex
+            return (
+              <button
+                key={i}
+                className={`pixel-btn w-full text-left flex items-center gap-2 ${
+                  isLocked ? 'opacity-40' : ''
+                }`}
+                disabled={isLocked}
+                onClick={() => onSelectBattle(i)}
+              >
+                <span className="text-[5px]">
+                  {isCompleted ? '[DONE]' : isCurrent ? '[!]' : '[ ]'}
+                </span>
+                <span className="flex gap-1">
+                  {battle.enemies.map((e, ei) => (
+                    <Sprite key={ei} type={e} size={16} />
+                  ))}
+                </span>
+                <span className="text-[5px] ml-auto">
+                  Battle {i + 1}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-1">
+        <button className="pixel-btn" onClick={onShop}>Shop</button>
+        <button className="pixel-btn" onClick={onContinue} disabled={state.currentBattleIndex >= area.battles.length}>
+          Next Area
+        </button>
+      </div>
+    </div>
+  )
+}
+
+export function ShopScreen({ state, onBuy, onBack }) {
+  const itemIds = Object.keys(ITEMS)
+  return (
+    <div className="flex flex-col gap-2 flex-1">
+      <div className="pixel-panel p-2 text-center">
+        <div className="font-pixel text-[8px] text-retro-gold">ITEM SHOP</div>
+        <div className="flex justify-center mt-1">
+          <GoldDisplay gold={state.gold} />
+        </div>
+      </div>
+
+      <div className="pixel-panel p-2 flex-1 space-y-1">
+        {itemIds.map((itemId) => {
+          const item = ITEMS[itemId]
+          const canAfford = state.gold >= item.price
+          return (
+            <button
+              key={itemId}
+              className="pixel-btn w-full text-left flex justify-between items-center"
+              disabled={!canAfford}
+              onClick={() => onBuy(itemId)}
+            >
+              <div>
+                <div>{item.name}</div>
+                <div className="text-[5px] text-retro-dim">{item.description}</div>
+              </div>
+              <div className="text-retro-gold text-[6px]">{item.price} G</div>
+            </button>
+          )
+        })}
+      </div>
+
+      <button className="pixel-btn w-full" onClick={onBack}>
+        Leave Shop
+      </button>
+    </div>
+  )
+}
+
+export function DialogueScreen({ state, onAdvance }) {
+  const line = state.dialogueLines[state.dialogueIndex] || ''
+  const speaker = line.split(':')[0] || ''
+  const text = line.includes(':') ? line.split(':').slice(1).join(':').trim() : line
+
+  return (
+    <div className="flex flex-col gap-2 flex-1">
+      <div className="pixel-panel p-3 flex-1 flex flex-col justify-end min-h-[120px]">
+        <div className="font-pixel text-[7px] text-retro-gold mb-2">{speaker}</div>
+        <div className="font-pixel text-[8px] text-retro-text leading-relaxed">
+          {text}
+        </div>
+        <div className="mt-3 text-right">
+          <button className="pixel-btn text-[6px]" onClick={onAdvance}>
+            {state.dialogueIndex < state.dialogueLines.length - 1 ? 'Next' : 'Continue'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function VictoryScreen({ state, onContinue }) {
+  const { battleResult } = state
+  if (!battleResult) return null
+
+  return (
+    <div className="flex flex-col items-center justify-center flex-1 gap-3">
+      <div className="font-pixel text-lg text-retro-green">VICTORY!</div>
+      <div className="pixel-panel p-3 w-full space-y-2">
+        <div className="text-center font-pixel text-[7px] text-retro-text">Battle Rewards</div>
+        <div className="flex justify-between font-pixel text-[7px]">
+          <span className="text-retro-dim">XP Gained:</span>
+          <span className="text-retro-green">{battleResult.xpPerHero || battleResult.xp}</span>
+        </div>
+        <div className="flex justify-between font-pixel text-[7px]">
+          <span className="text-retro-dim">Gold Gained:</span>
+          <span className="text-retro-gold">{battleResult.gold}</span>
+        </div>
+        {battleResult.leveledUp && battleResult.leveledUp.length > 0 && (
+          <div className="text-center font-pixel text-[6px] text-retro-gold animate-pulse pt-1">
+            LEVEL UP! {battleResult.leveledUp.join(', ')}
+          </div>
+        )}
+      </div>
+      <button className="pixel-btn w-40" onClick={onContinue}>
+        Continue
+      </button>
+    </div>
+  )
+}
+
+export function DefeatScreen({ onRetry }) {
+  return (
+    <div className="flex flex-col items-center justify-center flex-1 gap-4">
+      <div className="font-pixel text-lg text-retro-accent">DEFEAT...</div>
+      <div className="font-pixel text-[7px] text-retro-dim text-center px-4">
+        Your party has fallen. The darkness spreads...
+      </div>
+      <button className="pixel-btn w-40" onClick={onRetry}>
+        Try Again
+      </button>
+    </div>
+  )
+}
+
+export function GameCompleteScreen({ onRestart }) {
+  return (
+    <div className="flex flex-col items-center justify-center flex-1 gap-4">
+      <div className="font-pixel text-base text-retro-gold text-center">
+        THE END
+      </div>
+      <div className="font-pixel text-[7px] text-retro-text text-center px-4 leading-relaxed">
+        The Ancient Dragon is vanquished.<br />Peace returns to the land.<br />Thank you for playing!
+      </div>
+      <div className="flex justify-center gap-2 mt-2">
+        <Sprite type="knight" size={32} />
+        <Sprite type="mage" size={32} />
+        <Sprite type="archer" size={32} />
+        <Sprite type="healer" size={32} />
+      </div>
+      <button className="pixel-btn w-40 mt-2" onClick={onRestart}>
+        New Game
+      </button>
+    </div>
+  )
+}
