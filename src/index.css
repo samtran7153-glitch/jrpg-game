@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  background-color: #0f0f1b;
+  overscroll-behavior: none;
+}
+
+@layer components {
+  .pixel-border {
+    border: 4px solid #4a4a6a;
+    box-shadow: 0 0 0 2px #0f0f1b, 0 0 0 6px #4a4a6a;
+  }
+
+  .pixel-panel {
+    background-color: #1a1a2e;
+    border: 4px solid #4a4a6a;
+    border-radius: 0;
+  }
+
+  .pixel-btn {
+    @apply font-pixel text-xs bg-retro-panel border-2 border-retro-border text-retro-text px-3 py-3 transition-all duration-100 select-none;
+  }
+
+  .pixel-btn:active {
+    @apply bg-retro-border translate-y-0.5;
+  }
+
+  .pixel-btn:hover {
+    @apply border-retro-gold text-retro-gold;
+  }
+
+  .pixel-btn:disabled {
+    @apply opacity-40 cursor-not-allowed;
+  }
+}
