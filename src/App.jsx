@@ -526,7 +526,7 @@ export default function App() {
         return () => clearTimeout(t)
       }
       if (screenFade === 'fade-out') {
-        const t = setTimeout(() => setScreenFade(null), 500)
+        const t = setTimeout(() => setScreenFade('done'), 500)
         return () => clearTimeout(t)
       }
     } else {
@@ -609,7 +609,7 @@ export default function App() {
         <Header gold={state.gold} showGold={state.phase !== PHASES.TITLE} />
         {renderPhase()}
       </div>
-      {screenFade && (
+      {screenFade && screenFade !== 'done' && (
         <div className={`fixed inset-0 z-50 pointer-events-none bg-black transition-opacity duration-500 ${
           screenFade === 'fade-start' ? 'opacity-0' : screenFade === 'fade-in' ? 'opacity-100' : 'opacity-0'
         }`} />
