@@ -1,8 +1,8 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import {
   createInitialState, PHASES, SKILLS, ITEMS, AREAS,
   calculateDamage, rollCrit, startBattle, advanceDialogue,
-  checkBattleEnd, applyXpAndLevelUps, computeTurnOrder,
+  checkBattleEnd, applyXpAndLevelUps,
 } from './gameState'
 import { BattleScreen } from './components/BattleScreen'
 import {
@@ -17,7 +17,6 @@ let floatId = 0
 export default function App() {
   const [state, setState] = useState(createInitialState)
   const [anim, setAnim] = useState({ type: null, target: null })
-  const animRef = useRef(null)
 
   const addLog = (prev, msg) => [...prev, msg].slice(-6)
 
@@ -118,15 +117,21 @@ export default function App() {
   }
 
   // ============ COMBAT ACTIONS ============
+  const resolveActor = (s, queuedActor) => {
+    if (!queuedActor) return null
+    const actors = queuedActor.isPlayer ? s.party : s.enemies
+    return actors.find((actor) => actor.id === queuedActor.id) || null
+  }
+
   const advanceTurn = (s) => {
     let idx = s.currentTurnIndex + 1
-    let order = s.turnOrder
+    const order = s.turnOrder
     for (let i = 0; i < order.length; i++) {
-      const actor = order[idx % order.length]
+      const actor = resolveActor(s, order[idx % order.length])
       if (actor && actor.alive && actor.hp > 0) break
       idx++
     }
-    const nextActor = order[idx % order.length]
+    const nextActor = resolveActor(s, order[idx % order.length])
     const isEnemy = nextActor && !nextActor.isPlayer
     return {
       ...s,
@@ -144,7 +149,8 @@ export default function App() {
     setState((s) => {
       const isCrit = rollCrit()
       const dmg = calculateDamage(attacker, target, attacker.attack, isCrit)
-      const updatedTarget = { ...target, hp: Math.max(0, target.hp - dmg) }
+      const newHp = Math.max(0, target.hp - dmg)
+      const updatedTarget = { ...target, hp: newHp, alive: newHp > 0 }
       const party = updatedTarget.isPlayer
         ? s.party.map((h) => h.id === updatedTarget.id ? updatedTarget : h)
         : s.party
@@ -197,7 +203,8 @@ export default function App() {
           const isCrit = rollCrit(skill.critBonus || 0)
           const dmg = calculateDamage(updatedActor, currentTarget, skill.damage, isCrit)
           totalDmg += dmg
-          currentTarget = { ...currentTarget, hp: Math.max(0, currentTarget.hp - dmg) }
+          const newHp = Math.max(0, currentTarget.hp - dmg)
+          currentTarget = { ...currentTarget, hp: newHp, alive: newHp > 0 }
         }
         if (currentTarget.isPlayer) {
           party = party.map((p) => p.id === currentTarget.id ? currentTarget : p)
@@ -263,7 +270,7 @@ export default function App() {
 
   // ============ ACTION HANDLER ============
   const handleAction = useCallback((action, payload) => {
-    const actor = state.turnOrder[state.currentTurnIndex % state.turnOrder.length]
+    const actor = resolveActor(state, state.turnOrder[state.currentTurnIndex % state.turnOrder.length])
 
     switch (action) {
       case 'attack':
@@ -328,12 +335,12 @@ export default function App() {
 
   // ============ ENEMY AI ============
   const enemyTurn = useCallback(async () => {
-    await sleep(700)
+    await sleep(250)
 
     setState((s) => {
       if (s.phase !== PHASES.ENEMY_TURN) return s
-      const actor = s.turnOrder[s.currentTurnIndex % s.turnOrder.length]
-      if (!actor || actor.isPlayer || !actor.alive) {
+      const actor = resolveActor(s, s.turnOrder[s.currentTurnIndex % s.turnOrder.length])
+      if (!actor || actor.isPlayer || !actor.alive || actor.hp <= 0) {
         return advanceTurn(s)
       }
 
@@ -361,7 +368,8 @@ export default function App() {
               if (!h.alive || h.hp <= 0) return h
               const dmg = calculateDamage(updatedActor, h, skill.damage)
               totalDmg += dmg
-              return { ...h, hp: Math.max(0, h.hp - dmg) }
+              const newHp = Math.max(0, h.hp - dmg)
+              return { ...h, hp: newHp, alive: newHp > 0 }
             })
             party = newParty
             log = addLog(log, `${actor.name} casts ${skill.name}! Hits all for ${totalDmg} total!`)
@@ -373,7 +381,8 @@ export default function App() {
             return advanceTurn(shaken)
           } else {
             const dmg = calculateDamage(updatedActor, target, skill.damage)
-            const hit = { ...target, hp: Math.max(0, target.hp - dmg) }
+            const newHp = Math.max(0, target.hp - dmg)
+            const hit = { ...target, hp: newHp, alive: newHp > 0 }
             party = s.party.map((h) => h.id === hit.id ? hit : h)
             log = addLog(log, `${actor.name} casts ${skill.name}! ${dmg} damage!`)
             floats = addFloatText(s, `-${dmg}`, 50, 50, '#e94560')
@@ -387,7 +396,8 @@ export default function App() {
       }
 
       const dmg = calculateDamage(actor, target, actor.attack)
-      const hit = { ...target, hp: Math.max(0, target.hp - dmg) }
+      const newHp = Math.max(0, target.hp - dmg)
+      const hit = { ...target, hp: newHp, alive: newHp > 0 }
       party = s.party.map((h) => h.id === hit.id ? hit : h)
       log = addLog(log, `${actor.name} attacks ${target.name}! ${dmg} damage!`)
       floats = addFloatText(s, `-${dmg}`, 50, 50, '#e94560')
@@ -409,7 +419,7 @@ export default function App() {
     if (state.phase === PHASES.BATTLE_INTRO) {
       const t = setTimeout(() => {
         setState((s) => ({ ...s, phase: PHASES.PLAYER_MENU }))
-      }, 800)
+      }, 450)
       return () => clearTimeout(t)
     }
   }, [state.phase])

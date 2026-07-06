@@ -4,15 +4,18 @@ import { SKILLS, ITEMS } from '../gameState'
 
 export function BattleScreen({ state, anim, onAction }) {
   const { party, enemies, turnOrder, currentTurnIndex, phase, log, floatTexts, screenShake } = state
-  const activeActor = turnOrder[currentTurnIndex % turnOrder.length]
-  const isPlayerTurn = activeActor && activeActor.isPlayer
+  const queuedActor = turnOrder[currentTurnIndex % turnOrder.length]
+  const activeActor = queuedActor?.isPlayer
+    ? party.find((hero) => hero.id === queuedActor.id)
+    : enemies.find((enemy) => enemy.id === queuedActor?.id)
+  const isPlayerTurn = activeActor && activeActor.isPlayer && activeActor.alive && activeActor.hp > 0
   const needsTarget = phase === 'player_target'
   const needsAllyTarget = phase === 'player_ally_target'
 
   return (
     <div className={`flex flex-col gap-2 flex-1 ${screenShake > 0 ? 'animate-shake' : ''}`}>
       {/* Turn order bar */}
-      <TurnOrderBar turnOrder={turnOrder} currentTurnIndex={currentTurnIndex} />
+      <TurnOrderBar turnOrder={turnOrder} currentTurnIndex={currentTurnIndex} party={party} enemies={enemies} />
 
       {/* Battle field */}
       <div className="pixel-panel p-2 relative flex-1 min-h-[180px]">
@@ -25,7 +28,7 @@ export function BattleScreen({ state, anim, onAction }) {
               actor={enemy}
               isEnemy
               isActive={activeActor?.id === enemy.id}
-              isTargetable={needsTarget}
+              isTargetable={needsTarget && enemy.alive && enemy.hp > 0}
               onTarget={(e) => onAction('target_enemy', e)}
               size={48}
             />
@@ -44,7 +47,7 @@ export function BattleScreen({ state, anim, onAction }) {
               key={hero.id}
               actor={hero}
               isActive={activeActor?.id === hero.id}
-              isTargetable={needsAllyTarget}
+              isTargetable={needsAllyTarget && hero.alive && hero.hp > 0}
               onTarget={(h) => onAction('target_ally', h)}
               size={40}
             />
@@ -69,17 +72,28 @@ export function BattleScreen({ state, anim, onAction }) {
   )
 }
 
-function TurnOrderBar({ turnOrder, currentTurnIndex }) {
-  const alive = turnOrder.filter((a) => a.alive && a.hp > 0)
+function TurnOrderBar({ turnOrder, currentTurnIndex, party, enemies }) {
+  const resolveActor = (queuedActor) => {
+    if (!queuedActor) return null
+    const actors = queuedActor.isPlayer ? party : enemies
+    return actors.find((actor) => actor.id === queuedActor.id) || null
+  }
+
+  const upcoming = []
+  for (let i = 0; i < turnOrder.length && upcoming.length < 8; i++) {
+    const idx = (currentTurnIndex + i) % turnOrder.length
+    const actor = resolveActor(turnOrder[idx])
+    if (actor && actor.alive && actor.hp > 0) upcoming.push({ actor, idx })
+  }
+
   return (
     <div className="pixel-panel p-1 flex items-center gap-1 overflow-x-auto">
       <span className="font-pixel text-[5px] text-retro-dim shrink-0">TURN:</span>
-      {alive.slice(0, 8).map((actor, i) => {
-        const realIdx = (currentTurnIndex + i) % turnOrder.length
+      {upcoming.map(({ actor, idx }, i) => {
         const isActive = i === 0
         return (
           <div
-            key={`${actor.id}-${realIdx}`}
+            key={`${actor.id}-${idx}`}
             className={`shrink-0 ${isActive ? 'ring-1 ring-retro-gold' : 'opacity-60'}`}
           >
             <Sprite type={actor.sprite} size={20} defeated={false} />
