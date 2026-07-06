@@ -13,12 +13,12 @@ export function BattleScreen({ state, anim, onAction }) {
   const needsAllyTarget = phase === 'player_ally_target'
 
   return (
-    <div className={`flex flex-col gap-2 ${screenShake > 0 ? 'animate-shake' : ''}`}>
+    <div className={`flex flex-col gap-2 flex-1 ${screenShake > 0 ? 'animate-shake' : ''}`}>
       {/* Turn order bar */}
       <TurnOrderBar turnOrder={turnOrder} currentTurnIndex={currentTurnIndex} party={party} enemies={enemies} />
 
       {/* Battle field */}
-      <div className="pixel-panel p-2 relative h-[330px] sm:h-[360px] overflow-hidden flex flex-col justify-center">
+      <div className="pixel-panel p-2 relative flex-1 overflow-hidden flex flex-col justify-center">
         <FloatText texts={floatTexts} />
         {/* Enemies row */}
         <div className="flex justify-center gap-2 mb-3 flex-wrap">

@@ -591,8 +591,8 @@ export default function App() {
   ].includes(state.phase)
 
   return (
-    <div className="min-h-screen bg-retro-bg flex items-start justify-center p-2 sm:p-4">
-      <div className={`w-full max-w-md mx-auto flex flex-col gap-2 ${isBattlePhase ? '' : 'min-h-[100dvh]'}`}>
+    <div className="h-screen bg-retro-bg flex items-center justify-center p-2 sm:p-4">
+      <div className="w-full max-w-md mx-auto flex flex-col gap-2 h-full">
         <Header gold={state.gold} showGold={state.phase !== PHASES.TITLE} />
         {renderPhase()}
       </div>

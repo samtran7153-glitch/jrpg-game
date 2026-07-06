@@ -4,7 +4,7 @@ import { AREAS, ITEMS } from '../gameState'
 
 export function TitleScreen({ onStart }) {
   return (
-    <div className="flex justify-center pt-12 sm:pt-16">
+    <div className="flex justify-center items-center flex-1">
       <div className="pixel-panel w-full max-w-sm p-5 flex flex-col items-center gap-4">
         <div className="text-center">
           <div className="flex justify-center gap-2 mb-3">
