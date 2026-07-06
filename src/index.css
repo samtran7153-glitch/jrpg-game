@@ -266,3 +266,10 @@ body {
 .animate-story-jumpout {
   animation: story-jumpout 0.5s steps(8, end) both;
 }
+
+.story-defeated {
+  animation: none;
+  opacity: 0.5;
+  filter: grayscale(0.6) drop-shadow(0 4px 0 rgba(0, 0, 0, 0.3));
+  transform: scaleX(-1) rotate(-90deg) translateY(8px);
+}

@@ -55,6 +55,19 @@ export default function App() {
     setState((s) => {
       const area = AREAS[s.currentAreaIndex]
       const nextBattleIndex = s.currentBattleIndex + 1
+      const afterDialogue = s.dialogueAfter
+
+      if (afterDialogue && afterDialogue.length > 0) {
+        return {
+          ...s,
+          currentBattleIndex: nextBattleIndex,
+          phase: PHASES.DIALOGUE,
+          dialogueLines: afterDialogue,
+          dialogueIndex: 0,
+          dialogueAfter: null,
+          battleResult: null,
+        }
+      }
 
       if (nextBattleIndex >= area.battles.length) {
         const nextAreaIndex = s.currentAreaIndex + 1
@@ -68,19 +81,6 @@ export default function App() {
           phase: PHASES.AREA_MAP,
           battleResult: null,
           enemies: [],
-        }
-      }
-
-      const afterDialogue = s.dialogueAfter
-      if (afterDialogue && afterDialogue.length > 0) {
-        return {
-          ...s,
-          currentBattleIndex: nextBattleIndex,
-          phase: PHASES.DIALOGUE,
-          dialogueLines: afterDialogue,
-          dialogueIndex: 0,
-          enemies: [],
-          battleResult: null,
         }
       }
 

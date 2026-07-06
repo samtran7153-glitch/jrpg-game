@@ -185,13 +185,14 @@ function StoryStage({ state, speaker, dialogueIndex, dialogueLines }) {
 
   const visibleParty = state.party.slice(0, 4)
   const allEnemies = state.enemies.length > 0 ? state.enemies.slice(0, 3) : []
+  const enemiesDefeated = allEnemies.length > 0 && allEnemies.every((e) => !e.alive || e.hp <= 0)
 
   const isLastLine = dialogueIndex >= dialogueLines.length - 1
   const hasEnemySpeaker = dialogueLines.slice(0, dialogueIndex + 1).some((line) => {
     const lineSpeaker = line.split(':')[0] || ''
     return enemyNames.includes(lineSpeaker)
   })
-  const enemiesRevealed = hasEnemySpeaker || (isLastLine && allEnemies.length > 0)
+  const enemiesRevealed = enemiesDefeated || hasEnemySpeaker || (isLastLine && allEnemies.length > 0)
 
   const speakerSprite = heroSpeakerMap[speaker] || enemySpeakerMap[speaker]
 
@@ -224,15 +225,18 @@ function StoryStage({ state, speaker, dialogueIndex, dialogueLines }) {
             <div className="absolute -top-3 right-8 animate-story-rustle font-pixel text-[6px] text-retro-dim">?</div>
           </>
         )}
-        {enemiesRevealed && allEnemies.map((enemy) => (
-          <div key={enemy.id} className="animate-story-jumpout">
-            <div className={`story-actor ${speakerSprite === enemy.sprite ? 'story-speaker' : ''}`}>
-              <div className="story-enemy">
-                <Sprite type={enemy.sprite} size={speakerSprite === enemy.sprite ? 48 : 36} />
+        {enemiesRevealed && allEnemies.map((enemy) => {
+          const isDefeated = !enemy.alive || enemy.hp <= 0
+          return (
+            <div key={enemy.id} className={isDefeated ? '' : 'animate-story-jumpout'}>
+              <div className={`story-actor ${!isDefeated && speakerSprite === enemy.sprite ? 'story-speaker' : ''}`}>
+                <div className={`story-enemy ${isDefeated ? 'story-defeated' : ''}`}>
+                  <Sprite type={enemy.sprite} size={speakerSprite === enemy.sprite ? 48 : 36} defeated={isDefeated} />
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       {allEnemies.length === 0 && (
