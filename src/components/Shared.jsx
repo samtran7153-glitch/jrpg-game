@@ -46,6 +46,21 @@ export function CharacterCard({ actor, isEnemy, isActive, isTargetable, onTarget
       {actor.defending && (
         <div className="font-pixel text-[7px] text-retro-blue mt-0.5">DEF</div>
       )}
+      {actor.statusEffects && actor.statusEffects.length > 0 && (
+        <div className="flex gap-0.5 mt-0.5 flex-wrap justify-center">
+          {actor.statusEffects.map((e, i) => (
+            <span key={i} className={`font-pixel text-[6px] px-1 ${
+              e.type === 'poison' ? 'text-retro-green' :
+              e.type === 'stun' ? 'text-retro-gold' :
+              e.type === 'slow' ? 'text-retro-blue' :
+              e.type === 'attack_up' ? 'text-retro-accent' :
+              e.type === 'defense_up' ? 'text-retro-blue' : 'text-retro-dim'
+            }`}>
+              {e.type === 'poison' ? 'PSN' : e.type === 'stun' ? 'STN' : e.type === 'slow' ? 'SLW' : e.type === 'attack_up' ? 'ATK+' : e.type === 'defense_up' ? 'DEF+' : e.type}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

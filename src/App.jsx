@@ -142,21 +142,94 @@ export default function App() {
       .filter((actor) => actor && actor.alive && actor.hp > 0)
   }
 
+  const applyStatusEffect = (target, effect, duration) => {
+    const existing = target.statusEffects || []
+    const filtered = existing.filter((e) => e.type !== effect)
+    return { ...target, statusEffects: [...filtered, { type: effect, duration }] }
+  }
+
+  const processStatusEffects = (s, actor) => {
+    let updated = { ...actor }
+    let log = [...s.log]
+    let floats = s.floatTexts
+    const effects = updated.statusEffects || []
+
+    for (const effect of effects) {
+      if (effect.type === 'poison') {
+        const dmg = Math.max(1, Math.floor(updated.maxHp * 0.08))
+        updated = { ...updated, hp: Math.max(0, updated.hp - dmg), alive: updated.hp - dmg > 0 }
+        log = addLog(log, `${updated.name} takes ${dmg} poison damage!`)
+        floats = addFloatText(s, `-${dmg}`, 50, 50, '#4ecca3')
+      }
+    }
+
+    const newEffects = effects.map((e) => ({ ...e, duration: e.duration - 1 })).filter((e) => e.duration > 0)
+    updated = { ...updated, statusEffects: newEffects }
+
+    const stunned = newEffects.some((e) => e.type === 'stun')
+    const slowed = newEffects.some((e) => e.type === 'slow')
+
+    return { actor: updated, log, floats, stunned, slowed }
+  }
+
   const advanceTurn = (s) => {
     const currentQueuedActor = s.turnOrder[s.currentTurnIndex % s.turnOrder.length]
-    const livingOrder = getLivingTurnOrder(s)
+    let livingOrder = getLivingTurnOrder(s)
     if (livingOrder.length === 0) return s
 
     const currentLivingIndex = livingOrder.findIndex((actor) => actor.id === currentQueuedActor?.id)
-    const nextLivingIndex = currentLivingIndex >= 0
+    let nextLivingIndex = currentLivingIndex >= 0
       ? (currentLivingIndex + 1) % livingOrder.length
       : 0
-    const nextActor = livingOrder[nextLivingIndex]
+    let nextActor = livingOrder[nextLivingIndex]
+
+    // Process status effects on the next actor before their turn
+    let party = s.party
+    let enemies = s.enemies
+    let log = [...s.log]
+    let floats = s.floatTexts
+
+    if (nextActor) {
+      const result = processStatusEffects(s, nextActor)
+      log = result.log
+      floats = result.floats
+      const updatedActor = result.actor
+
+      if (updatedActor.isPlayer) {
+        party = party.map((h) => h.id === updatedActor.id ? updatedActor : h)
+      } else {
+        enemies = enemies.map((e) => e.id === updatedActor.id ? updatedActor : e)
+      }
+
+      // Check if actor died from poison
+      if (!updatedActor.alive || updatedActor.hp <= 0) {
+        const newState = { ...s, party, enemies, log, floatTexts: floats }
+        const ended = checkBattleEnd(newState)
+        if (ended) return ended
+        // Skip to next actor
+        return advanceTurn({ ...newState, currentTurnIndex: s.turnOrder.findIndex((a) => a.id === nextActor.id) })
+      }
+
+      // If stunned, skip their turn
+      if (result.stunned) {
+        log = addLog(log, `${updatedActor.name} is stunned and skips their turn!`)
+        const skipState = { ...s, party, enemies, log, floatTexts: floats }
+        const skipTurnIndex = s.turnOrder.findIndex((a) => a.id === nextActor.id)
+        return advanceTurn({ ...skipState, currentTurnIndex: skipTurnIndex })
+      }
+
+      nextActor = updatedActor
+    }
+
     const nextTurnIndex = s.turnOrder.findIndex((actor) => actor.id === nextActor.id)
     const isEnemy = nextActor && !nextActor.isPlayer
 
     return {
       ...s,
+      party,
+      enemies,
+      log,
+      floatTexts: floats,
       currentTurnIndex: nextTurnIndex >= 0 ? nextTurnIndex : 0,
       turnNonce: (s.turnNonce || 0) + 1,
       activeActor: nextActor,
@@ -177,7 +250,7 @@ export default function App() {
       if (!currentAttacker || !currentTarget) return advanceTurn({ ...s, busy: false })
 
       const isCrit = rollCrit()
-      const dmg = calculateDamage(currentAttacker, currentTarget, currentAttacker.attack, isCrit)
+      const dmg = calculateDamage(currentAttacker, currentTarget, currentAttacker.attack, isCrit, 'physical')
       const newHp = Math.max(0, currentTarget.hp - dmg)
       const updatedTarget = { ...currentTarget, hp: newHp, alive: newHp > 0 }
       const party = updatedTarget.isPlayer
@@ -224,17 +297,17 @@ export default function App() {
         floats = addFloatText(s, `+${skill.heal}`, 50, 50, '#4ecca3')
       } else if (skill.type === 'buff') {
         if (skill.effect === 'defense_up') {
-          const buffed = { ...updatedActor, defending: true }
+          const buffed = applyStatusEffect(updatedActor, 'defense_up', skill.duration || 3)
           party = party.map((h) => h.id === buffed.id ? buffed : h)
-          log = addLog(log, `${currentActor.name} uses ${skill.name}! Defense up!`)
+          log = addLog(log, `${currentActor.name} uses ${skill.name}! Defense up for ${skill.duration || 3} turns!`)
         } else if (skill.effect === 'attack_up') {
           const currentTarget = target?.isPlayer
             ? s.party.find((h) => h.id === target.id)
             : target
           if (!currentTarget) return advanceTurn({ ...s, busy: false })
-          const buffed = { ...currentTarget, attack: currentTarget.attack + 5 }
+          const buffed = applyStatusEffect(currentTarget, 'attack_up', skill.duration || 3)
           party = party.map((h) => h.id === buffed.id ? buffed : h)
-          log = addLog(log, `${currentActor.name} casts ${skill.name} on ${currentTarget.name}! ATK up!`)
+          log = addLog(log, `${currentActor.name} casts ${skill.name} on ${currentTarget.name}! ATK up for ${skill.duration || 3} turns!`)
         }
       } else {
         const currentTarget = target?.isPlayer
@@ -247,10 +320,15 @@ export default function App() {
         for (let h = 0; h < hits; h++) {
           if (!ct.alive && ct.hp <= 0) break
           const isCrit = rollCrit(skill.critBonus || 0)
-          const dmg = calculateDamage(updatedActor, ct, skill.damage, isCrit)
+          const dmg = calculateDamage(updatedActor, ct, skill.damage, isCrit, skill.element || 'physical')
           totalDmg += dmg
           const newHp = Math.max(0, ct.hp - dmg)
           ct = { ...ct, hp: newHp, alive: newHp > 0 }
+        }
+        // Apply status effect if skill has one and target is alive
+        if (ct.alive && ct.hp > 0 && skill.effect && Math.random() < (skill.effectChance || 0.5)) {
+          ct = applyStatusEffect(ct, skill.effect, skill.duration || 3)
+          log = addLog(log, `${currentActor.name} applies ${skill.effect} to ${ct.name}!`)
         }
         if (ct.isPlayer) {
           party = party.map((p) => p.id === ct.id ? ct : p)
@@ -308,6 +386,15 @@ export default function App() {
           const restored = { ...targetHero, mp: Math.min(targetHero.maxMp, targetHero.mp + item.mpRestore) }
           party = s.party.map((h) => h.id === restored.id ? restored : h)
           log = addLog(log, `${currentActor.name} uses ${item.name}! +${item.mpRestore} MP!`)
+        }
+      } else if (item.cure) {
+        const targetHero = target?.isPlayer
+          ? s.party.find((h) => h.id === target.id)
+          : currentActor
+        if (targetHero) {
+          const cured = { ...targetHero, statusEffects: (targetHero.statusEffects || []).filter((e) => e.type !== item.cure) }
+          party = s.party.map((h) => h.id === cured.id ? cured : h)
+          log = addLog(log, `${currentActor.name} uses ${item.name}! ${targetHero.name} is cured of ${item.cure}!`)
         }
       }
 
@@ -414,7 +501,24 @@ export default function App() {
       const aliveParty = s.party.filter((h) => h.alive && h.hp > 0)
       if (aliveParty.length === 0) return s
 
-      const target = aliveParty[Math.floor(Math.random() * aliveParty.length)]
+      // Smart targeting: bosses prioritize healers, then low HP; normal enemies prefer low HP
+      let target
+      if (actor.isBoss) {
+        const healer = aliveParty.find((h) => h.classKey === 'healer')
+        if (healer && Math.random() < 0.5) {
+          target = healer
+        } else {
+          target = aliveParty.reduce((lowest, h) => h.hp < lowest.hp ? h : lowest, aliveParty[0])
+        }
+      } else {
+        // 60% chance target lowest HP, 40% random
+        if (Math.random() < 0.6) {
+          target = aliveParty.reduce((lowest, h) => h.hp < lowest.hp ? h : lowest, aliveParty[0])
+        } else {
+          target = aliveParty[Math.floor(Math.random() * aliveParty.length)]
+        }
+      }
+
       const ai = actor.ai || { skillChance: 0.2 }
       const useSkill = actor.mp >= 8 && Math.random() < (ai.skillChance || 0.2)
 
@@ -434,7 +538,7 @@ export default function App() {
             let totalDmg = 0
             let newParty = s.party.map((h) => {
               if (!h.alive || h.hp <= 0) return h
-              const dmg = calculateDamage(updatedActor, h, skill.damage)
+              const dmg = calculateDamage(updatedActor, h, skill.damage, false, skill.element || 'physical')
               totalDmg += dmg
               const newHp = Math.max(0, h.hp - dmg)
               return { ...h, hp: newHp, alive: newHp > 0 }
@@ -448,9 +552,14 @@ export default function App() {
             if (ended) return ended
             return advanceTurn(shaken)
           } else {
-            const dmg = calculateDamage(updatedActor, target, skill.damage)
+            const dmg = calculateDamage(updatedActor, target, skill.damage, false, skill.element || 'physical')
             const newHp = Math.max(0, target.hp - dmg)
-            const hit = { ...target, hp: newHp, alive: newHp > 0 }
+            let hit = { ...target, hp: newHp, alive: newHp > 0 }
+            // Apply status effect from enemy skill
+            if (hit.alive && skill.effect && Math.random() < (skill.effectChance || 0.5)) {
+              hit = applyStatusEffect(hit, skill.effect, skill.duration || 3)
+              log = addLog(log, `${actor.name} applies ${skill.effect} to ${hit.name}!`)
+            }
             party = s.party.map((h) => h.id === hit.id ? hit : h)
             log = addLog(log, `${actor.name} casts ${skill.name}! ${dmg} damage!`)
             if (actor.isBoss && actor.ai?.taunts && Math.random() < (actor.ai.tauntChance || 0.3)) {
@@ -467,7 +576,7 @@ export default function App() {
         }
       }
 
-      const dmg = calculateDamage(actor, target, actor.attack)
+      const dmg = calculateDamage(actor, target, actor.attack, false, 'physical')
       const newHp = Math.max(0, target.hp - dmg)
       const hit = { ...target, hp: newHp, alive: newHp > 0 }
       party = s.party.map((h) => h.id === hit.id ? hit : h)

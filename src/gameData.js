@@ -1,26 +1,26 @@
 // ============ SKILLS ============
 export const SKILLS = {
   // Knight skills
-  powerSlash: { name: 'Power Slash', mpCost: 4, damage: 22, type: 'physical', target: 'enemy', description: 'A mighty sword strike' },
-  shieldBash: { name: 'Shield Bash', mpCost: 6, damage: 15, type: 'physical', target: 'enemy', effect: 'stun', description: 'Damage + chance to stun' },
-  taunt: { name: 'Taunt', mpCost: 3, type: 'buff', target: 'self', effect: 'defense_up', description: 'Raise defense' },
+  powerSlash: { name: 'Power Slash', mpCost: 4, damage: 22, type: 'physical', element: 'physical', target: 'enemy', description: 'A mighty sword strike' },
+  shieldBash: { name: 'Shield Bash', mpCost: 6, damage: 15, type: 'physical', element: 'physical', target: 'enemy', effect: 'stun', effectChance: 0.4, description: 'Damage + chance to stun' },
+  taunt: { name: 'Taunt', mpCost: 3, type: 'buff', target: 'self', effect: 'defense_up', duration: 3, description: 'Raise defense for 3 turns' },
   // Mage skills
-  fireball: { name: 'Fireball', mpCost: 8, damage: 30, type: 'magic', target: 'enemy', description: 'A blazing sphere of fire' },
-  iceLance: { name: 'Ice Lance', mpCost: 7, damage: 25, type: 'magic', target: 'enemy', effect: 'slow', description: 'Ice spike + slow' },
-  lightning: { name: 'Lightning', mpCost: 12, damage: 40, type: 'magic', target: 'enemy', description: 'Bolt from the heavens' },
+  fireball: { name: 'Fireball', mpCost: 8, damage: 30, type: 'magic', element: 'fire', target: 'enemy', description: 'A blazing sphere of fire' },
+  iceLance: { name: 'Ice Lance', mpCost: 7, damage: 25, type: 'magic', element: 'ice', target: 'enemy', effect: 'slow', effectChance: 0.6, duration: 2, description: 'Ice spike + slow' },
+  lightning: { name: 'Lightning', mpCost: 12, damage: 40, type: 'magic', element: 'lightning', target: 'enemy', description: 'Bolt from the heavens' },
   // Archer skills
-  preciseShot: { name: 'Precise Shot', mpCost: 3, damage: 18, type: 'physical', target: 'enemy', critBonus: 0.3, description: 'High crit chance arrow' },
-  poisonArrow: { name: 'Poison Arrow', mpCost: 5, damage: 12, type: 'physical', target: 'enemy', effect: 'poison', description: 'Damage + poison' },
-  rapidFire: { name: 'Rapid Fire', mpCost: 8, damage: 10, type: 'physical', target: 'enemy', hits: 3, description: 'Fire 3 arrows' },
+  preciseShot: { name: 'Precise Shot', mpCost: 3, damage: 18, type: 'physical', element: 'physical', target: 'enemy', critBonus: 0.3, description: 'High crit chance arrow' },
+  poisonArrow: { name: 'Poison Arrow', mpCost: 5, damage: 12, type: 'physical', element: 'physical', target: 'enemy', effect: 'poison', effectChance: 0.7, duration: 3, description: 'Damage + poison for 3 turns' },
+  rapidFire: { name: 'Rapid Fire', mpCost: 8, damage: 10, type: 'physical', element: 'physical', target: 'enemy', hits: 3, description: 'Fire 3 arrows' },
   // Healer skills
   heal: { name: 'Heal', mpCost: 6, heal: 35, type: 'support', target: 'ally', description: 'Restore HP' },
   greaterHeal: { name: 'Greater Heal', mpCost: 12, heal: 70, type: 'support', target: 'ally', description: 'Restore a lot of HP' },
-  bless: { name: 'Bless', mpCost: 8, type: 'buff', target: 'ally', effect: 'attack_up', description: 'Boost ally attack' },
+  bless: { name: 'Bless', mpCost: 8, type: 'buff', target: 'ally', effect: 'attack_up', duration: 3, description: 'Boost ally attack for 3 turns' },
   // Enemy skills
-  boneToss: { name: 'Bone Toss', mpCost: 5, damage: 18, type: 'physical', target: 'enemy', description: 'Hurls a sharpened bone' },
-  darkSlash: { name: 'Dark Slash', mpCost: 8, damage: 28, type: 'physical', target: 'enemy', description: 'A shadow-infused strike' },
-  dragonBreath: { name: 'Dragon Breath', mpCost: 15, damage: 45, type: 'magic', target: 'enemy_all', description: 'Scorching breath hits all' },
-  venomSpit: { name: 'Venom Spit', mpCost: 4, damage: 8, type: 'physical', target: 'enemy', effect: 'poison', description: 'Poisonous spit' },
+  boneToss: { name: 'Bone Toss', mpCost: 5, damage: 18, type: 'physical', element: 'physical', target: 'enemy', description: 'Hurls a sharpened bone' },
+  darkSlash: { name: 'Dark Slash', mpCost: 8, damage: 28, type: 'magic', element: 'dark', target: 'enemy', description: 'A shadow-infused strike' },
+  dragonBreath: { name: 'Dragon Breath', mpCost: 15, damage: 45, type: 'magic', element: 'fire', target: 'enemy_all', description: 'Scorching breath hits all' },
+  venomSpit: { name: 'Venom Spit', mpCost: 4, damage: 8, type: 'physical', element: 'physical', target: 'enemy', effect: 'poison', effectChance: 0.5, duration: 3, description: 'Poisonous spit' },
 }
 
 // ============ ITEMS ============
@@ -43,16 +43,16 @@ export const HERO_CLASSES = {
 
 // ============ ENEMY TYPES ============
 export const ENEMY_TYPES = {
-  slime: { name: 'Slime', sprite: 'slime', maxHp: 35, maxMp: 10, attack: 12, defense: 4, speed: 8, xp: 15, gold: 10, skills: ['venomSpit'], ai: { skillChance: 0.2 } },
-  bat: { name: 'Cave Bat', sprite: 'slime', maxHp: 28, maxMp: 8, attack: 14, defense: 3, speed: 18, xp: 18, gold: 12, skills: ['venomSpit'], ai: { skillChance: 0.25 } },
-  goblin: { name: 'Goblin', sprite: 'goblin', maxHp: 55, maxMp: 15, attack: 16, defense: 7, speed: 12, xp: 25, gold: 18, skills: ['fireball'], ai: { skillChance: 0.25 } },
-  wolf: { name: 'Dire Wolf', sprite: 'goblin', maxHp: 65, maxMp: 10, attack: 20, defense: 6, speed: 15, xp: 30, gold: 20, skills: ['darkSlash'], ai: { skillChance: 0.3 } },
-  skeleton: { name: 'Skeleton', sprite: 'skeleton', maxHp: 50, maxMp: 20, attack: 20, defense: 5, speed: 11, xp: 30, gold: 22, skills: ['boneToss'], ai: { skillChance: 0.3 } },
-  shadow: { name: 'Shadow', sprite: 'skeleton', maxHp: 70, maxMp: 25, attack: 24, defense: 8, speed: 17, xp: 40, gold: 30, skills: ['darkSlash', 'iceLance'], ai: { skillChance: 0.35 } },
-  darkKnight: { name: 'Dark Knight', sprite: 'darkKnight', maxHp: 120, maxMp: 30, attack: 26, defense: 15, speed: 14, xp: 60, gold: 50, skills: ['darkSlash', 'shieldBash'], ai: { skillChance: 0.35 } },
-  goblinKing: { name: 'Goblin King', sprite: 'goblinKing', maxHp: 160, maxMp: 40, attack: 22, defense: 12, speed: 13, xp: 100, gold: 80, skills: ['fireball', 'darkSlash'], ai: { skillChance: 0.4, tauntChance: 0.35, taunts: ['You cannot defeat me!', 'I will crush your bones!', 'Is that all you\'ve got?', 'Pathetic humans!', 'Feel my wrath!'] }, isBoss: true },
-  dragon: { name: 'Ancient Dragon', sprite: 'dragon', maxHp: 280, maxMp: 60, attack: 30, defense: 18, speed: 16, xp: 250, gold: 200, skills: ['dragonBreath', 'fireball', 'darkSlash'], ai: { skillChance: 0.45, tauntChance: 0.4, taunts: ['You are nothing but insects!', 'Burn in my flames!', 'I am eternal!', 'Your resistance is futile!', 'Tremble before me!'] }, isBoss: true },
-  shadowLord: { name: 'Shadow Lord', sprite: 'darkKnight', maxHp: 220, maxMp: 50, attack: 28, defense: 16, speed: 15, xp: 180, gold: 150, skills: ['darkSlash', 'lightning', 'dragonBreath'], ai: { skillChance: 0.5, tauntChance: 0.45, taunts: ['Darkness consumes all!', 'You fight in vain!', 'I am the void!', 'Your light fades!', 'Bow before the Shadow Lord!'] }, isBoss: true },
+  slime: { name: 'Slime', sprite: 'slime', maxHp: 35, maxMp: 10, attack: 12, defense: 4, speed: 8, xp: 15, gold: 10, skills: ['venomSpit'], weaknesses: { fire: 1.5, ice: 0.5 }, ai: { skillChance: 0.2 } },
+  bat: { name: 'Cave Bat', sprite: 'slime', maxHp: 28, maxMp: 8, attack: 14, defense: 3, speed: 18, xp: 18, gold: 12, skills: ['venomSpit'], weaknesses: { lightning: 1.5, ice: 0.5 }, ai: { skillChance: 0.25 } },
+  goblin: { name: 'Goblin', sprite: 'goblin', maxHp: 55, maxMp: 15, attack: 16, defense: 7, speed: 12, xp: 25, gold: 18, skills: ['fireball'], weaknesses: { fire: 0.5, lightning: 1.5 }, ai: { skillChance: 0.25 } },
+  wolf: { name: 'Dire Wolf', sprite: 'goblin', maxHp: 65, maxMp: 10, attack: 20, defense: 6, speed: 15, xp: 30, gold: 20, skills: ['darkSlash'], weaknesses: { ice: 1.5, fire: 1.25 }, ai: { skillChance: 0.3 } },
+  skeleton: { name: 'Skeleton', sprite: 'skeleton', maxHp: 50, maxMp: 20, attack: 20, defense: 5, speed: 11, xp: 30, gold: 22, skills: ['boneToss'], weaknesses: { fire: 1.5, lightning: 1.25, dark: 0.25 }, ai: { skillChance: 0.3 } },
+  shadow: { name: 'Shadow', sprite: 'skeleton', maxHp: 70, maxMp: 25, attack: 24, defense: 8, speed: 17, xp: 40, gold: 30, skills: ['darkSlash', 'iceLance'], weaknesses: { dark: 0.25, fire: 1.5, lightning: 1.25 }, ai: { skillChance: 0.35 } },
+  darkKnight: { name: 'Dark Knight', sprite: 'darkKnight', maxHp: 120, maxMp: 30, attack: 26, defense: 15, speed: 14, xp: 60, gold: 50, skills: ['darkSlash', 'shieldBash'], weaknesses: { dark: 0.5, fire: 1.25, lightning: 1.25 }, ai: { skillChance: 0.35 } },
+  goblinKing: { name: 'Goblin King', sprite: 'goblinKing', maxHp: 160, maxMp: 40, attack: 22, defense: 12, speed: 13, xp: 100, gold: 80, skills: ['fireball', 'darkSlash'], weaknesses: { fire: 0.5, lightning: 1.5 }, ai: { skillChance: 0.4, tauntChance: 0.35, taunts: ['You cannot defeat me!', 'I will crush your bones!', 'Is that all you\'ve got?', 'Pathetic humans!', 'Feel my wrath!'] }, isBoss: true },
+  dragon: { name: 'Ancient Dragon', sprite: 'dragon', maxHp: 280, maxMp: 60, attack: 30, defense: 18, speed: 16, xp: 250, gold: 200, skills: ['dragonBreath', 'fireball', 'darkSlash'], weaknesses: { fire: 0.25, ice: 2.0, lightning: 1.25 }, ai: { skillChance: 0.45, tauntChance: 0.4, taunts: ['You are nothing but insects!', 'Burn in my flames!', 'I am eternal!', 'Your resistance is futile!', 'Tremble before me!'] }, isBoss: true },
+  shadowLord: { name: 'Shadow Lord', sprite: 'darkKnight', maxHp: 220, maxMp: 50, attack: 28, defense: 16, speed: 15, xp: 180, gold: 150, skills: ['darkSlash', 'lightning', 'dragonBreath'], weaknesses: { dark: 0.25, fire: 1.5, lightning: 0.5, ice: 1.25 }, ai: { skillChance: 0.5, tauntChance: 0.45, taunts: ['Darkness consumes all!', 'You fight in vain!', 'I am the void!', 'Your light fades!', 'Bow before the Shadow Lord!'] }, isBoss: true },
 }
 
 // ============ AREAS ============
@@ -124,7 +124,7 @@ export function createEnemy(typeKey, index = 0) {
     id: `enemy_${typeKey}_${index}`, typeKey, name: tpl.name, sprite: tpl.sprite,
     level: Math.ceil(tpl.maxHp / 20), hp: tpl.maxHp, maxHp: tpl.maxHp, mp: tpl.maxMp, maxMp: tpl.maxMp,
     attack: tpl.attack, defense: tpl.defense, speed: tpl.speed, xp: tpl.xp, gold: tpl.gold,
-    skills: [...tpl.skills], ai: tpl.ai, isBoss: tpl.isBoss || false,
+    skills: [...tpl.skills], ai: tpl.ai, isBoss: tpl.isBoss || false, weaknesses: tpl.weaknesses || {},
     defending: false, statusEffects: [], isPlayer: false, alive: true,
   }
 }
@@ -133,11 +133,22 @@ export function createParty() {
   return [createHero('knight')]
 }
 
-export function calculateDamage(attacker, defender, baseDamage, isCrit = false) {
+export function calculateDamage(attacker, defender, baseDamage, isCrit = false, element = 'physical') {
   const variance = 0.85 + Math.random() * 0.3
   const critMult = isCrit ? 1.75 : 1
-  const def = defender.defending ? defender.defense * 2 : defender.defense
-  return Math.max(1, Math.floor((baseDamage - def * 0.5) * variance * critMult))
+  // Apply status effect buffs
+  const atkBuffs = (attacker.statusEffects || []).filter((e) => e.type === 'attack_up')
+  const atkMult = atkBuffs.length > 0 ? 1.5 : 1
+  const defBuffs = (defender.statusEffects || []).filter((e) => e.type === 'defense_up')
+  let effectiveDef = defender.defending ? defender.defense * 2 : defender.defense
+  if (defBuffs.length > 0) effectiveDef = Math.floor(effectiveDef * 1.5)
+  let dmg = Math.max(1, Math.floor((baseDamage * atkMult - effectiveDef * 0.5) * variance * critMult))
+  // Apply elemental weakness/resistance
+  const weaknesses = defender.weaknesses || defender.typeKey && ENEMY_TYPES[defender.typeKey]?.weaknesses
+  if (weaknesses && weaknesses[element]) {
+    dmg = Math.max(1, Math.floor(dmg * weaknesses[element]))
+  }
+  return dmg
 }
 
 export function rollCrit(critBonus = 0) {
