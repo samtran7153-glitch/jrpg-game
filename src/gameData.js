@@ -35,10 +35,10 @@ export const ITEMS = {
 
 // ============ HERO CLASSES ============
 export const HERO_CLASSES = {
-  knight: { name: 'Aria', title: 'Knight', sprite: 'knight', level: 5, maxHp: 90, maxMp: 25, attack: 24, defense: 14, speed: 12, skills: ['powerSlash', 'shieldBash', 'taunt'] },
-  mage: { name: 'Elwyn', title: 'Mage', sprite: 'mage', level: 5, maxHp: 55, maxMp: 45, attack: 12, defense: 6, speed: 14, skills: ['fireball', 'iceLance', 'lightning'] },
-  archer: { name: 'Kira', title: 'Archer', sprite: 'archer', level: 5, maxHp: 65, maxMp: 30, attack: 20, defense: 8, speed: 20, skills: ['preciseShot', 'poisonArrow', 'rapidFire'] },
-  healer: { name: 'Sera', title: 'Cleric', sprite: 'healer', level: 5, maxHp: 60, maxMp: 40, attack: 10, defense: 8, speed: 13, skills: ['heal', 'greaterHeal', 'bless'] },
+  knight: { name: 'Aria', title: 'Knight', sprite: 'knight', level: 1, maxHp: 50, maxMp: 15, attack: 14, defense: 8, speed: 10, skills: ['powerSlash', 'shieldBash', 'taunt'] },
+  mage: { name: 'Elwyn', title: 'Mage', sprite: 'mage', level: 1, maxHp: 30, maxMp: 30, attack: 8, defense: 4, speed: 12, skills: ['fireball', 'iceLance', 'lightning'] },
+  archer: { name: 'Kira', title: 'Archer', sprite: 'archer', level: 1, maxHp: 38, maxMp: 18, attack: 12, defense: 5, speed: 16, skills: ['preciseShot', 'poisonArrow', 'rapidFire'] },
+  healer: { name: 'Sera', title: 'Cleric', sprite: 'healer', level: 1, maxHp: 35, maxMp: 25, attack: 6, defense: 5, speed: 11, skills: ['heal', 'greaterHeal', 'bless'] },
 }
 
 // ============ ENEMY TYPES ============
@@ -47,8 +47,8 @@ export const ENEMY_TYPES = {
   goblin: { name: 'Goblin', sprite: 'goblin', maxHp: 55, maxMp: 15, attack: 16, defense: 7, speed: 12, xp: 25, gold: 18, skills: ['fireball'], ai: { skillChance: 0.25 } },
   skeleton: { name: 'Skeleton', sprite: 'skeleton', maxHp: 50, maxMp: 20, attack: 20, defense: 5, speed: 11, xp: 30, gold: 22, skills: ['boneToss'], ai: { skillChance: 0.3 } },
   darkKnight: { name: 'Dark Knight', sprite: 'darkKnight', maxHp: 120, maxMp: 30, attack: 26, defense: 15, speed: 14, xp: 60, gold: 50, skills: ['darkSlash', 'shieldBash'], ai: { skillChance: 0.35 } },
-  goblinKing: { name: 'Goblin King', sprite: 'goblinKing', maxHp: 160, maxMp: 40, attack: 22, defense: 12, speed: 13, xp: 100, gold: 80, skills: ['fireball', 'darkSlash'], ai: { skillChance: 0.4 }, isBoss: true },
-  dragon: { name: 'Ancient Dragon', sprite: 'dragon', maxHp: 280, maxMp: 60, attack: 30, defense: 18, speed: 16, xp: 250, gold: 200, skills: ['dragonBreath', 'fireball', 'darkSlash'], ai: { skillChance: 0.45 }, isBoss: true },
+  goblinKing: { name: 'Goblin King', sprite: 'goblinKing', maxHp: 160, maxMp: 40, attack: 22, defense: 12, speed: 13, xp: 100, gold: 80, skills: ['fireball', 'darkSlash'], ai: { skillChance: 0.4, tauntChance: 0.35, taunts: ['You cannot defeat me!', 'I will crush your bones!', 'Is that all you\'ve got?', 'Pathetic humans!', 'Feel my wrath!'] }, isBoss: true },
+  dragon: { name: 'Ancient Dragon', sprite: 'dragon', maxHp: 280, maxMp: 60, attack: 30, defense: 18, speed: 16, xp: 250, gold: 200, skills: ['dragonBreath', 'fireball', 'darkSlash'], ai: { skillChance: 0.45, tauntChance: 0.4, taunts: ['You are nothing but insects!', 'Burn in my flames!', 'I am eternal!', 'Your resistance is futile!', 'Tremble before me!'] }, isBoss: true },
 }
 
 // ============ AREAS ============
@@ -125,10 +125,10 @@ export function xpForLevel(level) {
 
 export function levelUp(hero) {
   const newLevel = hero.level + 1
-  const hpGain = Math.floor(hero.maxHp * 0.12) + 5
-  const mpGain = Math.floor(hero.maxMp * 0.1) + 2
-  const atkGain = Math.max(2, Math.floor(hero.attack * 0.1))
-  const defGain = Math.max(1, Math.floor(hero.defense * 0.1))
+  const hpGain = Math.floor(hero.maxHp * 0.18) + 6
+  const mpGain = Math.floor(hero.maxMp * 0.15) + 3
+  const atkGain = Math.max(3, Math.floor(hero.attack * 0.15))
+  const defGain = Math.max(2, Math.floor(hero.defense * 0.15))
   return {
     ...hero, level: newLevel,
     maxHp: hero.maxHp + hpGain, maxMp: hero.maxMp + mpGain,

@@ -395,6 +395,10 @@ export default function App() {
             const hit = { ...target, hp: newHp, alive: newHp > 0 }
             party = s.party.map((h) => h.id === hit.id ? hit : h)
             log = addLog(log, `${actor.name} casts ${skill.name}! ${dmg} damage!`)
+            if (actor.isBoss && actor.ai?.taunts && Math.random() < (actor.ai.tauntChance || 0.3)) {
+              const taunt = actor.ai.taunts[Math.floor(Math.random() * actor.ai.taunts.length)]
+              log = addLog(log, `${actor.name}: "${taunt}"`)
+            }
             floats = addFloatText(s, `-${dmg}`, 50, 50, '#e94560')
             const newState = { ...s, party, enemies, log, floatTexts: floats }
             const shaken = triggerShake(newState)
@@ -410,6 +414,10 @@ export default function App() {
       const hit = { ...target, hp: newHp, alive: newHp > 0 }
       party = s.party.map((h) => h.id === hit.id ? hit : h)
       log = addLog(log, `${actor.name} attacks ${target.name}! ${dmg} damage!`)
+      if (actor.isBoss && actor.ai?.taunts && Math.random() < (actor.ai.tauntChance || 0.3)) {
+        const taunt = actor.ai.taunts[Math.floor(Math.random() * actor.ai.taunts.length)]
+        log = addLog(log, `${actor.name}: "${taunt}"`)
+      }
       floats = addFloatText(s, `-${dmg}`, 50, 50, '#e94560')
       const newState = { ...s, party, log, floatTexts: floats }
       const shaken = triggerShake(newState)
