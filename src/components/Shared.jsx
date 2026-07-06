@@ -25,7 +25,7 @@ export function CharacterCard({ actor, isEnemy, isActive, isTargetable, onTarget
       className={`pixel-panel ${compact ? 'p-1 w-16' : 'p-1.5'} flex flex-col items-center relative transition-all duration-200 ${
         isActive ? 'ring-2 ring-retro-gold scale-105' : ''
       } ${isTargetable ? 'ring-2 ring-retro-accent cursor-pointer animate-pulse' : ''} ${
-        !actor.alive || actor.hp <= 0 ? 'opacity-50' : ''
+        !actor.alive || actor.hp <= 0 ? 'animate-defeat' : ''
       }`}
       onClick={isTargetable ? () => onTarget(actor) : undefined}
     >

@@ -464,10 +464,10 @@ export default function App() {
   }, [state.phase, screenFade])
 
   useEffect(() => {
-    if (state.phase === PHASES.BATTLE_VICTORY && !state.battleResult?.applied) {
+    if (state.phase === PHASES.BATTLE_VICTORY && !state.battleResult?.applied && screenFade === 'fade-out') {
       setState((s) => applyXpAndLevelUps(s))
     }
-  }, [state.phase, state.battleResult?.applied])
+  }, [state.phase, state.battleResult?.applied, screenFade])
 
   // ============ RENDER ============
   const renderPhase = () => {
