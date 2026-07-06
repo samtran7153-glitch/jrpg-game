@@ -140,7 +140,6 @@ export function applyXpAndLevelUps(state) {
   const xpPerHero = Math.floor(state.battleResult.xp / state.party.length)
   const leveledUp = []
   let party = state.party.map((hero) => {
-    if (!hero.alive) return hero
     let h = { ...hero, xp: (hero.xp || 0) + xpPerHero }
     while (h.xp >= xpForLevel(h.level)) {
       h.xp -= xpForLevel(h.level)

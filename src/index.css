@@ -50,6 +50,16 @@ body {
   animation: float-up 1.2s ease-out forwards;
 }
 
+@keyframes defeat-fade {
+  0% { opacity: 1; transform: scale(1) rotate(0deg); }
+  30% { opacity: 1; transform: scale(1.1) rotate(-5deg); }
+  100% { opacity: 0.4; transform: scale(0.9) rotate(-15deg); }
+}
+
+.animate-defeat {
+  animation: defeat-fade 0.5s steps(6, end) forwards;
+}
+
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   20% { transform: translateX(-4px); }

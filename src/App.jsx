@@ -81,7 +81,7 @@ export default function App() {
       if (nextBattleIndex >= area.battles.length) {
         const nextAreaIndex = s.currentAreaIndex + 1
         if (nextAreaIndex >= AREAS.length) {
-          return { ...s, phase: PHASES.GAME_COMPLETE }
+          return { ...s, phase: PHASES.GAME_COMPLETE, dialogueAfter: null }
         }
         return {
           ...s,
@@ -91,6 +91,7 @@ export default function App() {
           phase: PHASES.AREA_MAP,
           battleResult: null,
           enemies: [],
+          dialogueAfter: null,
         }
       }
 
@@ -101,6 +102,7 @@ export default function App() {
         phase: PHASES.AREA_MAP,
         battleResult: null,
         enemies: [],
+        dialogueAfter: null,
       }
     })
   }
@@ -201,45 +203,61 @@ export default function App() {
     await sleep(500)
 
     setState((s) => {
-      const updatedActor = { ...actor, mp: actor.mp - skill.mpCost }
-      let party = s.party.map((h) => h.id === actor.id ? updatedActor : h)
+      const currentActor = resolveActor(s, { id: actor.id, isPlayer: actor.isPlayer })
+      if (!currentActor) return advanceTurn({ ...s, busy: false })
+      if (currentActor.mp < skill.mpCost) return advanceTurn({ ...s, busy: false })
+
+      const updatedActor = { ...currentActor, mp: currentActor.mp - skill.mpCost }
+      let party = s.party.map((h) => h.id === currentActor.id ? updatedActor : h)
       let enemies = s.enemies
       let log = [...s.log]
       let floats = s.floatTexts
 
       if (skill.type === 'support') {
-        const healed = { ...target, hp: Math.min(target.maxHp, target.hp + skill.heal) }
+        const currentTarget = target?.isPlayer
+          ? s.party.find((h) => h.id === target.id)
+          : target
+        if (!currentTarget) return advanceTurn({ ...s, busy: false })
+        const healed = { ...currentTarget, hp: Math.min(currentTarget.maxHp, currentTarget.hp + skill.heal) }
         party = party.map((h) => h.id === healed.id ? healed : h)
-        log = addLog(log, `${actor.name} casts ${skill.name}! +${skill.heal} HP!`)
+        log = addLog(log, `${currentActor.name} casts ${skill.name}! +${skill.heal} HP!`)
         floats = addFloatText(s, `+${skill.heal}`, 50, 50, '#4ecca3')
       } else if (skill.type === 'buff') {
         if (skill.effect === 'defense_up') {
           const buffed = { ...updatedActor, defending: true }
           party = party.map((h) => h.id === buffed.id ? buffed : h)
-          log = addLog(log, `${actor.name} uses ${skill.name}! Defense up!`)
+          log = addLog(log, `${currentActor.name} uses ${skill.name}! Defense up!`)
         } else if (skill.effect === 'attack_up') {
-          const buffed = { ...target, attack: target.attack + 5 }
+          const currentTarget = target?.isPlayer
+            ? s.party.find((h) => h.id === target.id)
+            : target
+          if (!currentTarget) return advanceTurn({ ...s, busy: false })
+          const buffed = { ...currentTarget, attack: currentTarget.attack + 5 }
           party = party.map((h) => h.id === buffed.id ? buffed : h)
-          log = addLog(log, `${actor.name} casts ${skill.name} on ${target.name}! ATK up!`)
+          log = addLog(log, `${currentActor.name} casts ${skill.name} on ${currentTarget.name}! ATK up!`)
         }
       } else {
+        const currentTarget = target?.isPlayer
+          ? s.party.find((h) => h.id === target.id)
+          : s.enemies.find((e) => e.id === target?.id)
+        if (!currentTarget) return advanceTurn({ ...s, busy: false })
         const hits = skill.hits || 1
         let totalDmg = 0
-        let currentTarget = { ...target }
+        let ct = { ...currentTarget }
         for (let h = 0; h < hits; h++) {
-          if (!currentTarget.alive && currentTarget.hp <= 0) break
+          if (!ct.alive && ct.hp <= 0) break
           const isCrit = rollCrit(skill.critBonus || 0)
-          const dmg = calculateDamage(updatedActor, currentTarget, skill.damage, isCrit)
+          const dmg = calculateDamage(updatedActor, ct, skill.damage, isCrit)
           totalDmg += dmg
-          const newHp = Math.max(0, currentTarget.hp - dmg)
-          currentTarget = { ...currentTarget, hp: newHp, alive: newHp > 0 }
+          const newHp = Math.max(0, ct.hp - dmg)
+          ct = { ...ct, hp: newHp, alive: newHp > 0 }
         }
-        if (currentTarget.isPlayer) {
-          party = party.map((p) => p.id === currentTarget.id ? currentTarget : p)
+        if (ct.isPlayer) {
+          party = party.map((p) => p.id === ct.id ? ct : p)
         } else {
-          enemies = enemies.map((e) => e.id === currentTarget.id ? currentTarget : e)
+          enemies = enemies.map((e) => e.id === ct.id ? ct : e)
         }
-        log = addLog(log, `${actor.name} casts ${skill.name}! ${totalDmg} damage!`)
+        log = addLog(log, `${currentActor.name} casts ${skill.name}! ${totalDmg} damage!`)
         floats = addFloatText(s, `-${totalDmg}`, 50, 50, '#e94560')
       }
 
@@ -258,26 +276,39 @@ export default function App() {
     await sleep(300)
 
     setState((s) => {
+      const currentActor = resolveActor(s, { id: actor.id, isPlayer: actor.isPlayer })
+      if (!currentActor) return advanceTurn({ ...s, busy: false })
+      if (!s.inventory[itemId] || s.inventory[itemId] <= 0) return advanceTurn({ ...s, busy: false })
+
       const inventory = { ...s.inventory, [itemId]: s.inventory[itemId] - 1 }
       let party = s.party
       let log = [...s.log]
-      let targetHero = target || actor
 
       if (item.revive) {
         const revived = s.party.find((h) => !h.alive || h.hp <= 0)
         if (revived) {
           const r = { ...revived, alive: true, hp: Math.min(revived.maxHp, item.heal) }
           party = s.party.map((h) => h.id === r.id ? r : h)
-          log = addLog(log, `${actor.name} uses ${item.name}! ${r.name} is revived!`)
+          log = addLog(log, `${currentActor.name} uses ${item.name}! ${r.name} is revived!`)
         }
       } else if (item.heal) {
-        const healed = { ...targetHero, hp: Math.min(targetHero.maxHp, targetHero.hp + item.heal) }
-        party = s.party.map((h) => h.id === healed.id ? healed : h)
-        log = addLog(log, `${actor.name} uses ${item.name}! +${item.heal} HP!`)
+        const targetHero = target?.isPlayer
+          ? s.party.find((h) => h.id === target.id)
+          : currentActor
+        if (targetHero) {
+          const healed = { ...targetHero, hp: Math.min(targetHero.maxHp, targetHero.hp + item.heal) }
+          party = s.party.map((h) => h.id === healed.id ? healed : h)
+          log = addLog(log, `${currentActor.name} uses ${item.name}! +${item.heal} HP!`)
+        }
       } else if (item.mpRestore) {
-        const restored = { ...targetHero, mp: Math.min(targetHero.maxMp, targetHero.mp + item.mpRestore) }
-        party = s.party.map((h) => h.id === restored.id ? restored : h)
-        log = addLog(log, `${actor.name} uses ${item.name}! +${item.mpRestore} MP!`)
+        const targetHero = target?.isPlayer
+          ? s.party.find((h) => h.id === target.id)
+          : currentActor
+        if (targetHero) {
+          const restored = { ...targetHero, mp: Math.min(targetHero.maxMp, targetHero.mp + item.mpRestore) }
+          party = s.party.map((h) => h.id === restored.id ? restored : h)
+          log = addLog(log, `${currentActor.name} uses ${item.name}! +${item.mpRestore} MP!`)
+        }
       }
 
       const newState = { ...s, party, inventory, log, busy: false }
@@ -289,8 +320,10 @@ export default function App() {
 
   const executeDefend = (actor) => {
     setState((s) => {
-      const party = s.party.map((h) => h.id === actor.id ? { ...h, defending: true } : h)
-      const log = addLog(s.log, `${actor.name} raises their guard!`)
+      const currentActor = resolveActor(s, { id: actor.id, isPlayer: actor.isPlayer })
+      if (!currentActor) return advanceTurn({ ...s, busy: false })
+      const party = s.party.map((h) => h.id === currentActor.id ? { ...h, defending: true } : h)
+      const log = addLog(s.log, `${currentActor.name} raises their guard!`)
       const newState = { ...s, party, log, busy: false }
       return advanceTurn(newState)
     })
@@ -298,28 +331,33 @@ export default function App() {
 
   // ============ ACTION HANDLER ============
   const handleAction = useCallback((action, payload) => {
-    const actor = resolveActor(state, state.turnOrder[state.currentTurnIndex % state.turnOrder.length])
 
     switch (action) {
       case 'attack':
         setState((s) => ({ ...s, phase: PHASES.PLAYER_TARGET, pendingAction: { type: 'attack' } }))
         break
       case 'target_enemy': {
-        if (state.pendingAction?.type === 'attack') {
-          executeAttack(actor, payload)
-        } else if (state.pendingAction?.type === 'skill') {
-          executeSkill(actor, state.pendingAction.skillId, payload)
-        }
-        setState((s) => ({ ...s, pendingAction: null }))
+        setState((s) => {
+          const actor = resolveActor(s, s.turnOrder[s.currentTurnIndex % s.turnOrder.length])
+          if (s.pendingAction?.type === 'attack') {
+            executeAttack(actor, payload)
+          } else if (s.pendingAction?.type === 'skill') {
+            executeSkill(actor, s.pendingAction.skillId, payload)
+          }
+          return { ...s, pendingAction: null }
+        })
         break
       }
       case 'target_ally': {
-        if (state.pendingAction?.type === 'skill') {
-          executeSkill(actor, state.pendingAction.skillId, payload)
-        } else if (state.pendingAction?.type === 'item') {
-          executeItem(actor, state.pendingAction.itemId, payload)
-        }
-        setState((s) => ({ ...s, pendingAction: null }))
+        setState((s) => {
+          const actor = resolveActor(s, s.turnOrder[s.currentTurnIndex % s.turnOrder.length])
+          if (s.pendingAction?.type === 'skill') {
+            executeSkill(actor, s.pendingAction.skillId, payload)
+          } else if (s.pendingAction?.type === 'item') {
+            executeItem(actor, s.pendingAction.itemId, payload)
+          }
+          return { ...s, pendingAction: null }
+        })
         break
       }
       case 'open_skills':
@@ -328,7 +366,11 @@ export default function App() {
       case 'select_skill': {
         const skill = SKILLS[payload]
         if (skill.target === 'self') {
-          executeSkill(actor, payload, actor)
+          setState((s) => {
+            const actor = resolveActor(s, s.turnOrder[s.currentTurnIndex % s.turnOrder.length])
+            executeSkill(actor, payload, actor)
+            return s
+          })
         } else if (skill.target === 'ally') {
           setState((s) => ({ ...s, phase: PHASES.PLAYER_ALLY_TARGET, pendingAction: { type: 'skill', skillId: payload } }))
         } else {
@@ -342,16 +384,28 @@ export default function App() {
       case 'use_item': {
         const item = ITEMS[payload]
         if (item.revive) {
-          executeItem(actor, payload, null)
+          setState((s) => {
+            const actor = resolveActor(s, s.turnOrder[s.currentTurnIndex % s.turnOrder.length])
+            executeItem(actor, payload, null)
+            return s
+          })
         } else if (item.heal || item.mpRestore) {
           setState((s) => ({ ...s, phase: PHASES.PLAYER_ALLY_TARGET, pendingAction: { type: 'item', itemId: payload } }))
         } else {
-          executeItem(actor, payload, actor)
+          setState((s) => {
+            const actor = resolveActor(s, s.turnOrder[s.currentTurnIndex % s.turnOrder.length])
+            executeItem(actor, payload, actor)
+            return s
+          })
         }
         break
       }
       case 'defend':
-        executeDefend(actor)
+        setState((s) => {
+          const actor = resolveActor(s, s.turnOrder[s.currentTurnIndex % s.turnOrder.length])
+          executeDefend(actor)
+          return s
+        })
         break
       case 'back_to_menu':
         setState((s) => ({ ...s, phase: PHASES.PLAYER_MENU, pendingAction: null }))
@@ -359,7 +413,7 @@ export default function App() {
       default:
         break
     }
-  }, [state])
+  }, [])
 
   // ============ ENEMY AI ============
   const enemyTurn = useCallback(async () => {
