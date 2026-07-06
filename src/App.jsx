@@ -515,23 +515,32 @@ export default function App() {
   }, [state.phase])
 
   useEffect(() => {
-    if (state.phase === PHASES.BATTLE_VICTORY || state.phase === PHASES.BATTLE_DEFEAT) {
-      if (!screenFade) {
-        setScreenFade('fade-start')
-        const t1 = setTimeout(() => setScreenFade('fade-in'), 20)
-        return () => clearTimeout(t1)
-      }
-      if (screenFade === 'fade-in') {
-        const t = setTimeout(() => setScreenFade('fade-out'), 500)
-        return () => clearTimeout(t)
-      }
-      if (screenFade === 'fade-out') {
-        const t = setTimeout(() => setScreenFade('done'), 500)
-        return () => clearTimeout(t)
-      }
-    } else {
+    if (state.phase !== PHASES.BATTLE_VICTORY && state.phase !== PHASES.BATTLE_DEFEAT) {
       setScreenFade(null)
+      return undefined
     }
+
+    if (!screenFade) {
+      setScreenFade('fade-start')
+      return undefined
+    }
+
+    if (screenFade === 'fade-start') {
+      const t = setTimeout(() => setScreenFade('fade-in'), 20)
+      return () => clearTimeout(t)
+    }
+
+    if (screenFade === 'fade-in') {
+      const t = setTimeout(() => setScreenFade('fade-out'), 500)
+      return () => clearTimeout(t)
+    }
+
+    if (screenFade === 'fade-out') {
+      const t = setTimeout(() => setScreenFade('done'), 500)
+      return () => clearTimeout(t)
+    }
+
+    return undefined
   }, [state.phase, screenFade])
 
   useEffect(() => {
