@@ -143,22 +143,22 @@ export function DialogueScreen({ state, onAdvance }) {
   return (
     <div className="flex flex-col gap-2 flex-1 justify-end pb-4">
       <StoryStage state={state} speaker={speaker} dialogueIndex={state.dialogueIndex} dialogueLines={state.dialogueLines} />
-      <div key={state.dialogueIndex} className="pixel-panel p-3 min-h-[180px] relative overflow-hidden animate-dialogue-box">
+      <div key={state.dialogueIndex} className="pixel-panel p-3 min-h-[220px] relative overflow-y-auto animate-dialogue-box">
         <div className="absolute inset-0 opacity-10 pointer-events-none dialogue-scanlines" />
         <div className="relative z-10 flex gap-3 items-start">
           <div className="w-14 h-14 pixel-panel flex items-center justify-center shrink-0 animate-dialogue-portrait">
             <span className="font-pixel text-lg text-retro-gold">{speakerInitial}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="inline-block font-pixel text-[7px] text-retro-gold mb-3 px-2 py-1 border border-retro-border bg-retro-bg animate-speaker-badge">
+            <div className="inline-block font-pixel text-[7px] text-retro-gold mb-2 px-2 py-1 border border-retro-border bg-retro-bg animate-speaker-badge">
               {speaker || 'Narrator'}
             </div>
-            <div className="font-pixel text-[8px] text-retro-text leading-relaxed animate-dialogue-text">
+            <div className="font-pixel text-[7px] text-retro-text leading-loose animate-dialogue-text break-words">
               {text}
             </div>
           </div>
         </div>
-        <div className="relative z-10 mt-4 flex justify-end items-center gap-2">
+        <div className="relative z-10 mt-3 flex justify-end items-center gap-2">
           <span className="font-pixel text-[6px] text-retro-dim animate-next-prompt">▼</span>
           <button className="pixel-btn text-[6px]" onClick={onAdvance}>
             {state.dialogueIndex < state.dialogueLines.length - 1 ? 'Next' : 'Continue'}
@@ -186,10 +186,12 @@ function StoryStage({ state, speaker, dialogueIndex, dialogueLines }) {
   const visibleParty = state.party.slice(0, 4)
   const allEnemies = state.enemies.length > 0 ? state.enemies.slice(0, 3) : []
 
-  const enemiesRevealed = dialogueLines.slice(0, dialogueIndex + 1).some((line) => {
+  const isLastLine = dialogueIndex >= dialogueLines.length - 1
+  const hasEnemySpeaker = dialogueLines.slice(0, dialogueIndex + 1).some((line) => {
     const lineSpeaker = line.split(':')[0] || ''
     return enemyNames.includes(lineSpeaker)
   })
+  const enemiesRevealed = hasEnemySpeaker || (isLastLine && allEnemies.length > 0)
 
   const speakerSprite = heroSpeakerMap[speaker] || enemySpeakerMap[speaker]
 
