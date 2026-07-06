@@ -4,12 +4,12 @@ import { CharacterCard, FloatText } from './Shared'
 import { SKILLS, ITEMS } from '../gameState'
 
 const TUTORIAL_TIPS = [
-  'Welcome to battle! The bar above shows turn order. Your hero acts first.',
-  'Choose ATTACK to hit an enemy. Pick a target by tapping them.',
-  'SKILLS use MP for powerful effects. Try Power Slash!',
-  'ITEMS heal HP or MP. Use them wisely — they are limited.',
-  'DEFEND halves damage next turn. Use it when low on HP!',
-  'Watch the turn order bar to plan ahead. Defeat all enemies to win!',
+  { text: 'Welcome to battle! The bar above shows turn order. Your hero acts first.', highlight: 'turn_order' },
+  { text: 'Choose ATTACK to hit an enemy. Pick a target by tapping them.', highlight: 'attack' },
+  { text: 'SKILLS use MP for powerful effects. Try Power Slash!', highlight: 'skills' },
+  { text: 'ITEMS heal HP or MP. Use them wisely — they are limited.', highlight: 'items' },
+  { text: 'DEFEND halves damage next turn. Use it when low on HP!', highlight: 'defend' },
+  { text: 'Watch the turn order bar to plan ahead. Defeat all enemies to win!', highlight: 'turn_order' },
 ]
 
 export function BattleScreen({ state, anim, onAction }) {
@@ -30,7 +30,7 @@ export function BattleScreen({ state, anim, onAction }) {
   return (
     <div className={`flex flex-col gap-2 flex-1 ${screenShake > 0 ? 'animate-shake' : ''}`}>
       {/* Turn order bar */}
-      <TurnOrderBar turnOrder={turnOrder} currentTurnIndex={currentTurnIndex} party={party} enemies={enemies} />
+      <TurnOrderBar turnOrder={turnOrder} currentTurnIndex={currentTurnIndex} party={party} enemies={enemies} highlighted={showTutorial && TUTORIAL_TIPS[tutorialStep]?.highlight === 'turn_order'} />
 
       {/* Battle field */}
       <div className="pixel-panel p-2 relative flex-1 overflow-hidden flex flex-col justify-center">
@@ -84,32 +84,34 @@ export function BattleScreen({ state, anim, onAction }) {
       </div>
 
       {/* Action menu */}
-      <BattleMenu state={state} activeActor={activeActor} isPlayerTurn={isPlayerTurn} onAction={onAction} />
+      <BattleMenu state={state} activeActor={activeActor} isPlayerTurn={isPlayerTurn} onAction={onAction} tutorialHighlight={showTutorial ? TUTORIAL_TIPS[tutorialStep]?.highlight : null} />
 
-      {/* Tutorial overlay */}
+      {/* Tutorial banner */}
       {showTutorial && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4" onClick={() => setTutorialDismissed(true)}>
-          <div className="pixel-panel p-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
-            <div className="font-pixel text-[10px] text-retro-gold mb-2 text-center">TUTORIAL {tutorialStep + 1}/{TUTORIAL_TIPS.length}</div>
-            <div className="font-pixel text-[9px] text-retro-text leading-relaxed text-center mb-3">
-              {TUTORIAL_TIPS[tutorialStep]}
+        <div className="pixel-panel p-2 z-40 border-2 border-retro-gold">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex-1">
+              <div className="font-pixel text-[8px] text-retro-gold mb-0.5">TUTORIAL {tutorialStep + 1}/{TUTORIAL_TIPS.length}</div>
+              <div className="font-pixel text-[8px] text-retro-text leading-relaxed">
+                {TUTORIAL_TIPS[tutorialStep].text}
+              </div>
             </div>
-            <div className="flex gap-2 justify-center">
-              {tutorialStep < TUTORIAL_TIPS.length - 1 ? (
-                <button className="pixel-btn" onClick={() => setTutorialStep(tutorialStep + 1)}>
-                  Next
-                </button>
-              ) : (
-                <button className="pixel-btn" onClick={() => setTutorialDismissed(true)}>
-                  Got it!
-                </button>
-              )}
+            <div className="flex gap-1 shrink-0">
               {tutorialStep > 0 && (
-                <button className="pixel-btn text-retro-dim" onClick={() => setTutorialStep(tutorialStep - 1)}>
+                <button className="pixel-btn text-[7px] px-1 py-0.5" onClick={() => setTutorialStep(tutorialStep - 1)}>
                   Back
                 </button>
               )}
-              <button className="pixel-btn text-retro-dim" onClick={() => setTutorialDismissed(true)}>
+              {tutorialStep < TUTORIAL_TIPS.length - 1 ? (
+                <button className="pixel-btn text-[7px] px-1 py-0.5" onClick={() => setTutorialStep(tutorialStep + 1)}>
+                  Next
+                </button>
+              ) : (
+                <button className="pixel-btn text-[7px] px-1 py-0.5" onClick={() => setTutorialDismissed(true)}>
+                  Got it!
+                </button>
+              )}
+              <button className="pixel-btn text-[7px] px-1 py-0.5 text-retro-dim" onClick={() => setTutorialDismissed(true)}>
                 Skip
               </button>
             </div>
@@ -120,7 +122,7 @@ export function BattleScreen({ state, anim, onAction }) {
   )
 }
 
-function TurnOrderBar({ turnOrder, currentTurnIndex, party, enemies }) {
+function TurnOrderBar({ turnOrder, currentTurnIndex, party, enemies, highlighted }) {
   const resolveActor = (queuedActor) => {
     if (!queuedActor) return null
     const actors = queuedActor.isPlayer ? party : enemies
@@ -135,7 +137,7 @@ function TurnOrderBar({ turnOrder, currentTurnIndex, party, enemies }) {
   }
 
   return (
-    <div className="pixel-panel px-1.5 py-1 flex items-center gap-1 overflow-x-auto min-h-8">
+    <div className={`pixel-panel px-1.5 py-1 flex items-center gap-1 overflow-x-auto min-h-8 ${highlighted ? 'ring-2 ring-retro-gold animate-pulse' : ''}`}>
       <span className="font-pixel text-[6px] text-retro-dim shrink-0">TURN</span>
       {upcoming.map(({ actor, idx }, i) => {
         const isActive = i === 0
@@ -152,7 +154,7 @@ function TurnOrderBar({ turnOrder, currentTurnIndex, party, enemies }) {
   )
 }
 
-function BattleMenu({ state, activeActor, isPlayerTurn, onAction }) {
+function BattleMenu({ state, activeActor, isPlayerTurn, onAction, tutorialHighlight }) {
   const { phase, busy } = state
 
   if (!isPlayerTurn || busy) {
@@ -253,10 +255,10 @@ function BattleMenu({ state, activeActor, isPlayerTurn, onAction }) {
 
   return (
     <div className="pixel-panel p-1.5 grid grid-cols-2 gap-1">
-      <button className="pixel-btn" onClick={() => onAction('attack')}>Attack</button>
-      <button className="pixel-btn" onClick={() => onAction('open_skills')}>Skills</button>
-      <button className="pixel-btn" onClick={() => onAction('open_items')}>Items</button>
-      <button className="pixel-btn" onClick={() => onAction('defend')}>Defend</button>
+      <button className={`pixel-btn ${tutorialHighlight === 'attack' ? 'ring-2 ring-retro-gold animate-pulse' : ''}`} onClick={() => onAction('attack')}>Attack</button>
+      <button className={`pixel-btn ${tutorialHighlight === 'skills' ? 'ring-2 ring-retro-gold animate-pulse' : ''}`} onClick={() => onAction('open_skills')}>Skills</button>
+      <button className={`pixel-btn ${tutorialHighlight === 'items' ? 'ring-2 ring-retro-gold animate-pulse' : ''}`} onClick={() => onAction('open_items')}>Items</button>
+      <button className={`pixel-btn ${tutorialHighlight === 'defend' ? 'ring-2 ring-retro-gold animate-pulse' : ''}`} onClick={() => onAction('defend')}>Defend</button>
     </div>
   )
 }
