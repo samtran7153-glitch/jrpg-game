@@ -53,7 +53,7 @@ export function BattleScreen({ state, anim, onAction }) {
         {/* VS divider */}
         <div className="flex items-center justify-center my-1">
           <div className="h-px flex-1 bg-retro-border" />
-          <span className="font-pixel text-[6px] text-retro-accent px-2">VS</span>
+          <span className="font-pixel text-[8px] text-retro-accent px-2">VS</span>
           <div className="h-px flex-1 bg-retro-border" />
         </div>
         {/* Party row */}
@@ -76,7 +76,7 @@ export function BattleScreen({ state, anim, onAction }) {
       <div className="pixel-panel p-1.5 h-14 overflow-hidden">
         <div className="space-y-0.5">
           {log.slice(-3).map((entry, i) => (
-            <div key={i} className="font-pixel text-[6px] text-retro-text leading-relaxed">
+            <div key={i} className="font-pixel text-[8px] text-retro-text leading-relaxed">
               {entry}
             </div>
           ))}
@@ -90,8 +90,8 @@ export function BattleScreen({ state, anim, onAction }) {
       {showTutorial && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4" onClick={() => setTutorialDismissed(true)}>
           <div className="pixel-panel p-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
-            <div className="font-pixel text-[8px] text-retro-gold mb-2 text-center">TUTORIAL {tutorialStep + 1}/{TUTORIAL_TIPS.length}</div>
-            <div className="font-pixel text-[7px] text-retro-text leading-relaxed text-center mb-3">
+            <div className="font-pixel text-[10px] text-retro-gold mb-2 text-center">TUTORIAL {tutorialStep + 1}/{TUTORIAL_TIPS.length}</div>
+            <div className="font-pixel text-[9px] text-retro-text leading-relaxed text-center mb-3">
               {TUTORIAL_TIPS[tutorialStep]}
             </div>
             <div className="flex gap-2 justify-center">
@@ -136,7 +136,7 @@ function TurnOrderBar({ turnOrder, currentTurnIndex, party, enemies }) {
 
   return (
     <div className="pixel-panel px-1.5 py-1 flex items-center gap-1 overflow-x-auto min-h-8">
-      <span className="font-pixel text-[4px] text-retro-dim shrink-0">TURN</span>
+      <span className="font-pixel text-[6px] text-retro-dim shrink-0">TURN</span>
       {upcoming.map(({ actor, idx }, i) => {
         const isActive = i === 0
         return (
@@ -158,7 +158,7 @@ function BattleMenu({ state, activeActor, isPlayerTurn, onAction }) {
   if (!isPlayerTurn || busy) {
     return (
       <div className="pixel-panel p-2 text-center">
-        <div className="font-pixel text-[7px] text-retro-dim animate-pulse">
+        <div className="font-pixel text-[8px] text-retro-dim animate-pulse">
           {activeActor?.name || 'Enemy'} is acting...
         </div>
       </div>
@@ -168,7 +168,7 @@ function BattleMenu({ state, activeActor, isPlayerTurn, onAction }) {
   if (phase === 'player_skills') {
     return (
       <div className="pixel-panel p-1.5 space-y-1">
-        <div className="font-pixel text-[6px] text-retro-gold px-1 pb-0.5">SKILLS</div>
+        <div className="font-pixel text-[8px] text-retro-gold px-1 pb-0.5">SKILLS</div>
         {activeActor.skills.map((skillId) => {
           const skill = SKILLS[skillId]
           const canUse = activeActor.mp >= skill.mpCost
@@ -181,9 +181,9 @@ function BattleMenu({ state, activeActor, isPlayerTurn, onAction }) {
             >
               <div className="flex justify-between items-center w-full">
                 <span>{skill.name}</span>
-                <span className="text-retro-blue text-[5px]">{skill.mpCost} MP</span>
+                <span className="text-retro-blue text-[7px]">{skill.mpCost} MP</span>
               </div>
-              <span className="text-retro-dim text-[4px] leading-tight">{skill.description}</span>
+              <span className="text-retro-dim text-[6px] leading-tight">{skill.description}</span>
             </button>
           )
         })}
@@ -198,9 +198,9 @@ function BattleMenu({ state, activeActor, isPlayerTurn, onAction }) {
     const itemIds = Object.keys(state.inventory).filter((id) => state.inventory[id] > 0)
     return (
       <div className="pixel-panel p-1.5 space-y-1">
-        <div className="font-pixel text-[6px] text-retro-gold px-1 pb-0.5">ITEMS</div>
+        <div className="font-pixel text-[8px] text-retro-gold px-1 pb-0.5">ITEMS</div>
         {itemIds.length === 0 && (
-          <div className="font-pixel text-[6px] text-retro-dim px-1 py-1">No items left!</div>
+          <div className="font-pixel text-[8px] text-retro-dim px-1 py-1">No items left!</div>
         )}
         {itemIds.map((itemId) => {
           const item = ITEMS[itemId]
@@ -212,9 +212,9 @@ function BattleMenu({ state, activeActor, isPlayerTurn, onAction }) {
             >
               <div className="flex justify-between items-center w-full">
                 <span>{item.name}</span>
-                <span className="text-retro-dim text-[5px]">x{state.inventory[itemId]}</span>
+                <span className="text-retro-dim text-[7px]">x{state.inventory[itemId]}</span>
               </div>
-              <span className="text-retro-dim text-[4px] leading-tight">{item.description}</span>
+              <span className="text-retro-dim text-[6px] leading-tight">{item.description}</span>
             </button>
           )
         })}
@@ -228,7 +228,7 @@ function BattleMenu({ state, activeActor, isPlayerTurn, onAction }) {
   if (phase === 'player_target') {
     return (
       <div className="pixel-panel p-2 text-center">
-        <div className="font-pixel text-[7px] text-retro-accent animate-pulse">
+        <div className="font-pixel text-[8px] text-retro-accent animate-pulse">
           Select target...
         </div>
         <button className="pixel-btn w-full text-retro-dim mt-1" onClick={() => onAction('back_to_menu')}>
@@ -241,7 +241,7 @@ function BattleMenu({ state, activeActor, isPlayerTurn, onAction }) {
   if (phase === 'player_ally_target') {
     return (
       <div className="pixel-panel p-2 text-center">
-        <div className="font-pixel text-[7px] text-retro-green animate-pulse">
+        <div className="font-pixel text-[8px] text-retro-green animate-pulse">
           Select ally...
         </div>
         <button className="pixel-btn w-full text-retro-dim mt-1" onClick={() => onAction('back_to_menu')}>

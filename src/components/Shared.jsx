@@ -4,7 +4,7 @@ export function Bar({ label, value, max, color }) {
   const percent = (value / max) * 100
   return (
     <div className="mb-0.5">
-      <div className="flex justify-between font-pixel text-[5px] text-retro-dim">
+      <div className="flex justify-between font-pixel text-[7px] text-retro-dim">
         <span>{label}</span>
         <span>{value}/{max}</span>
       </div>
@@ -30,21 +30,21 @@ export function CharacterCard({ actor, isEnemy, isActive, isTargetable, onTarget
       onClick={isTargetable ? () => onTarget(actor) : undefined}
     >
       {actor.isBoss && (
-        <div className="absolute -top-2 left-1/2 -translate-x-1/2 font-pixel text-[5px] text-retro-accent bg-retro-bg px-1 whitespace-nowrap">
+        <div className="absolute -top-2 left-1/2 -translate-x-1/2 font-pixel text-[7px] text-retro-accent bg-retro-bg px-1 whitespace-nowrap">
           BOSS
         </div>
       )}
       <Sprite type={actor.sprite} size={size} defeated={actor.hp <= 0} />
       <div className="mt-1 text-center">
-        <div className="font-pixel text-[5px] text-retro-text leading-tight">{actor.name}</div>
-        <div className="font-pixel text-[4px] text-retro-dim">Lv.{actor.level}</div>
+        <div className="font-pixel text-[7px] text-retro-text leading-tight">{actor.name}</div>
+        <div className="font-pixel text-[6px] text-retro-dim">Lv.{actor.level}</div>
       </div>
       <div className="w-full mt-1">
         <Bar label="HP" value={actor.hp} max={actor.maxHp} color={hpColor} />
         {actor.maxMp > 0 && <Bar label="MP" value={actor.mp} max={actor.maxMp} color={mpColor} />}
       </div>
       {actor.defending && (
-        <div className="font-pixel text-[5px] text-retro-blue mt-0.5">DEF</div>
+        <div className="font-pixel text-[7px] text-retro-blue mt-0.5">DEF</div>
       )}
     </div>
   )
@@ -72,7 +72,7 @@ export function FloatText({ texts }) {
 
 export function GoldDisplay({ gold }) {
   return (
-    <div className="font-pixel text-[8px] text-retro-gold">
+    <div className="font-pixel text-[10px] text-retro-gold">
       {gold} G
     </div>
   )

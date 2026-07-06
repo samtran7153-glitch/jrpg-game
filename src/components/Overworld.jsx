@@ -14,7 +14,7 @@ export function TitleScreen({ onStart }) {
             <Sprite type="healer" size={40} />
           </div>
           <h1 className="font-pixel text-base text-retro-gold tracking-wider">PIXEL QUEST</h1>
-          <p className="font-pixel text-[7px] text-retro-dim mt-2">A JRPG Adventure</p>
+          <p className="font-pixel text-[9px] text-retro-dim mt-2">A JRPG Adventure</p>
         </div>
         <div className="flex justify-center gap-3 mt-1">
           <Sprite type="goblinKing" size={36} />
@@ -37,12 +37,12 @@ export function AreaMapScreen({ state, onSelectBattle, onShop, onContinue }) {
   return (
     <div className="flex flex-col gap-2 flex-1">
       <div className="pixel-panel p-2 text-center">
-        <div className="font-pixel text-[8px] text-retro-gold">{area.name}</div>
-        <div className="font-pixel text-[5px] text-retro-dim mt-1">{area.description}</div>
+        <div className="font-pixel text-[10px] text-retro-gold">{area.name}</div>
+        <div className="font-pixel text-[7px] text-retro-dim mt-1">{area.description}</div>
       </div>
 
       <div className="flex justify-between items-center pixel-panel p-2">
-        <div className="font-pixel text-[6px] text-retro-text">Party Status</div>
+        <div className="font-pixel text-[8px] text-retro-text">Party Status</div>
         <GoldDisplay gold={state.gold} />
       </div>
 
@@ -53,7 +53,7 @@ export function AreaMapScreen({ state, onSelectBattle, onShop, onContinue }) {
       </div>
 
       <div className="pixel-panel p-2 flex-1">
-        <div className="font-pixel text-[6px] text-retro-gold mb-2">BATTLES</div>
+        <div className="font-pixel text-[8px] text-retro-gold mb-2">BATTLES</div>
         <div className="space-y-2">
           {area.battles.map((battle, i) => {
             const isCompleted = i < state.currentBattleIndex
@@ -68,7 +68,7 @@ export function AreaMapScreen({ state, onSelectBattle, onShop, onContinue }) {
                 disabled={isLocked}
                 onClick={() => onSelectBattle(i)}
               >
-                <span className="text-[5px]">
+                <span className="text-[7px]">
                   {isCompleted ? '[DONE]' : isCurrent ? '[!]' : '[ ]'}
                 </span>
                 <span className="flex gap-1">
@@ -76,7 +76,7 @@ export function AreaMapScreen({ state, onSelectBattle, onShop, onContinue }) {
                     <Sprite key={ei} type={e} size={16} />
                   ))}
                 </span>
-                <span className="text-[5px] ml-auto">
+                <span className="text-[7px] ml-auto">
                   Battle {i + 1}
                 </span>
               </button>
@@ -100,7 +100,7 @@ export function ShopScreen({ state, onBuy, onBack }) {
   return (
     <div className="flex flex-col gap-2 flex-1">
       <div className="pixel-panel p-2 text-center">
-        <div className="font-pixel text-[8px] text-retro-gold">ITEM SHOP</div>
+        <div className="font-pixel text-[10px] text-retro-gold">ITEM SHOP</div>
         <div className="flex justify-center mt-1">
           <GoldDisplay gold={state.gold} />
         </div>
@@ -119,10 +119,10 @@ export function ShopScreen({ state, onBuy, onBack }) {
             >
               <div>
                 <div>{item.name}</div>
-                <div className="text-[5px] text-retro-dim">{item.description}</div>
-                <div className="text-[5px] text-retro-blue">Owned: {state.inventory[itemId] || 0}</div>
+                <div className="text-[7px] text-retro-dim">{item.description}</div>
+                <div className="text-[7px] text-retro-blue">Owned: {state.inventory[itemId] || 0}</div>
               </div>
-              <div className="text-retro-gold text-[6px]">{item.price} G</div>
+              <div className="text-retro-gold text-[8px]">{item.price} G</div>
             </button>
           )
         })}
@@ -151,17 +151,17 @@ export function DialogueScreen({ state, onAdvance }) {
             <span className="font-pixel text-lg text-retro-gold">{speakerInitial}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="inline-block font-pixel text-[7px] text-retro-gold mb-2 px-2 py-1 border border-retro-border bg-retro-bg animate-speaker-badge">
+            <div className="inline-block font-pixel text-[9px] text-retro-gold mb-2 px-2 py-1 border border-retro-border bg-retro-bg animate-speaker-badge">
               {speaker || 'Narrator'}
             </div>
-            <div className="font-pixel text-[7px] text-retro-text leading-loose animate-dialogue-text break-words">
+            <div className="font-pixel text-[9px] text-retro-text leading-loose animate-dialogue-text break-words">
               {text}
             </div>
           </div>
         </div>
         <div className="relative z-10 mt-3 flex justify-end items-center gap-2">
-          <span className="font-pixel text-[6px] text-retro-dim animate-next-prompt">▼</span>
-          <button className="pixel-btn text-[6px]" onClick={onAdvance}>
+          <span className="font-pixel text-[8px] text-retro-dim animate-next-prompt">▼</span>
+          <button className="pixel-btn text-[8px]" onClick={onAdvance}>
             {state.dialogueIndex < state.dialogueLines.length - 1 ? 'Next' : 'Continue'}
           </button>
         </div>
@@ -255,22 +255,22 @@ export function VictoryScreen({ state, onContinue }) {
     <div className="flex flex-col items-center justify-center flex-1 gap-3">
       <div className="font-pixel text-lg text-retro-green">VICTORY!</div>
       <div className="pixel-panel p-3 w-full space-y-2">
-        <div className="text-center font-pixel text-[7px] text-retro-text">Battle Rewards</div>
-        <div className="flex justify-between font-pixel text-[7px]">
+        <div className="text-center font-pixel text-[9px] text-retro-text">Battle Rewards</div>
+        <div className="flex justify-between font-pixel text-[9px]">
           <span className="text-retro-dim">XP Gained:</span>
           <span className="text-retro-green">{battleResult.xpPerHero || battleResult.xp}</span>
         </div>
-        <div className="flex justify-between font-pixel text-[7px]">
+        <div className="flex justify-between font-pixel text-[9px]">
           <span className="text-retro-dim">Gold Gained:</span>
           <span className="text-retro-gold">{battleResult.gold}</span>
         </div>
         {battleResult.leveledUp && battleResult.leveledUp.length > 0 && (
-          <div className="text-center font-pixel text-[6px] text-retro-gold animate-pulse pt-1">
+          <div className="text-center font-pixel text-[8px] text-retro-gold animate-pulse pt-1">
             LEVEL UP! {battleResult.leveledUp.join(', ')}
           </div>
         )}
         {battleResult.recruited && (
-          <div className="text-center font-pixel text-[6px] text-retro-green animate-pulse pt-1">
+          <div className="text-center font-pixel text-[8px] text-retro-green animate-pulse pt-1">
             {battleResult.recruited.name} joined the party!
           </div>
         )}
@@ -286,7 +286,7 @@ export function DefeatScreen({ onRetry }) {
   return (
     <div className="flex flex-col items-center justify-center flex-1 gap-4">
       <div className="font-pixel text-lg text-retro-accent">DEFEAT...</div>
-      <div className="font-pixel text-[7px] text-retro-dim text-center px-4">
+      <div className="font-pixel text-[9px] text-retro-dim text-center px-4">
         Your party has fallen. The darkness spreads...
       </div>
       <button className="pixel-btn w-40" onClick={onRetry}>
