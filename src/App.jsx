@@ -273,7 +273,7 @@ export default function App() {
     setState((s) => {
       const party = s.party.map((h) => h.id === actor.id ? { ...h, defending: true } : h)
       const log = addLog(s.log, `${actor.name} raises their guard!`)
-      const newState = { ...s, party, log }
+      const newState = { ...s, party, log, busy: false }
       return advanceTurn(newState)
     })
   }
