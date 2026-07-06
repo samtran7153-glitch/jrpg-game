@@ -118,11 +118,11 @@ export function ShopScreen({ state, onBuy, onBack }) {
               onClick={() => onBuy(itemId)}
             >
               <div>
-                <div>{item.name}</div>
-                <div className="text-[7px] text-retro-dim">{item.description}</div>
-                <div className="text-[7px] text-retro-blue">Owned: {state.inventory[itemId] || 0}</div>
+                <div className="font-pixel text-[8px]">{item.name}</div>
+                <div className="font-pixel text-[7px] text-retro-dim">{item.description}</div>
+                <div className="font-pixel text-[7px] text-retro-blue">Owned: {state.inventory[itemId] || 0}</div>
               </div>
-              <div className="text-retro-gold text-[8px]">{item.price} G</div>
+              <div className="font-pixel text-[8px] text-retro-gold">{item.price} G</div>
             </button>
           )
         })}

@@ -180,10 +180,10 @@ function BattleMenu({ state, activeActor, isPlayerTurn, onAction }) {
               onClick={() => onAction('select_skill', skillId)}
             >
               <div className="flex justify-between items-center w-full">
-                <span>{skill.name}</span>
-                <span className="text-retro-blue text-[7px]">{skill.mpCost} MP</span>
+                <span className="font-pixel text-[8px]">{skill.name}</span>
+                <span className="font-pixel text-[8px] text-retro-blue">{skill.mpCost} MP</span>
               </div>
-              <span className="text-retro-dim text-[6px] leading-tight">{skill.description}</span>
+              <span className="font-pixel text-[6px] text-retro-dim leading-tight">{skill.description}</span>
             </button>
           )
         })}
@@ -211,10 +211,10 @@ function BattleMenu({ state, activeActor, isPlayerTurn, onAction }) {
               onClick={() => onAction('use_item', itemId)}
             >
               <div className="flex justify-between items-center w-full">
-                <span>{item.name}</span>
-                <span className="text-retro-dim text-[7px]">x{state.inventory[itemId]}</span>
+                <span className="font-pixel text-[8px]">{item.name}</span>
+                <span className="font-pixel text-[8px] text-retro-dim">x{state.inventory[itemId]}</span>
               </div>
-              <span className="text-retro-dim text-[6px] leading-tight">{item.description}</span>
+              <span className="font-pixel text-[6px] text-retro-dim leading-tight">{item.description}</span>
             </button>
           )
         })}
