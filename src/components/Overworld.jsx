@@ -32,6 +32,7 @@ export function TitleScreen({ onStart }) {
 export function AreaMapScreen({ state, onSelectBattle, onShop, onContinue }) {
   const area = AREAS[state.currentAreaIndex]
   if (!area) return null
+  const areaComplete = state.currentBattleIndex >= area.battles.length
 
   return (
     <div className="flex flex-col gap-2 flex-1">
@@ -86,7 +87,7 @@ export function AreaMapScreen({ state, onSelectBattle, onShop, onContinue }) {
 
       <div className="grid grid-cols-2 gap-1">
         <button className="pixel-btn" onClick={onShop}>Shop</button>
-        <button className="pixel-btn" onClick={onContinue} disabled={state.currentBattleIndex >= area.battles.length}>
+        <button className="pixel-btn" onClick={onContinue} disabled={!areaComplete}>
           Next Area
         </button>
       </div>

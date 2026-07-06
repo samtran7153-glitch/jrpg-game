@@ -444,6 +444,8 @@ export default function App() {
             onShop={() => setState((s) => ({ ...s, phase: PHASES.SHOP }))}
             onContinue={() => {
               setState((s) => {
+                const area = AREAS[s.currentAreaIndex]
+                if (!area || s.currentBattleIndex < area.battles.length) return s
                 const nextArea = s.currentAreaIndex + 1
                 if (nextArea >= AREAS.length) return { ...s, phase: PHASES.GAME_COMPLETE }
                 return { ...s, currentAreaIndex: nextArea, currentBattleIndex: 0 }
