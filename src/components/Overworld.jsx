@@ -4,25 +4,27 @@ import { AREAS, ITEMS } from '../gameState'
 
 export function TitleScreen({ onStart }) {
   return (
-    <div className="flex flex-col items-center justify-center flex-1 gap-4">
-      <div className="text-center">
-        <div className="flex justify-center gap-2 mb-3">
-          <Sprite type="knight" size={40} />
-          <Sprite type="mage" size={40} />
-          <Sprite type="archer" size={40} />
-          <Sprite type="healer" size={40} />
+    <div className="flex justify-center pt-12 sm:pt-16">
+      <div className="pixel-panel w-full max-w-sm p-5 flex flex-col items-center gap-4">
+        <div className="text-center">
+          <div className="flex justify-center gap-2 mb-3">
+            <Sprite type="knight" size={40} />
+            <Sprite type="mage" size={40} />
+            <Sprite type="archer" size={40} />
+            <Sprite type="healer" size={40} />
+          </div>
+          <h1 className="font-pixel text-base text-retro-gold tracking-wider">PIXEL QUEST</h1>
+          <p className="font-pixel text-[7px] text-retro-dim mt-2">A JRPG Adventure</p>
         </div>
-        <h1 className="font-pixel text-base text-retro-gold tracking-wider">PIXEL QUEST</h1>
-        <p className="font-pixel text-[7px] text-retro-dim mt-2">A JRPG Adventure</p>
+        <div className="flex justify-center gap-3 mt-1">
+          <Sprite type="goblinKing" size={36} />
+          <Sprite type="dragon" size={48} />
+          <Sprite type="darkKnight" size={36} />
+        </div>
+        <button className="pixel-btn w-48 mt-2" onClick={onStart}>
+          PRESS START
+        </button>
       </div>
-      <div className="flex justify-center gap-3 mt-2">
-        <Sprite type="goblinKing" size={36} />
-        <Sprite type="dragon" size={48} />
-        <Sprite type="darkKnight" size={36} />
-      </div>
-      <button className="pixel-btn w-48 mt-4" onClick={onStart}>
-        PRESS START
-      </button>
     </div>
   )
 }
