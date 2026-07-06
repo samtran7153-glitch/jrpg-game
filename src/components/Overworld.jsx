@@ -142,7 +142,7 @@ export function DialogueScreen({ state, onAdvance }) {
 
   return (
     <div className="flex flex-col gap-2 flex-1 justify-end pb-4">
-      <StoryStage state={state} speaker={speaker} />
+      <StoryStage state={state} speaker={speaker} dialogueIndex={state.dialogueIndex} dialogueLines={state.dialogueLines} />
       <div key={state.dialogueIndex} className="pixel-panel p-3 min-h-[180px] relative overflow-hidden animate-dialogue-box">
         <div className="absolute inset-0 opacity-10 pointer-events-none dialogue-scanlines" />
         <div className="relative z-10 flex gap-3 items-start">
@@ -169,7 +169,7 @@ export function DialogueScreen({ state, onAdvance }) {
   )
 }
 
-function StoryStage({ state, speaker }) {
+function StoryStage({ state, speaker, dialogueIndex, dialogueLines }) {
   const heroSpeakerMap = {
     Aria: 'knight',
     Elwyn: 'mage',
@@ -181,16 +181,24 @@ function StoryStage({ state, speaker }) {
     'Dark Knight': 'darkKnight',
     Dragon: 'dragon',
   }
+  const enemyNames = Object.keys(enemySpeakerMap)
+
   const visibleParty = state.party.slice(0, 4)
-  const visibleEnemies = state.enemies.length > 0
-    ? state.enemies.slice(0, 3)
-    : []
+  const allEnemies = state.enemies.length > 0 ? state.enemies.slice(0, 3) : []
+
+  const enemiesRevealed = dialogueLines.slice(0, dialogueIndex + 1).some((line) => {
+    const lineSpeaker = line.split(':')[0] || ''
+    return enemyNames.includes(lineSpeaker)
+  })
+
   const speakerSprite = heroSpeakerMap[speaker] || enemySpeakerMap[speaker]
 
   return (
     <div className="pixel-panel h-36 relative overflow-hidden animate-story-stage">
       <div className="absolute inset-0 story-backdrop" />
       <div className="absolute left-0 right-0 bottom-3 h-1 bg-retro-border/70" />
+
+      {/* Party side */}
       <div className="absolute left-4 bottom-4 flex items-end gap-2 animate-story-party-enter">
         {visibleParty.map((hero) => (
           <div
@@ -201,19 +209,31 @@ function StoryStage({ state, speaker }) {
           </div>
         ))}
       </div>
-      <div className="absolute right-4 bottom-4 flex items-end gap-2 animate-story-enemy-enter">
-        {visibleEnemies.map((enemy) => (
-          <div
-            key={enemy.id}
-            className={`story-actor ${speakerSprite === enemy.sprite ? 'story-speaker' : ''}`}
-          >
-            <div className="story-enemy">
-              <Sprite type={enemy.sprite} size={speakerSprite === enemy.sprite ? 48 : 36} />
+
+      {/* Enemy side — hiding bushes before reveal, jump-out after */}
+      <div className="absolute right-4 bottom-4 flex items-end gap-2">
+        {!enemiesRevealed && allEnemies.length > 0 && (
+          <>
+            {allEnemies.map((enemy) => (
+              <div key={enemy.id} className="story-bush">
+                <div className="story-bush-eyes" />
+              </div>
+            ))}
+            <div className="absolute -top-3 right-8 animate-story-rustle font-pixel text-[6px] text-retro-dim">?</div>
+          </>
+        )}
+        {enemiesRevealed && allEnemies.map((enemy) => (
+          <div key={enemy.id} className="animate-story-jumpout">
+            <div className={`story-actor ${speakerSprite === enemy.sprite ? 'story-speaker' : ''}`}>
+              <div className="story-enemy">
+                <Sprite type={enemy.sprite} size={speakerSprite === enemy.sprite ? 48 : 36} />
+              </div>
             </div>
           </div>
         ))}
       </div>
-      {visibleEnemies.length === 0 && (
+
+      {allEnemies.length === 0 && (
         <div className="absolute right-6 bottom-5 animate-story-sparkle font-pixel text-retro-gold text-xs">✦</div>
       )}
     </div>
