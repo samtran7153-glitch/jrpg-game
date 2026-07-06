@@ -285,7 +285,7 @@ export function DefeatScreen({ onRetry }) {
         Your party has fallen. The darkness spreads...
       </div>
       <button className="pixel-btn w-40" onClick={onRetry}>
-        Try Again
+        Return Home
       </button>
     </div>
   )

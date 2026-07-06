@@ -491,7 +491,7 @@ export default function App() {
       case PHASES.BATTLE_VICTORY:
         return <VictoryScreen state={state} onContinue={continueAfterVictory} />
       case PHASES.BATTLE_DEFEAT:
-        return <DefeatScreen onRetry={retry} />
+        return <DefeatScreen onRetry={newGame} />
       case PHASES.GAME_COMPLETE:
         return <GameCompleteScreen onRestart={newGame} />
       default:
