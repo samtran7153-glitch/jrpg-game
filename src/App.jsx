@@ -123,19 +123,28 @@ export default function App() {
     return actors.find((actor) => actor.id === queuedActor.id) || null
   }
 
+  const getLivingTurnOrder = (s) => {
+    return s.turnOrder
+      .map((queuedActor) => resolveActor(s, queuedActor))
+      .filter((actor) => actor && actor.alive && actor.hp > 0)
+  }
+
   const advanceTurn = (s) => {
-    let idx = s.currentTurnIndex + 1
-    const order = s.turnOrder
-    for (let i = 0; i < order.length; i++) {
-      const actor = resolveActor(s, order[idx % order.length])
-      if (actor && actor.alive && actor.hp > 0) break
-      idx++
-    }
-    const nextActor = resolveActor(s, order[idx % order.length])
+    const currentQueuedActor = s.turnOrder[s.currentTurnIndex % s.turnOrder.length]
+    const livingOrder = getLivingTurnOrder(s)
+    if (livingOrder.length === 0) return s
+
+    const currentLivingIndex = livingOrder.findIndex((actor) => actor.id === currentQueuedActor?.id)
+    const nextLivingIndex = currentLivingIndex >= 0
+      ? (currentLivingIndex + 1) % livingOrder.length
+      : 0
+    const nextActor = livingOrder[nextLivingIndex]
+    const nextTurnIndex = s.turnOrder.findIndex((actor) => actor.id === nextActor.id)
     const isEnemy = nextActor && !nextActor.isPlayer
+
     return {
       ...s,
-      currentTurnIndex: idx,
+      currentTurnIndex: nextTurnIndex >= 0 ? nextTurnIndex : 0,
       turnNonce: (s.turnNonce || 0) + 1,
       activeActor: nextActor,
       phase: isEnemy ? PHASES.ENEMY_TURN : PHASES.PLAYER_MENU,
@@ -342,7 +351,7 @@ export default function App() {
       if (s.phase !== PHASES.ENEMY_TURN) return s
       const actor = resolveActor(s, s.turnOrder[s.currentTurnIndex % s.turnOrder.length])
       if (!actor || actor.isPlayer || !actor.alive || actor.hp <= 0) {
-        return advanceTurn(s)
+        return advanceTurn({ ...s, turnNonce: (s.turnNonce || 0) + 1 })
       }
 
       const aliveParty = s.party.filter((h) => h.alive && h.hp > 0)
