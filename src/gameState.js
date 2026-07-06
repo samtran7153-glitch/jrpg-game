@@ -99,10 +99,11 @@ export function startBattle(state, enemyTypes, dialogueBefore, dialogueAfter, re
 export function advanceDialogue(state) {
   const nextIdx = state.dialogueIndex + 1
   if (nextIdx >= state.dialogueLines.length) {
-    if (state.phase === PHASES.DIALOGUE && state.enemies.length > 0) {
+    const aliveEnemies = state.enemies.filter((e) => e.alive && e.hp > 0)
+    if (state.phase === PHASES.DIALOGUE && aliveEnemies.length > 0) {
       return { ...state, phase: PHASES.BATTLE_INTRO, dialogueLines: [], dialogueIndex: 0 }
     }
-    return { ...state, phase: PHASES.AREA_MAP, dialogueLines: [], dialogueIndex: 0 }
+    return { ...state, phase: PHASES.AREA_MAP, dialogueLines: [], dialogueIndex: 0, enemies: [] }
   }
   return { ...state, dialogueIndex: nextIdx }
 }
