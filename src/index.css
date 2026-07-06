@@ -61,3 +61,59 @@ body {
 .animate-shake {
   animation: shake 0.3s ease-in-out;
 }
+
+@keyframes dialogue-box-in {
+  0% { transform: translateY(18px) scale(0.98); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.animate-dialogue-box {
+  animation: dialogue-box-in 0.28s steps(4, end) both;
+}
+
+@keyframes dialogue-portrait-pop {
+  0% { transform: translateY(8px) scale(0.8); opacity: 0; }
+  60% { transform: translateY(-3px) scale(1.08); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.animate-dialogue-portrait {
+  animation: dialogue-portrait-pop 0.38s steps(5, end) both;
+}
+
+@keyframes speaker-badge-in {
+  0% { transform: translateX(-10px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+.animate-speaker-badge {
+  animation: speaker-badge-in 0.24s steps(4, end) both;
+}
+
+@keyframes dialogue-text-in {
+  0% { opacity: 0; transform: translateY(6px); clip-path: inset(0 100% 0 0); }
+  100% { opacity: 1; transform: translateY(0); clip-path: inset(0 0 0 0); }
+}
+
+.animate-dialogue-text {
+  animation: dialogue-text-in 0.55s steps(16, end) both;
+}
+
+@keyframes next-prompt {
+  0%, 100% { transform: translateY(0); opacity: 0.45; }
+  50% { transform: translateY(3px); opacity: 1; }
+}
+
+.animate-next-prompt {
+  animation: next-prompt 0.8s steps(2, end) infinite;
+}
+
+.dialogue-scanlines {
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(255, 255, 255, 0.08) 3px,
+    rgba(255, 255, 255, 0.08) 4px
+  );
+}
