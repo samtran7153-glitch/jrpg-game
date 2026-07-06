@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Sprite } from '../Sprites'
 import { CharacterCard, GoldDisplay } from './Shared'
 import { AREAS, ITEMS } from '../gameState'
@@ -97,6 +98,11 @@ export function AreaMapScreen({ state, onSelectBattle, onShop, onContinue }) {
 
 export function ShopScreen({ state, onBuy, onBack }) {
   const itemIds = Object.keys(ITEMS)
+  const [selectedItem, setSelectedItem] = useState(null)
+  const selected = selectedItem ? ITEMS[selectedItem] : null
+  const ownedCount = selectedItem ? (state.inventory[selectedItem] || 0) : 0
+  const canAfford = selected && state.gold >= selected.price
+
   return (
     <div className="flex flex-col gap-2 flex-1">
       <div className="pixel-panel p-2 text-center">
@@ -106,26 +112,62 @@ export function ShopScreen({ state, onBuy, onBack }) {
         </div>
       </div>
 
-      <div className="pixel-panel p-2 flex-1 space-y-1">
-        {itemIds.map((itemId) => {
-          const item = ITEMS[itemId]
-          const canAfford = state.gold >= item.price
-          return (
+      <div className="flex gap-2 flex-1 min-h-0">
+        <div className="pixel-panel p-2 flex-1 space-y-1 overflow-y-auto">
+          {itemIds.map((itemId) => {
+            const item = ITEMS[itemId]
+            const canAffordItem = state.gold >= item.price
+            return (
+              <button
+                key={itemId}
+                className={`pixel-btn w-full text-left flex justify-between items-center ${
+                  selectedItem === itemId ? 'ring-2 ring-retro-gold' : ''
+                }`}
+                disabled={!canAffordItem}
+                onClick={() => setSelectedItem(itemId)}
+              >
+                <div>
+                  <div className="font-pixel text-[8px]">{item.name}</div>
+                  <div className="font-pixel text-[7px] text-retro-dim">{item.description}</div>
+                  <div className="font-pixel text-[7px] text-retro-blue">Owned: {state.inventory[itemId] || 0}</div>
+                </div>
+                <div className="font-pixel text-[8px] text-retro-gold">{item.price} G</div>
+              </button>
+            )
+          })}
+        </div>
+
+        {selected && (
+          <div className="pixel-panel p-2 w-32 flex flex-col gap-1.5">
+            <div className="font-pixel text-[9px] text-retro-gold text-center border-b border-retro-border pb-1">
+              {selected.name}
+            </div>
+            <div className="font-pixel text-[7px] text-retro-text leading-relaxed">
+              {selected.description}
+            </div>
+            {selected.heal && (
+              <div className="font-pixel text-[7px] text-retro-green">HP +{selected.heal}</div>
+            )}
+            {selected.mpRestore && (
+              <div className="font-pixel text-[7px] text-retro-blue">MP +{selected.mpRestore}</div>
+            )}
+            {selected.revive && (
+              <div className="font-pixel text-[7px] text-retro-gold">Revives ally</div>
+            )}
+            {selected.cure && (
+              <div className="font-pixel text-[7px] text-retro-green">Cures {selected.cure}</div>
+            )}
+            <div className="font-pixel text-[7px] text-retro-dim mt-1">Owned: {ownedCount}</div>
+            <div className="font-pixel text-[8px] text-retro-gold">Price: {selected.price} G</div>
             <button
-              key={itemId}
-              className="pixel-btn w-full text-left flex justify-between items-center"
+              className={`pixel-btn w-full mt-auto ${!canAfford ? 'opacity-40' : ''}`}
               disabled={!canAfford}
-              onClick={() => onBuy(itemId)}
+              onClick={() => onBuy(selectedItem)}
             >
-              <div>
-                <div className="font-pixel text-[8px]">{item.name}</div>
-                <div className="font-pixel text-[7px] text-retro-dim">{item.description}</div>
-                <div className="font-pixel text-[7px] text-retro-blue">Owned: {state.inventory[itemId] || 0}</div>
-              </div>
-              <div className="font-pixel text-[8px] text-retro-gold">{item.price} G</div>
+              Buy
             </button>
-          )
-        })}
+          </div>
+        )}
       </div>
 
       <button className="pixel-btn w-full" onClick={onBack}>
