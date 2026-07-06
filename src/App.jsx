@@ -43,7 +43,7 @@ export default function App() {
     setState((s) => {
       const area = AREAS[s.currentAreaIndex]
       const battle = area.battles[battleIndex]
-      return startBattle(s, battle.enemies, battle.dialogue?.before, battle.dialogue?.after)
+      return startBattle(s, battle.enemies, battle.dialogue?.before, battle.dialogue?.after, battle.recruit)
     })
   }
 
@@ -98,7 +98,7 @@ export default function App() {
     setState((s) => {
       const area = AREAS[s.currentAreaIndex]
       const battle = area.battles[s.currentBattleIndex]
-      return startBattle(s, battle.enemies, battle.dialogue?.before, battle.dialogue?.after)
+      return startBattle(s, battle.enemies, battle.dialogue?.before, battle.dialogue?.after, battle.recruit)
     })
   }
 
@@ -435,10 +435,10 @@ export default function App() {
   }, [state.phase])
 
   useEffect(() => {
-    if (state.phase === PHASES.BATTLE_VICTORY) {
+    if (state.phase === PHASES.BATTLE_VICTORY && !state.battleResult?.applied) {
       setState((s) => applyXpAndLevelUps(s))
     }
-  }, [state.phase])
+  }, [state.phase, state.battleResult?.applied])
 
   // ============ RENDER ============
   const renderPhase = () => {

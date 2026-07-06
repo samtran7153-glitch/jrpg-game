@@ -57,8 +57,8 @@ export const AREAS = [
     id: 'forest', name: 'Whispering Forest', sprite: 'forest',
     description: 'A dense forest teeming with wild creatures.',
     battles: [
-      { enemies: ['slime', 'slime'], dialogue: { before: ['Aria: This forest seems peaceful...', "Kira: Don't let your guard down. I sense something ahead."], after: ['Elwyn: That was close!'] } },
-      { enemies: ['slime', 'goblin'], dialogue: { before: ["Kira: Goblins! They've been raiding the nearby villages."], after: ['Sera: We should keep moving.'] } },
+      { enemies: ['slime'], recruit: 'mage', dialogue: { before: ['Aria: This forest seems peaceful...', "Aria: Still, I shouldn't let my guard down."], after: ['Elwyn: That was close! Let me join you before worse things appear.'] } },
+      { enemies: ['slime', 'goblin'], recruit: 'archer', dialogue: { before: ["Aria: Goblins! They've been raiding the nearby villages."], after: ["Kira: Nice shot, right? You'll need an archer from here on."] } },
       { enemies: ['goblinKing'], dialogue: { before: ['Aria: The Goblin King! So you\'re the one terrorizing these woods.', 'Goblin King: You dare challenge me?! I\'ll crush you all!'], after: ['Aria: The forest is safe now.', 'Elwyn: But I sense a darker presence coming from the caves...'] } },
     ],
   },
@@ -66,7 +66,7 @@ export const AREAS = [
     id: 'cave', name: 'Shadow Caverns', sprite: 'cave',
     description: 'Dark caves where the undead roam freely.',
     battles: [
-      { enemies: ['skeleton', 'skeleton'], dialogue: { before: ["Sera: These bones... they're moving!", 'Elwyn: Necromancy. Someone is raising the dead.'], after: ['Kira: Deeper we go.'] } },
+      { enemies: ['skeleton', 'skeleton'], recruit: 'healer', dialogue: { before: ["Aria: These bones... they're moving!", 'Elwyn: Necromancy. Someone is raising the dead.'], after: ["Sera: You're wounded. Let me travel with you and keep everyone standing."] } },
       { enemies: ['skeleton', 'goblin'], dialogue: { before: ['Aria: Goblins and skeletons working together?', 'Kira: Something is commanding them.'], after: ['Sera: I feel a powerful dark aura ahead.'] } },
       { enemies: ['darkKnight'], dialogue: { before: ["Dark Knight: You shall pass no further. My master's plans will not be interrupted.", 'Aria: Who is your master?', 'Dark Knight: You will learn soon enough... in death.'], after: ['Elwyn: The Dark Knight mentioned a master...', 'Aria: Then we press on to the castle.'] } },
     ],
@@ -105,7 +105,7 @@ export function createEnemy(typeKey, index = 0) {
 }
 
 export function createParty() {
-  return [createHero('knight'), createHero('mage'), createHero('archer'), createHero('healer')]
+  return [createHero('knight')]
 }
 
 export function calculateDamage(attacker, defender, baseDamage, isCrit = false) {

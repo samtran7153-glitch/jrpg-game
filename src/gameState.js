@@ -1,5 +1,5 @@
 import {
-  createParty, createEnemy, SKILLS, ITEMS, calculateDamage, rollCrit,
+  createParty, createHero, createEnemy, SKILLS, ITEMS, calculateDamage, rollCrit,
   levelUp, xpForLevel, AREAS,
 } from './gameData'
 
@@ -44,6 +44,7 @@ export function createInitialState() {
     pendingAction: null,
     floatTexts: [],
     screenShake: 0,
+    pendingRecruit: null,
   }
 }
 
@@ -71,7 +72,7 @@ export function getNextAliveActor(state) {
   return null
 }
 
-export function startBattle(state, enemyTypes, dialogueBefore, dialogueAfter) {
+export function startBattle(state, enemyTypes, dialogueBefore, dialogueAfter, recruit = null) {
   const enemies = enemyTypes.map((type, i) => createEnemy(type, i))
   const party = state.party.map((h) => ({ ...h, defending: false, statusEffects: [] }))
   const turnOrder = computeTurnOrder(party, enemies)
@@ -86,6 +87,7 @@ export function startBattle(state, enemyTypes, dialogueBefore, dialogueAfter) {
     dialogueLines: dialogueBefore || [],
     dialogueIndex: 0,
     dialogueAfter: dialogueAfter || null,
+    pendingRecruit: recruit,
     log: ['Battle Start!'],
     floatTexts: [],
     screenShake: 0,
@@ -136,7 +138,7 @@ export function applyXpAndLevelUps(state) {
   if (!state.battleResult) return state
   const xpPerHero = Math.floor(state.battleResult.xp / state.party.length)
   const leveledUp = []
-  const party = state.party.map((hero) => {
+  let party = state.party.map((hero) => {
     if (!hero.alive) return hero
     let h = { ...hero, xp: (hero.xp || 0) + xpPerHero }
     while (h.xp >= xpForLevel(h.level)) {
@@ -146,5 +148,10 @@ export function applyXpAndLevelUps(state) {
     }
     return h
   })
-  return { ...state, party, battleResult: { ...state.battleResult, leveledUp, xpPerHero } }
+  let recruited = null
+  if (state.pendingRecruit && !party.some((hero) => hero.classKey === state.pendingRecruit)) {
+    recruited = createHero(state.pendingRecruit)
+    party = [...party, recruited]
+  }
+  return { ...state, party, pendingRecruit: null, battleResult: { ...state.battleResult, leveledUp, xpPerHero, recruited, applied: true } }
 }

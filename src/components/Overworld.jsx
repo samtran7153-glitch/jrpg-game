@@ -178,6 +178,11 @@ export function VictoryScreen({ state, onContinue }) {
             LEVEL UP! {battleResult.leveledUp.join(', ')}
           </div>
         )}
+        {battleResult.recruited && (
+          <div className="text-center font-pixel text-[6px] text-retro-green animate-pulse pt-1">
+            {battleResult.recruited.name} joined the party!
+          </div>
+        )}
       </div>
       <button className="pixel-btn w-40" onClick={onContinue}>
         Continue
