@@ -117,3 +117,74 @@ body {
     rgba(255, 255, 255, 0.08) 4px
   );
 }
+
+.story-backdrop {
+  background:
+    radial-gradient(circle at 50% 25%, rgba(245, 197, 24, 0.12), transparent 28%),
+    linear-gradient(180deg, rgba(78, 168, 222, 0.12), transparent 48%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.04) 0 2px, transparent 2px 12px);
+}
+
+@keyframes story-stage-in {
+  0% { opacity: 0; transform: translateY(-10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-story-stage {
+  animation: story-stage-in 0.32s steps(4, end) both;
+}
+
+@keyframes story-party-enter {
+  0% { transform: translateX(-60px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+.animate-story-party-enter {
+  animation: story-party-enter 0.42s steps(6, end) both;
+}
+
+@keyframes story-enemy-enter {
+  0% { transform: translateX(60px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+.animate-story-enemy-enter {
+  animation: story-enemy-enter 0.42s steps(6, end) both;
+}
+
+@keyframes story-idle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+.story-actor {
+  animation: story-idle 1.2s steps(2, end) infinite;
+  filter: drop-shadow(0 8px 0 rgba(0, 0, 0, 0.22));
+}
+
+.story-enemy {
+  transform: scaleX(-1);
+}
+
+@keyframes story-speaker-pop {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-6px) scale(1.12); }
+}
+
+.story-speaker {
+  animation: story-speaker-pop 0.55s steps(4, end) infinite;
+  filter: drop-shadow(0 0 6px rgba(245, 197, 24, 0.65));
+}
+
+.story-speaker.story-enemy {
+  animation: story-speaker-pop 0.55s steps(4, end) infinite;
+}
+
+@keyframes story-sparkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.8) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.2) rotate(12deg); }
+}
+
+.animate-story-sparkle {
+  animation: story-sparkle 0.8s steps(4, end) infinite;
+}

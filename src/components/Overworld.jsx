@@ -142,6 +142,7 @@ export function DialogueScreen({ state, onAdvance }) {
 
   return (
     <div className="flex flex-col gap-2 flex-1 justify-end pb-4">
+      <StoryStage key={`stage-${state.dialogueIndex}`} state={state} speaker={speaker} />
       <div key={state.dialogueIndex} className="pixel-panel p-3 min-h-[180px] relative overflow-hidden animate-dialogue-box">
         <div className="absolute inset-0 opacity-10 pointer-events-none dialogue-scanlines" />
         <div className="relative z-10 flex gap-3 items-start">
@@ -164,6 +165,57 @@ export function DialogueScreen({ state, onAdvance }) {
           </button>
         </div>
       </div>
+    </div>
+  )
+}
+
+function StoryStage({ state, speaker }) {
+  const heroSpeakerMap = {
+    Aria: 'knight',
+    Elwyn: 'mage',
+    Kira: 'archer',
+    Sera: 'healer',
+  }
+  const enemySpeakerMap = {
+    'Goblin King': 'goblinKing',
+    'Dark Knight': 'darkKnight',
+    Dragon: 'dragon',
+  }
+  const visibleParty = state.party.slice(0, 4)
+  const visibleEnemies = state.enemies.length > 0
+    ? state.enemies.slice(0, 3)
+    : []
+  const speakerSprite = heroSpeakerMap[speaker] || enemySpeakerMap[speaker]
+
+  return (
+    <div className="pixel-panel h-36 relative overflow-hidden animate-story-stage">
+      <div className="absolute inset-0 story-backdrop" />
+      <div className="absolute left-0 right-0 bottom-3 h-1 bg-retro-border/70" />
+      <div className="absolute left-4 bottom-4 flex items-end gap-2 animate-story-party-enter">
+        {visibleParty.map((hero) => (
+          <div
+            key={hero.id}
+            className={`story-actor ${speakerSprite === hero.sprite ? 'story-speaker' : ''}`}
+          >
+            <Sprite type={hero.sprite} size={speakerSprite === hero.sprite ? 46 : 34} />
+          </div>
+        ))}
+      </div>
+      <div className="absolute right-4 bottom-4 flex items-end gap-2 animate-story-enemy-enter">
+        {visibleEnemies.map((enemy) => (
+          <div
+            key={enemy.id}
+            className={`story-actor ${speakerSprite === enemy.sprite ? 'story-speaker' : ''}`}
+          >
+            <div className="story-enemy">
+              <Sprite type={enemy.sprite} size={speakerSprite === enemy.sprite ? 48 : 36} />
+            </div>
+          </div>
+        ))}
+      </div>
+      {visibleEnemies.length === 0 && (
+        <div className="absolute right-6 bottom-5 animate-story-sparkle font-pixel text-retro-gold text-xs">✦</div>
+      )}
     </div>
   )
 }
