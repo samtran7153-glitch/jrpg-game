@@ -17,6 +17,7 @@ let floatId = 0
 export default function App() {
   const [state, setState] = useState(createInitialState)
   const [anim, setAnim] = useState({ type: null, target: null })
+  const [screenFade, setScreenFade] = useState(null)
 
   const addLog = (prev, msg) => [...prev, msg].slice(-6)
 
@@ -443,6 +444,26 @@ export default function App() {
   }, [state.phase])
 
   useEffect(() => {
+    if (state.phase === PHASES.BATTLE_VICTORY || state.phase === PHASES.BATTLE_DEFEAT) {
+      if (!screenFade) {
+        setScreenFade('fade-start')
+        const t1 = setTimeout(() => setScreenFade('fade-in'), 20)
+        return () => clearTimeout(t1)
+      }
+      if (screenFade === 'fade-in') {
+        const t = setTimeout(() => setScreenFade('fade-out'), 500)
+        return () => clearTimeout(t)
+      }
+      if (screenFade === 'fade-out') {
+        const t = setTimeout(() => setScreenFade(null), 500)
+        return () => clearTimeout(t)
+      }
+    } else {
+      setScreenFade(null)
+    }
+  }, [state.phase, screenFade])
+
+  useEffect(() => {
     if (state.phase === PHASES.BATTLE_VICTORY && !state.battleResult?.applied) {
       setState((s) => applyXpAndLevelUps(s))
     }
@@ -489,8 +510,10 @@ export default function App() {
       case PHASES.ENEMY_TURN:
         return <BattleScreen state={state} anim={anim} onAction={handleAction} />
       case PHASES.BATTLE_VICTORY:
+        if (screenFade === 'fade-start' || screenFade === 'fade-in') return <BattleScreen state={state} anim={anim} onAction={handleAction} />
         return <VictoryScreen state={state} onContinue={continueAfterVictory} />
       case PHASES.BATTLE_DEFEAT:
+        if (screenFade === 'fade-start' || screenFade === 'fade-in') return <BattleScreen state={state} anim={anim} onAction={handleAction} />
         return <DefeatScreen onRetry={newGame} />
       case PHASES.GAME_COMPLETE:
         return <GameCompleteScreen onRestart={newGame} />
@@ -515,6 +538,11 @@ export default function App() {
         <Header gold={state.gold} showGold={state.phase !== PHASES.TITLE} />
         {renderPhase()}
       </div>
+      {screenFade && (
+        <div className={`fixed inset-0 z-50 pointer-events-none bg-black transition-opacity duration-500 ${
+          screenFade === 'fade-start' ? 'opacity-0' : screenFade === 'fade-in' ? 'opacity-100' : 'opacity-0'
+        }`} />
+      )}
     </div>
   )
 }
