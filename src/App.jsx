@@ -337,27 +337,23 @@ export default function App() {
         setState((s) => ({ ...s, phase: PHASES.PLAYER_TARGET, pendingAction: { type: 'attack' } }))
         break
       case 'target_enemy': {
-        setState((s) => {
-          const actor = resolveActor(s, s.turnOrder[s.currentTurnIndex % s.turnOrder.length])
-          if (s.pendingAction?.type === 'attack') {
-            executeAttack(actor, payload)
-          } else if (s.pendingAction?.type === 'skill') {
-            executeSkill(actor, s.pendingAction.skillId, payload)
-          }
-          return { ...s, pendingAction: null }
-        })
+        const actor = resolveActor(state, state.turnOrder[state.currentTurnIndex % state.turnOrder.length])
+        if (state.pendingAction?.type === 'attack') {
+          executeAttack(actor, payload)
+        } else if (state.pendingAction?.type === 'skill') {
+          executeSkill(actor, state.pendingAction.skillId, payload)
+        }
+        setState((s) => ({ ...s, pendingAction: null }))
         break
       }
       case 'target_ally': {
-        setState((s) => {
-          const actor = resolveActor(s, s.turnOrder[s.currentTurnIndex % s.turnOrder.length])
-          if (s.pendingAction?.type === 'skill') {
-            executeSkill(actor, s.pendingAction.skillId, payload)
-          } else if (s.pendingAction?.type === 'item') {
-            executeItem(actor, s.pendingAction.itemId, payload)
-          }
-          return { ...s, pendingAction: null }
-        })
+        const actor = resolveActor(state, state.turnOrder[state.currentTurnIndex % state.turnOrder.length])
+        if (state.pendingAction?.type === 'skill') {
+          executeSkill(actor, state.pendingAction.skillId, payload)
+        } else if (state.pendingAction?.type === 'item') {
+          executeItem(actor, state.pendingAction.itemId, payload)
+        }
+        setState((s) => ({ ...s, pendingAction: null }))
         break
       }
       case 'open_skills':
@@ -366,11 +362,8 @@ export default function App() {
       case 'select_skill': {
         const skill = SKILLS[payload]
         if (skill.target === 'self') {
-          setState((s) => {
-            const actor = resolveActor(s, s.turnOrder[s.currentTurnIndex % s.turnOrder.length])
-            executeSkill(actor, payload, actor)
-            return s
-          })
+          const actor = resolveActor(state, state.turnOrder[state.currentTurnIndex % state.turnOrder.length])
+          executeSkill(actor, payload, actor)
         } else if (skill.target === 'ally') {
           setState((s) => ({ ...s, phase: PHASES.PLAYER_ALLY_TARGET, pendingAction: { type: 'skill', skillId: payload } }))
         } else {
@@ -384,36 +377,28 @@ export default function App() {
       case 'use_item': {
         const item = ITEMS[payload]
         if (item.revive) {
-          setState((s) => {
-            const actor = resolveActor(s, s.turnOrder[s.currentTurnIndex % s.turnOrder.length])
-            executeItem(actor, payload, null)
-            return s
-          })
+          const actor = resolveActor(state, state.turnOrder[state.currentTurnIndex % state.turnOrder.length])
+          executeItem(actor, payload, null)
         } else if (item.heal || item.mpRestore) {
           setState((s) => ({ ...s, phase: PHASES.PLAYER_ALLY_TARGET, pendingAction: { type: 'item', itemId: payload } }))
         } else {
-          setState((s) => {
-            const actor = resolveActor(s, s.turnOrder[s.currentTurnIndex % s.turnOrder.length])
-            executeItem(actor, payload, actor)
-            return s
-          })
+          const actor = resolveActor(state, state.turnOrder[state.currentTurnIndex % state.turnOrder.length])
+          executeItem(actor, payload, actor)
         }
         break
       }
-      case 'defend':
-        setState((s) => {
-          const actor = resolveActor(s, s.turnOrder[s.currentTurnIndex % s.turnOrder.length])
-          executeDefend(actor)
-          return s
-        })
+      case 'defend': {
+        const actor = resolveActor(state, state.turnOrder[state.currentTurnIndex % state.turnOrder.length])
+        executeDefend(actor)
         break
+      }
       case 'back_to_menu':
         setState((s) => ({ ...s, phase: PHASES.PLAYER_MENU, pendingAction: null }))
         break
       default:
         break
     }
-  }, [])
+  }, [state])
 
   // ============ ENEMY AI ============
   const enemyTurn = useCallback(async () => {
@@ -436,13 +421,14 @@ export default function App() {
       let log = [...s.log]
       let party = s.party
       let floats = s.floatTexts
+      let enemies = s.enemies
 
       if (useSkill) {
         const skillId = actor.skills[Math.floor(Math.random() * actor.skills.length)]
         const skill = SKILLS[skillId]
         if (actor.mp >= skill.mpCost) {
           const updatedActor = { ...actor, mp: actor.mp - skill.mpCost }
-          const enemies = s.enemies.map((e) => e.id === actor.id ? updatedActor : e)
+          enemies = s.enemies.map((e) => e.id === actor.id ? updatedActor : e)
 
           if (skill.target === 'enemy_all') {
             let totalDmg = 0
