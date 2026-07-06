@@ -172,10 +172,23 @@ export default function App() {
     return { actor: updated, log, floats, stunned, slowed }
   }
 
-  const advanceTurn = (s) => {
+  const advanceTurn = (s, skipCount = 0) => {
     const currentQueuedActor = s.turnOrder[s.currentTurnIndex % s.turnOrder.length]
     let livingOrder = getLivingTurnOrder(s)
     if (livingOrder.length === 0) return s
+
+    // If we've skipped through all living actors (all stunned/dead from poison),
+    // advance to the next round by moving past the current actor
+    if (skipCount >= livingOrder.length) {
+      const nextIdx = (s.currentTurnIndex + 1) % s.turnOrder.length
+      return {
+        ...s,
+        currentTurnIndex: nextIdx,
+        turnNonce: (s.turnNonce || 0) + 1,
+        activeActor: null,
+        phase: PHASES.PLAYER_MENU,
+      }
+    }
 
     const currentLivingIndex = livingOrder.findIndex((actor) => actor.id === currentQueuedActor?.id)
     let nextLivingIndex = currentLivingIndex >= 0
@@ -206,8 +219,8 @@ export default function App() {
         const newState = { ...s, party, enemies, log, floatTexts: floats }
         const ended = checkBattleEnd(newState)
         if (ended) return ended
-        // Skip to next actor
-        return advanceTurn({ ...newState, currentTurnIndex: s.turnOrder.findIndex((a) => a.id === nextActor.id) })
+        const skipTurnIndex = s.turnOrder.findIndex((a) => a.id === nextActor.id)
+        return advanceTurn({ ...newState, currentTurnIndex: skipTurnIndex }, skipCount + 1)
       }
 
       // If stunned, skip their turn
@@ -215,7 +228,7 @@ export default function App() {
         log = addLog(log, `${updatedActor.name} is stunned and skips their turn!`)
         const skipState = { ...s, party, enemies, log, floatTexts: floats }
         const skipTurnIndex = s.turnOrder.findIndex((a) => a.id === nextActor.id)
-        return advanceTurn({ ...skipState, currentTurnIndex: skipTurnIndex })
+        return advanceTurn({ ...skipState, currentTurnIndex: skipTurnIndex }, skipCount + 1)
       }
 
       nextActor = updatedActor
