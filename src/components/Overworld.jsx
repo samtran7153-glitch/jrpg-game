@@ -142,7 +142,7 @@ export function DialogueScreen({ state, onAdvance }) {
 
   return (
     <div className="flex flex-col gap-2 flex-1 justify-end pb-4">
-      <StoryStage key={`stage-${state.dialogueIndex}`} state={state} speaker={speaker} />
+      <StoryStage state={state} speaker={speaker} />
       <div key={state.dialogueIndex} className="pixel-panel p-3 min-h-[180px] relative overflow-hidden animate-dialogue-box">
         <div className="absolute inset-0 opacity-10 pointer-events-none dialogue-scanlines" />
         <div className="relative z-10 flex gap-3 items-start">
