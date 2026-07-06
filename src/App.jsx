@@ -136,6 +136,7 @@ export default function App() {
     return {
       ...s,
       currentTurnIndex: idx,
+      turnNonce: (s.turnNonce || 0) + 1,
       activeActor: nextActor,
       phase: isEnemy ? PHASES.ENEMY_TURN : PHASES.PLAYER_MENU,
     }
@@ -413,7 +414,7 @@ export default function App() {
     if (state.phase === PHASES.ENEMY_TURN && !state.busy) {
       enemyTurn()
     }
-  }, [state.phase, state.busy, enemyTurn])
+  }, [state.phase, state.busy, state.turnNonce, enemyTurn])
 
   useEffect(() => {
     if (state.phase === PHASES.BATTLE_INTRO) {

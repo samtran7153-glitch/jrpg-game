@@ -35,6 +35,7 @@ export function createInitialState() {
     currentBattleIndex: 0,
     turnOrder: [],
     currentTurnIndex: 0,
+    turnNonce: 0,
     activeActor: null,
     dialogueLines: [],
     dialogueIndex: 0,
