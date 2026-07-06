@@ -58,9 +58,17 @@ export default function App() {
       const nextBattleIndex = s.currentBattleIndex + 1
       const afterDialogue = s.dialogueAfter
 
+      const healedParty = s.party.map((h) => ({
+        ...h,
+        hp: h.alive ? Math.min(h.maxHp, h.hp + Math.floor(h.maxHp * 0.5)) : h.hp,
+        mp: h.alive ? Math.min(h.maxMp, h.mp + Math.floor(h.maxMp * 0.5)) : h.mp,
+        defending: false,
+      }))
+
       if (afterDialogue && afterDialogue.length > 0) {
         return {
           ...s,
+          party: healedParty,
           currentBattleIndex: nextBattleIndex,
           phase: PHASES.DIALOGUE,
           dialogueLines: afterDialogue,
@@ -77,6 +85,7 @@ export default function App() {
         }
         return {
           ...s,
+          party: healedParty,
           currentAreaIndex: nextAreaIndex,
           currentBattleIndex: 0,
           phase: PHASES.AREA_MAP,
@@ -87,6 +96,7 @@ export default function App() {
 
       return {
         ...s,
+        party: healedParty,
         currentBattleIndex: nextBattleIndex,
         phase: PHASES.AREA_MAP,
         battleResult: null,
@@ -158,17 +168,23 @@ export default function App() {
     await sleep(400)
 
     setState((s) => {
+      const currentAttacker = resolveActor(s, { id: attacker.id, isPlayer: attacker.isPlayer })
+      const currentTarget = target.isPlayer
+        ? s.party.find((h) => h.id === target.id)
+        : s.enemies.find((e) => e.id === target.id)
+      if (!currentAttacker || !currentTarget) return advanceTurn({ ...s, busy: false })
+
       const isCrit = rollCrit()
-      const dmg = calculateDamage(attacker, target, attacker.attack, isCrit)
-      const newHp = Math.max(0, target.hp - dmg)
-      const updatedTarget = { ...target, hp: newHp, alive: newHp > 0 }
+      const dmg = calculateDamage(currentAttacker, currentTarget, currentAttacker.attack, isCrit)
+      const newHp = Math.max(0, currentTarget.hp - dmg)
+      const updatedTarget = { ...currentTarget, hp: newHp, alive: newHp > 0 }
       const party = updatedTarget.isPlayer
         ? s.party.map((h) => h.id === updatedTarget.id ? updatedTarget : h)
         : s.party
       const enemies = !updatedTarget.isPlayer
         ? s.enemies.map((e) => e.id === updatedTarget.id ? updatedTarget : e)
         : s.enemies
-      const log = addLog(s.log, `${attacker.name} attacks! ${dmg} damage!${isCrit ? ' CRIT!' : ''}`)
+      const log = addLog(s.log, `${currentAttacker.name} attacks! ${dmg} damage!${isCrit ? ' CRIT!' : ''}`)
       const floats = addFloatText(s, `-${dmg}${isCrit ? '!' : ''}`, 50, 50, isCrit ? '#f5c518' : '#e94560')
       const shaken = triggerShake({ ...s, party, enemies, log, floatTexts: floats, busy: false })
       const ended = checkBattleEnd(shaken)
@@ -209,8 +225,9 @@ export default function App() {
       } else {
         const hits = skill.hits || 1
         let totalDmg = 0
-        let currentTarget = target
+        let currentTarget = { ...target }
         for (let h = 0; h < hits; h++) {
+          if (!currentTarget.alive && currentTarget.hp <= 0) break
           const isCrit = rollCrit(skill.critBonus || 0)
           const dmg = calculateDamage(updatedActor, currentTarget, skill.damage, isCrit)
           totalDmg += dmg
