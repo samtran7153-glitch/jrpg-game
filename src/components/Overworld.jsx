@@ -120,6 +120,7 @@ export function ShopScreen({ state, onBuy, onBack }) {
               <div>
                 <div>{item.name}</div>
                 <div className="text-[5px] text-retro-dim">{item.description}</div>
+                <div className="text-[5px] text-retro-blue">Owned: {state.inventory[itemId] || 0}</div>
               </div>
               <div className="text-retro-gold text-[6px]">{item.price} G</div>
             </button>

@@ -1,6 +1,16 @@
+import { useState } from 'react'
 import { Sprite } from '../Sprites'
 import { CharacterCard, FloatText } from './Shared'
 import { SKILLS, ITEMS } from '../gameState'
+
+const TUTORIAL_TIPS = [
+  'Welcome to battle! The bar above shows turn order. Your hero acts first.',
+  'Choose ATTACK to hit an enemy. Pick a target by tapping them.',
+  'SKILLS use MP for powerful effects. Try Power Slash!',
+  'ITEMS heal HP or MP. Use them wisely — they are limited.',
+  'DEFEND halves damage next turn. Use it when low on HP!',
+  'Watch the turn order bar to plan ahead. Defeat all enemies to win!',
+]
 
 export function BattleScreen({ state, anim, onAction }) {
   const { party, enemies, turnOrder, currentTurnIndex, phase, log, floatTexts, screenShake } = state
@@ -11,6 +21,11 @@ export function BattleScreen({ state, anim, onAction }) {
   const isPlayerTurn = activeActor && activeActor.isPlayer && activeActor.alive && activeActor.hp > 0
   const needsTarget = phase === 'player_target'
   const needsAllyTarget = phase === 'player_ally_target'
+
+  const isFirstBattle = state.currentAreaIndex === 0 && state.currentBattleIndex === 0
+  const [tutorialStep, setTutorialStep] = useState(0)
+  const [tutorialDismissed, setTutorialDismissed] = useState(false)
+  const showTutorial = isFirstBattle && !tutorialDismissed && phase === 'player_menu'
 
   return (
     <div className={`flex flex-col gap-2 flex-1 ${screenShake > 0 ? 'animate-shake' : ''}`}>
@@ -70,6 +85,37 @@ export function BattleScreen({ state, anim, onAction }) {
 
       {/* Action menu */}
       <BattleMenu state={state} activeActor={activeActor} isPlayerTurn={isPlayerTurn} onAction={onAction} />
+
+      {/* Tutorial overlay */}
+      {showTutorial && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4" onClick={() => setTutorialDismissed(true)}>
+          <div className="pixel-panel p-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <div className="font-pixel text-[8px] text-retro-gold mb-2 text-center">TUTORIAL {tutorialStep + 1}/{TUTORIAL_TIPS.length}</div>
+            <div className="font-pixel text-[7px] text-retro-text leading-relaxed text-center mb-3">
+              {TUTORIAL_TIPS[tutorialStep]}
+            </div>
+            <div className="flex gap-2 justify-center">
+              {tutorialStep < TUTORIAL_TIPS.length - 1 ? (
+                <button className="pixel-btn" onClick={() => setTutorialStep(tutorialStep + 1)}>
+                  Next
+                </button>
+              ) : (
+                <button className="pixel-btn" onClick={() => setTutorialDismissed(true)}>
+                  Got it!
+                </button>
+              )}
+              {tutorialStep > 0 && (
+                <button className="pixel-btn text-retro-dim" onClick={() => setTutorialStep(tutorialStep - 1)}>
+                  Back
+                </button>
+              )}
+              <button className="pixel-btn text-retro-dim" onClick={() => setTutorialDismissed(true)}>
+                Skip
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -129,12 +175,15 @@ function BattleMenu({ state, activeActor, isPlayerTurn, onAction }) {
           return (
             <button
               key={skillId}
-              className="pixel-btn w-full text-left flex justify-between items-center"
+              className="pixel-btn w-full text-left flex flex-col gap-0.5"
               disabled={!canUse}
               onClick={() => onAction('select_skill', skillId)}
             >
-              <span>{skill.name}</span>
-              <span className="text-retro-blue text-[5px]">{skill.mpCost} MP</span>
+              <div className="flex justify-between items-center w-full">
+                <span>{skill.name}</span>
+                <span className="text-retro-blue text-[5px]">{skill.mpCost} MP</span>
+              </div>
+              <span className="text-retro-dim text-[4px] leading-tight">{skill.description}</span>
             </button>
           )
         })}
@@ -158,11 +207,14 @@ function BattleMenu({ state, activeActor, isPlayerTurn, onAction }) {
           return (
             <button
               key={itemId}
-              className="pixel-btn w-full text-left flex justify-between items-center"
+              className="pixel-btn w-full text-left flex flex-col gap-0.5"
               onClick={() => onAction('use_item', itemId)}
             >
-              <span>{item.name}</span>
-              <span className="text-retro-dim text-[5px]">x{state.inventory[itemId]}</span>
+              <div className="flex justify-between items-center w-full">
+                <span>{item.name}</span>
+                <span className="text-retro-dim text-[5px]">x{state.inventory[itemId]}</span>
+              </div>
+              <span className="text-retro-dim text-[4px] leading-tight">{item.description}</span>
             </button>
           )
         })}
