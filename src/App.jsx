@@ -17,7 +17,7 @@ let floatId = 0
 export default function App() {
   const [state, setState] = useState(createInitialState)
   const [anim, setAnim] = useState({ type: null, target: null })
-  const [screenFade, setScreenFade] = useState(null)
+  const [screenFade, setScreenFade] = useState(false)
 
   const addLog = (prev, msg) => [...prev, msg].slice(-6)
 
@@ -515,39 +515,17 @@ export default function App() {
   }, [state.phase])
 
   useEffect(() => {
-    if (state.phase !== PHASES.BATTLE_VICTORY && state.phase !== PHASES.BATTLE_DEFEAT) {
-      setScreenFade(null)
-      return undefined
-    }
-
-    if (!screenFade) {
-      setScreenFade('fade-start')
-      return undefined
-    }
-
-    if (screenFade === 'fade-start') {
-      const t = setTimeout(() => setScreenFade('fade-in'), 20)
+    if (state.phase === PHASES.BATTLE_VICTORY || state.phase === PHASES.BATTLE_DEFEAT) {
+      setScreenFade(true)
+      const t = setTimeout(() => {
+        setScreenFade(false)
+        if (state.phase === PHASES.BATTLE_VICTORY) {
+          setState((s) => applyXpAndLevelUps(s))
+        }
+      }, 600)
       return () => clearTimeout(t)
     }
-
-    if (screenFade === 'fade-in') {
-      const t = setTimeout(() => setScreenFade('fade-out'), 500)
-      return () => clearTimeout(t)
-    }
-
-    if (screenFade === 'fade-out') {
-      const t = setTimeout(() => setScreenFade('done'), 500)
-      return () => clearTimeout(t)
-    }
-
-    return undefined
-  }, [state.phase, screenFade])
-
-  useEffect(() => {
-    if (state.phase === PHASES.BATTLE_VICTORY && !state.battleResult?.applied && screenFade === 'fade-out') {
-      setState((s) => applyXpAndLevelUps(s))
-    }
-  }, [state.phase, state.battleResult?.applied, screenFade])
+  }, [state.phase])
 
   // ============ RENDER ============
   const renderPhase = () => {
@@ -590,10 +568,10 @@ export default function App() {
       case PHASES.ENEMY_TURN:
         return <BattleScreen state={state} anim={anim} onAction={handleAction} />
       case PHASES.BATTLE_VICTORY:
-        if (screenFade === 'fade-start' || screenFade === 'fade-in') return <BattleScreen state={state} anim={anim} onAction={handleAction} />
+        if (screenFade) return <BattleScreen state={state} anim={anim} onAction={handleAction} />
         return <VictoryScreen state={state} onContinue={continueAfterVictory} />
       case PHASES.BATTLE_DEFEAT:
-        if (screenFade === 'fade-start' || screenFade === 'fade-in') return <BattleScreen state={state} anim={anim} onAction={handleAction} />
+        if (screenFade) return <BattleScreen state={state} anim={anim} onAction={handleAction} />
         return <DefeatScreen onRetry={newGame} />
       case PHASES.GAME_COMPLETE:
         return <GameCompleteScreen onRestart={newGame} />
@@ -618,10 +596,8 @@ export default function App() {
         <Header gold={state.gold} showGold={state.phase !== PHASES.TITLE} />
         {renderPhase()}
       </div>
-      {screenFade && screenFade !== 'done' && (
-        <div className={`fixed inset-0 z-50 pointer-events-none bg-black transition-opacity duration-500 ${
-          screenFade === 'fade-start' ? 'opacity-0' : screenFade === 'fade-in' ? 'opacity-100' : 'opacity-0'
-        }`} />
+      {screenFade && (
+        <div className="fixed inset-0 z-50 pointer-events-none bg-black animate-fade-in" />
       )}
     </div>
   )
