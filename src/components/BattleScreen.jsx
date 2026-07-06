@@ -13,15 +13,15 @@ export function BattleScreen({ state, anim, onAction }) {
   const needsAllyTarget = phase === 'player_ally_target'
 
   return (
-    <div className={`flex flex-col gap-2 flex-1 ${screenShake > 0 ? 'animate-shake' : ''}`}>
+    <div className={`flex flex-col gap-2 ${screenShake > 0 ? 'animate-shake' : ''}`}>
       {/* Turn order bar */}
       <TurnOrderBar turnOrder={turnOrder} currentTurnIndex={currentTurnIndex} party={party} enemies={enemies} />
 
       {/* Battle field */}
-      <div className="pixel-panel p-2 relative flex-1 min-h-[180px]">
+      <div className="pixel-panel p-2 relative h-[330px] sm:h-[360px] overflow-hidden flex flex-col justify-center">
         <FloatText texts={floatTexts} />
         {/* Enemies row */}
-        <div className="flex justify-center gap-2 mb-2">
+        <div className="flex justify-center gap-2 mb-3 flex-wrap">
           {enemies.map((enemy) => (
             <CharacterCard
               key={enemy.id}
@@ -30,7 +30,8 @@ export function BattleScreen({ state, anim, onAction }) {
               isActive={activeActor?.id === enemy.id}
               isTargetable={needsTarget && enemy.alive && enemy.hp > 0}
               onTarget={(e) => onAction('target_enemy', e)}
-              size={48}
+              size={36}
+              compact
             />
           ))}
         </div>
@@ -41,7 +42,7 @@ export function BattleScreen({ state, anim, onAction }) {
           <div className="h-px flex-1 bg-retro-border" />
         </div>
         {/* Party row */}
-        <div className="flex justify-center gap-2 flex-wrap">
+        <div className="flex justify-center gap-1.5 flex-wrap">
           {party.map((hero) => (
             <CharacterCard
               key={hero.id}
@@ -49,7 +50,8 @@ export function BattleScreen({ state, anim, onAction }) {
               isActive={activeActor?.id === hero.id}
               isTargetable={needsAllyTarget && hero.alive && hero.hp > 0}
               onTarget={(h) => onAction('target_ally', h)}
-              size={40}
+              size={34}
+              compact
             />
           ))}
         </div>
@@ -87,8 +89,8 @@ function TurnOrderBar({ turnOrder, currentTurnIndex, party, enemies }) {
   }
 
   return (
-    <div className="pixel-panel p-1 flex items-center gap-1 overflow-x-auto">
-      <span className="font-pixel text-[5px] text-retro-dim shrink-0">TURN:</span>
+    <div className="pixel-panel px-1.5 py-1 flex items-center gap-1 overflow-x-auto min-h-8">
+      <span className="font-pixel text-[4px] text-retro-dim shrink-0">TURN</span>
       {upcoming.map(({ actor, idx }, i) => {
         const isActive = i === 0
         return (
@@ -96,7 +98,7 @@ function TurnOrderBar({ turnOrder, currentTurnIndex, party, enemies }) {
             key={`${actor.id}-${idx}`}
             className={`shrink-0 ${isActive ? 'ring-1 ring-retro-gold' : 'opacity-60'}`}
           >
-            <Sprite type={actor.sprite} size={20} defeated={false} />
+            <Sprite type={actor.sprite} size={16} defeated={false} />
           </div>
         )
       })}

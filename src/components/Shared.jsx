@@ -15,14 +15,14 @@ export function Bar({ label, value, max, color }) {
   )
 }
 
-export function CharacterCard({ actor, isEnemy, isActive, isTargetable, onTarget, size = 48 }) {
+export function CharacterCard({ actor, isEnemy, isActive, isTargetable, onTarget, size = 48, compact = false }) {
   const hpPercent = (actor.hp / actor.maxHp) * 100
   const hpColor = hpPercent > 50 ? 'bg-retro-green' : hpPercent > 25 ? 'bg-retro-gold' : 'bg-retro-accent'
   const mpColor = 'bg-retro-blue'
 
   return (
     <div
-      className={`pixel-panel p-1.5 flex flex-col items-center relative transition-all duration-200 ${
+      className={`pixel-panel ${compact ? 'p-1 w-16' : 'p-1.5'} flex flex-col items-center relative transition-all duration-200 ${
         isActive ? 'ring-2 ring-retro-gold scale-105' : ''
       } ${isTargetable ? 'ring-2 ring-retro-accent cursor-pointer animate-pulse' : ''} ${
         !actor.alive || actor.hp <= 0 ? 'opacity-50' : ''
@@ -30,14 +30,14 @@ export function CharacterCard({ actor, isEnemy, isActive, isTargetable, onTarget
       onClick={isTargetable ? () => onTarget(actor) : undefined}
     >
       {actor.isBoss && (
-        <div className="absolute -top-2 left-1/2 -translate-x-1/2 font-pixel text-[5px] text-retro-accent bg-retro-bg px-1">
+        <div className="absolute -top-2 left-1/2 -translate-x-1/2 font-pixel text-[5px] text-retro-accent bg-retro-bg px-1 whitespace-nowrap">
           BOSS
         </div>
       )}
       <Sprite type={actor.sprite} size={size} defeated={actor.hp <= 0} />
       <div className="mt-1 text-center">
-        <div className="font-pixel text-[6px] text-retro-text">{actor.name}</div>
-        <div className="font-pixel text-[5px] text-retro-dim">Lv.{actor.level}</div>
+        <div className="font-pixel text-[5px] text-retro-text leading-tight">{actor.name}</div>
+        <div className="font-pixel text-[4px] text-retro-dim">Lv.{actor.level}</div>
       </div>
       <div className="w-full mt-1">
         <Bar label="HP" value={actor.hp} max={actor.maxHp} color={hpColor} />
