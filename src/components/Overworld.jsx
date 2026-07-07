@@ -131,9 +131,12 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onCont
                     {isCompleted ? '[DONE]' : isCurrent ? '[!]' : '[ ]'}
                   </span>
                   <span className="flex gap-1">
-                    {battle.enemies.map((e, ei) => (
-                      <Sprite key={ei} type={e} size={16} />
-                    ))}
+                    {isCompleted
+                      ? battle.enemies.map((e, ei) => (
+                          <Sprite key={ei} type={e} size={16} />
+                        ))
+                      : <span className="font-pixel text-[7px] text-retro-dim">???</span>
+                    }
                   </span>
                   <span className="text-[7px] ml-auto">
                     Battle {i + 1}
