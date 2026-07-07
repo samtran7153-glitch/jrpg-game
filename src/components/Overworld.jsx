@@ -47,6 +47,18 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onCont
     }
   }
 
+  const isValidTarget = (hero) => {
+    if (!selectedItem) return false
+    const item = ITEMS[selectedItem]
+    if (!item) return false
+    if (item.revive) return !hero.alive || hero.hp <= 0
+    if (!hero.alive || hero.hp <= 0) return false
+    if (item.heal) return hero.hp < hero.maxHp
+    if (item.mpRestore) return hero.mp < hero.maxMp
+    if (item.cure) return (hero.statusEffects || []).some((e) => e.type === item.cure)
+    return false
+  }
+
   return (
     <div className="flex flex-col gap-2 flex-1">
       <div className="pixel-panel p-2 text-center">
@@ -65,7 +77,7 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onCont
             key={hero.id}
             actor={hero}
             size={32}
-            isTargetable={selectedItem !== null}
+            isTargetable={isValidTarget(hero)}
             onTarget={() => handleUseItem(hero.id)}
           />
         ))}
