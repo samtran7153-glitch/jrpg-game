@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Sprite } from '../Sprites'
 import { CharacterCard, FloatText } from './Shared'
-import { SKILLS, ITEMS } from '../gameState'
+import { SKILLS, ITEMS, AREAS } from '../gameState'
 
 const TUTORIAL_TIPS = [
   { text: 'Welcome to battle! The bar above shows turn order. Your hero acts first.', highlight: 'turn_order' },
@@ -12,8 +12,17 @@ const TUTORIAL_TIPS = [
   { text: 'Watch the turn order bar to plan ahead. Defeat all enemies to win!', highlight: 'turn_order' },
 ]
 
+const AREA_THEMES = {
+  forest: { ground: '#2d5a1e', groundAccent: '#3d7a2a', sky: 'linear-gradient(180deg, #1a3a2a 0%, #0f2a1a 60%, #1a1a2e 100%)', accent: '#4ecca3' },
+  cave: { ground: '#3a2a1a', groundAccent: '#4a3a2a', sky: 'linear-gradient(180deg, #1a1a2e 0%, #0f0f1b 60%, #1a1a2e 100%)', accent: '#6a6a8a' },
+  castle: { ground: '#2a2a3a', groundAccent: '#3a3a4a', sky: 'linear-gradient(180deg, #1a1a2e 0%, #0f0f1b 50%, #1a1a2e 100%)', accent: '#9d4edd' },
+  shadow: { ground: '#1a1a2e', groundAccent: '#2a2a3e', sky: 'linear-gradient(180deg, #0a0a14 0%, #0f0f1b 50%, #1a1a2e 100%)', accent: '#9d4edd' },
+}
+
 export function BattleScreen({ state, anim, onAction }) {
   const { party, enemies, turnOrder, currentTurnIndex, phase, log, floatTexts, screenShake } = state
+  const area = AREAS[state.currentAreaIndex]
+  const theme = AREA_THEMES[area?.id] || AREA_THEMES.forest
   const queuedActor = turnOrder[currentTurnIndex % turnOrder.length]
   const activeActor = queuedActor?.isPlayer
     ? party.find((hero) => hero.id === queuedActor.id)
@@ -33,10 +42,20 @@ export function BattleScreen({ state, anim, onAction }) {
       <TurnOrderBar turnOrder={turnOrder} currentTurnIndex={currentTurnIndex} party={party} enemies={enemies} highlighted={showTutorial && TUTORIAL_TIPS[tutorialStep]?.highlight === 'turn_order'} />
 
       {/* Battle field */}
-      <div className="pixel-panel p-2 relative flex-1 overflow-hidden flex flex-col justify-center">
+      <div className="pixel-panel p-2 relative flex-1 overflow-hidden flex flex-col justify-center battlefield-arena" style={{ background: theme.sky }}>
+        {/* Atmospheric particles */}
+        <div className="battlefield-particles" />
+
+        {/* Background decorations */}
+        <div className="battlefield-bg-decor" data-area={area?.id} />
+
+        {/* Ground line */}
+        <div className="battlefield-ground" style={{ background: `linear-gradient(180deg, ${theme.ground} 0%, ${theme.groundAccent} 100%)` }} />
+
         <FloatText texts={floatTexts} />
+
         {/* Enemies row */}
-        <div className="flex justify-center gap-2 mb-3 flex-wrap">
+        <div className="flex justify-center gap-2 mb-3 flex-wrap relative z-10 battle-enemies-row">
           {enemies.map((enemy) => (
             <CharacterCard
               key={enemy.id}
@@ -50,14 +69,16 @@ export function BattleScreen({ state, anim, onAction }) {
             />
           ))}
         </div>
+
         {/* VS divider */}
-        <div className="flex items-center justify-center my-1">
+        <div className="flex items-center justify-center my-1 relative z-10">
           <div className="h-px flex-1 bg-retro-border" />
-          <span className="font-pixel text-[8px] text-retro-accent px-2">VS</span>
+          <span className="font-pixel text-[8px] text-retro-accent px-2 animate-pulse">VS</span>
           <div className="h-px flex-1 bg-retro-border" />
         </div>
+
         {/* Party row */}
-        <div className="flex justify-center gap-1.5 flex-wrap">
+        <div className="flex justify-center gap-1.5 flex-wrap relative z-10 battle-party-row">
           {party.map((hero) => (
             <CharacterCard
               key={hero.id}
