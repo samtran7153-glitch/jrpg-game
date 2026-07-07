@@ -1,4 +1,5 @@
 import { Sprite } from '../Sprites'
+import { SKILLS } from '../gameState'
 
 export function Bar({ label, value, max, color }) {
   const percent = (value / max) * 100
@@ -15,7 +16,7 @@ export function Bar({ label, value, max, color }) {
   )
 }
 
-export function CharacterCard({ actor, isEnemy, isActive, isTargetable, onTarget, size = 48, compact = false }) {
+export function CharacterCard({ actor, isEnemy, isActive, isTargetable, onTarget, onStatsClick, size = 48, compact = false }) {
   const hpPercent = (actor.hp / actor.maxHp) * 100
   const hpColor = hpPercent > 50 ? 'bg-retro-green' : hpPercent > 25 ? 'bg-retro-gold' : 'bg-retro-accent'
   const mpColor = 'bg-retro-blue'
@@ -25,9 +26,11 @@ export function CharacterCard({ actor, isEnemy, isActive, isTargetable, onTarget
       className={`pixel-panel ${compact ? 'p-1 w-16' : 'p-1.5'} flex flex-col items-center relative transition-all duration-200 ${
         isActive ? 'ring-2 ring-retro-gold scale-105' : ''
       } ${isTargetable ? 'ring-2 ring-retro-accent cursor-pointer animate-pulse' : ''} ${
+        onStatsClick && !isTargetable ? 'cursor-pointer hover:border-retro-gold' : ''
+      } ${
         !actor.alive || actor.hp <= 0 ? 'animate-defeat' : ''
       }`}
-      onClick={isTargetable ? () => onTarget(actor) : undefined}
+      onClick={isTargetable ? () => onTarget(actor) : onStatsClick ? () => onStatsClick() : undefined}
     >
       {actor.isBoss && (
         <div className="absolute -top-2 left-1/2 -translate-x-1/2 font-pixel text-[7px] text-retro-accent bg-retro-bg px-1 whitespace-nowrap">
@@ -89,6 +92,67 @@ export function GoldDisplay({ gold }) {
   return (
     <div className="font-pixel text-[10px] text-retro-gold">
       {gold} G
+    </div>
+  )
+}
+
+export function HeroStatsModal({ hero, onClose }) {
+  if (!hero) return null
+  const hpPercent = (hero.hp / hero.maxHp) * 100
+  const hpColor = hpPercent > 50 ? 'bg-retro-green' : hpPercent > 25 ? 'bg-retro-gold' : 'bg-retro-accent'
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={onClose}>
+      <div className="pixel-panel p-3 w-64 max-w-[90vw]" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-2 mb-3">
+          <Sprite type={hero.sprite} size={40} defeated={hero.hp <= 0} />
+          <div>
+            <div className="font-pixel text-[10px] text-retro-gold">{hero.name}</div>
+            <div className="font-pixel text-[8px] text-retro-dim">{hero.title} · Lv.{hero.level}</div>
+          </div>
+        </div>
+
+        <div className="space-y-1 mb-3">
+          <Bar label="HP" value={hero.hp} max={hero.maxHp} color={hpColor} />
+          <Bar label="MP" value={hero.mp} max={hero.maxMp} color="bg-retro-blue" />
+        </div>
+
+        <div className="grid grid-cols-3 gap-1 mb-3">
+          <div className="pixel-panel p-1 text-center">
+            <div className="font-pixel text-[6px] text-retro-dim">ATK</div>
+            <div className="font-pixel text-[10px] text-retro-accent">{hero.attack}</div>
+          </div>
+          <div className="pixel-panel p-1 text-center">
+            <div className="font-pixel text-[6px] text-retro-dim">DEF</div>
+            <div className="font-pixel text-[10px] text-retro-blue">{hero.defense}</div>
+          </div>
+          <div className="pixel-panel p-1 text-center">
+            <div className="font-pixel text-[6px] text-retro-dim">SPD</div>
+            <div className="font-pixel text-[10px] text-retro-green">{hero.speed}</div>
+          </div>
+        </div>
+
+        <div className="mb-2">
+          <div className="font-pixel text-[8px] text-retro-gold mb-1">SKILLS</div>
+          <div className="space-y-0.5">
+            {hero.skills.map((skillId) => {
+              const skill = SKILLS[skillId]
+              if (!skill) return null
+              return (
+                <div key={skillId} className="pixel-panel p-1">
+                  <div className="flex justify-between items-center">
+                    <span className="font-pixel text-[7px] text-retro-text">{skill.name}</span>
+                    <span className="font-pixel text-[6px] text-retro-blue">{skill.mpCost} MP</span>
+                  </div>
+                  <div className="font-pixel text-[6px] text-retro-dim mt-0.5">{skill.description}</div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        <button className="pixel-btn w-full text-[8px]" onClick={onClose}>Close</button>
+      </div>
     </div>
   )
 }

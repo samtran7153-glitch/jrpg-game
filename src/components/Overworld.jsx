@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Sprite } from '../Sprites'
-import { CharacterCard, GoldDisplay } from './Shared'
+import { CharacterCard, GoldDisplay, HeroStatsModal } from './Shared'
 import { AREAS, ITEMS } from '../gameState'
 
 export function TitleScreen({ onStart }) {
@@ -37,6 +37,7 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onCont
 
   const [showItems, setShowItems] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
+  const [statsHero, setStatsHero] = useState(null)
 
   const itemIds = Object.keys(state.inventory).filter((id) => state.inventory[id] > 0)
 
@@ -79,6 +80,7 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onCont
             size={32}
             isTargetable={isValidTarget(hero)}
             onTarget={() => handleUseItem(hero.id)}
+            onStatsClick={selectedItem === null ? () => setStatsHero(hero) : undefined}
           />
         ))}
       </div>
@@ -167,6 +169,8 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onCont
           Next
         </button>
       </div>
+
+      {statsHero && <HeroStatsModal hero={statsHero} onClose={() => setStatsHero(null)} />}
     </div>
   )
 }
