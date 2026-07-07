@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Sprite } from '../Sprites'
 import { CharacterCard, GoldDisplay, HeroStatsModal } from './Shared'
-import { AREAS, ITEMS } from '../gameState'
+import { AREAS, ITEMS, xpForLevel } from '../gameState'
 
 export function TitleScreen({ onStart }) {
   return (
@@ -452,39 +452,63 @@ export function VictoryScreen({ state, onConfirm }) {
         <div className="text-center font-pixel text-[7px] text-retro-dim mb-1">
           Remaining: {remaining} XP
         </div>
-        {party.map((hero) => (
-          <div key={hero.id} className="flex items-center gap-1.5">
-            <Sprite type={hero.sprite} size={20} />
-            <div className="flex-1 min-w-0">
-              <div className="font-pixel text-[7px] text-retro-text truncate">{hero.name}</div>
-              <div className="font-pixel text-[6px] text-retro-dim">Lv.{hero.level}</div>
+        {party.map((hero) => {
+          const currentXp = hero.xp || 0
+          const addedXp = xpAlloc[hero.id] || 0
+          const neededXp = xpForLevel(hero.level)
+          const previewXp = currentXp + addedXp
+          const currentPercent = Math.min(100, (currentXp / neededXp) * 100)
+          const previewPercent = Math.min(100, (previewXp / neededXp) * 100)
+          const willLevel = previewXp >= neededXp
+
+          return (
+            <div key={hero.id} className="space-y-1">
+              <div className="flex items-center gap-1.5">
+                <Sprite type={hero.sprite} size={20} />
+                <div className="flex-1 min-w-0">
+                  <div className="font-pixel text-[7px] text-retro-text truncate">{hero.name}</div>
+                  <div className="font-pixel text-[6px] text-retro-dim">Lv.{hero.level}</div>
+                </div>
+                <button
+                  className="pixel-btn text-[8px] px-1.5 py-0.5"
+                  onClick={() => adjust(hero.id, -5)}
+                  disabled={xpAlloc[hero.id] <= 0}
+                >
+                  -5
+                </button>
+                <span className="font-pixel text-[8px] text-retro-green w-10 text-center">
+                  {addedXp}
+                </span>
+                <button
+                  className="pixel-btn text-[8px] px-1.5 py-0.5"
+                  onClick={() => adjust(hero.id, 5)}
+                  disabled={remaining < 5}
+                >
+                  +5
+                </button>
+                <button
+                  className="pixel-btn text-[7px] px-1 py-0.5 text-retro-gold"
+                  onClick={() => focusHero(hero.id)}
+                  title="Focus 50% XP on this hero"
+                >
+                  FOC
+                </button>
+              </div>
+              <div className="ml-7">
+                <div className="flex justify-between font-pixel text-[6px] text-retro-dim mb-0.5">
+                  <span>XP</span>
+                  <span className={willLevel ? 'text-retro-gold' : ''}>
+                    {currentXp}+{addedXp}/{neededXp}{willLevel ? ' LEVEL!' : ''}
+                  </span>
+                </div>
+                <div className="h-1.5 bg-retro-bg border border-retro-border relative overflow-hidden">
+                  <div className="h-full bg-retro-purple" style={{ width: `${currentPercent}%` }} />
+                  <div className="absolute inset-y-0 bg-retro-gold opacity-80" style={{ left: `${currentPercent}%`, width: `${Math.max(0, previewPercent - currentPercent)}%` }} />
+                </div>
+              </div>
             </div>
-            <button
-              className="pixel-btn text-[8px] px-1.5 py-0.5"
-              onClick={() => adjust(hero.id, -5)}
-              disabled={xpAlloc[hero.id] <= 0}
-            >
-              -5
-            </button>
-            <span className="font-pixel text-[8px] text-retro-green w-10 text-center">
-              {xpAlloc[hero.id] || 0}
-            </span>
-            <button
-              className="pixel-btn text-[8px] px-1.5 py-0.5"
-              onClick={() => adjust(hero.id, 5)}
-              disabled={remaining < 5}
-            >
-              +5
-            </button>
-            <button
-              className="pixel-btn text-[7px] px-1 py-0.5 text-retro-gold"
-              onClick={() => focusHero(hero.id)}
-              title="Focus 50% XP on this hero"
-            >
-              FOC
-            </button>
-          </div>
-        ))}
+          )
+        })}
         <div className="flex gap-1 pt-1">
           <button className="pixel-btn flex-1 text-[7px]" onClick={splitEvenly}>
             Split Evenly
