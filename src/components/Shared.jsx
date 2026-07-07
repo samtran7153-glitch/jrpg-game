@@ -1,5 +1,5 @@
 import { Sprite } from '../Sprites'
-import { SKILLS } from '../gameState'
+import { SKILLS, xpForLevel } from '../gameState'
 
 export function Bar({ label, value, max, color }) {
   const percent = (value / max) * 100
@@ -45,6 +45,7 @@ export function CharacterCard({ actor, isEnemy, isActive, isTargetable, onTarget
       <div className="w-full mt-1">
         <Bar label="HP" value={actor.hp} max={actor.maxHp} color={hpColor} />
         {actor.maxMp > 0 && <Bar label="MP" value={actor.mp} max={actor.maxMp} color={mpColor} />}
+        {actor.isPlayer && <Bar label="XP" value={actor.xp || 0} max={xpForLevel(actor.level)} color="bg-retro-purple" />}
       </div>
       {actor.defending && (
         <div className="font-pixel text-[7px] text-retro-blue mt-0.5">DEF</div>
@@ -115,6 +116,7 @@ export function HeroStatsModal({ hero, onClose }) {
         <div className="space-y-1 mb-3">
           <Bar label="HP" value={hero.hp} max={hero.maxHp} color={hpColor} />
           <Bar label="MP" value={hero.mp} max={hero.maxMp} color="bg-retro-blue" />
+          <Bar label="XP" value={hero.xp || 0} max={xpForLevel(hero.level)} color="bg-retro-purple" />
         </div>
 
         <div className="grid grid-cols-3 gap-1 mb-3">
