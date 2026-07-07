@@ -2,7 +2,7 @@
 export const SKILLS = {
   // Knight skills
   powerSlash: { name: 'Power Slash', mpCost: 4, damage: 22, type: 'physical', element: 'physical', target: 'enemy', description: 'A mighty sword strike' },
-  shieldBash: { name: 'Shield Bash', mpCost: 6, damage: 15, type: 'physical', element: 'physical', target: 'enemy', effect: 'stun', effectChance: 0.4, description: 'Damage + chance to stun' },
+  shieldBash: { name: 'Shield Bash', mpCost: 6, damage: 15, type: 'physical', element: 'physical', target: 'enemy', effect: 'stun', effectChance: 0.4, duration: 1, description: 'Damage + chance to stun' },
   taunt: { name: 'Taunt', mpCost: 3, type: 'buff', target: 'self', effect: 'defense_up', duration: 3, description: 'Raise defense for 3 turns' },
   // Mage skills
   fireball: { name: 'Fireball', mpCost: 8, damage: 30, type: 'magic', element: 'fire', target: 'enemy', description: 'A blazing sphere of fire' },
