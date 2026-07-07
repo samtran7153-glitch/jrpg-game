@@ -61,9 +61,8 @@ export default function App() {
 
       const healedParty = s.party.map((h) => ({
         ...h,
-        hp: h.alive ? Math.min(h.maxHp, h.hp + Math.floor(h.maxHp * 0.5)) : h.hp,
-        mp: h.alive ? Math.min(h.maxMp, h.mp + Math.floor(h.maxMp * 0.5)) : h.mp,
         defending: false,
+        statusEffects: [],
       }))
 
       if (afterDialogue && afterDialogue.length > 0) {
@@ -127,6 +126,32 @@ export default function App() {
       if (s.gold < item.price) return s
       const inventory = { ...s.inventory, [itemId]: (s.inventory[itemId] || 0) + 1 }
       return { ...s, gold: s.gold - item.price, inventory }
+    })
+  }
+
+  const useOverworldItem = (itemId, heroId) => {
+    setState((s) => {
+      if (!s.inventory[itemId] || s.inventory[itemId] <= 0) return s
+      const item = ITEMS[itemId]
+      const hero = s.party.find((h) => h.id === heroId)
+      if (!hero) return s
+
+      let updatedHero = hero
+      if (item.revive && (!hero.alive || hero.hp <= 0)) {
+        updatedHero = { ...hero, alive: true, hp: Math.min(hero.maxHp, item.heal) }
+      } else if (item.heal && hero.alive) {
+        updatedHero = { ...hero, hp: Math.min(hero.maxHp, hero.hp + item.heal) }
+      } else if (item.mpRestore && hero.alive) {
+        updatedHero = { ...hero, mp: Math.min(hero.maxMp, hero.mp + item.mpRestore) }
+      } else if (item.cure && hero.alive) {
+        updatedHero = { ...hero, statusEffects: (hero.statusEffects || []).filter((e) => e.type !== item.cure) }
+      } else {
+        return s
+      }
+
+      const inventory = { ...s.inventory, [itemId]: s.inventory[itemId] - 1 }
+      const party = s.party.map((h) => h.id === updatedHero.id ? updatedHero : h)
+      return { ...s, party, inventory }
     })
   }
 
@@ -661,6 +686,7 @@ export default function App() {
           <AreaMapScreen
             state={state}
             onSelectBattle={selectBattle}
+            onUseItem={useOverworldItem}
             onShop={() => setState((s) => ({ ...s, phase: PHASES.SHOP }))}
             onContinue={() => {
               setState((s) => {
