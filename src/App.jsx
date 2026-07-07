@@ -2,8 +2,9 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import {
   createInitialState, PHASES, SKILLS, ITEMS, AREAS,
   calculateDamage, rollCrit, startBattle, advanceDialogue,
-  checkBattleEnd, applyXpAndLevelUps,
+  checkBattleEnd, applyXpAndLevelUps, xpForLevel, levelUp,
 } from './gameState'
+import { createHero } from './gameData'
 import { BattleScreen } from './components/BattleScreen'
 import {
   TitleScreen, AreaMapScreen, ShopScreen, DialogueScreen,
@@ -105,6 +106,40 @@ export default function App() {
         dialogueAfter: null,
       }
     })
+  }
+
+  const confirmXpAllocation = (xpAlloc) => {
+    setState((s) => {
+      const leveledUp = []
+      let party = s.party.map((hero) => {
+        let h = { ...hero, xp: (hero.xp || 0) + (xpAlloc[hero.id] || 0) }
+        while (h.xp >= xpForLevel(h.level)) {
+          h.xp -= xpForLevel(h.level)
+          h = levelUp(h)
+          leveledUp.push(h.name)
+        }
+        return h
+      })
+
+      let recruited = null
+      if (s.pendingRecruit) {
+        recruited = createHero(s.pendingRecruit)
+        party = [...party, recruited]
+      }
+
+      return {
+        ...s,
+        party,
+        pendingRecruit: null,
+        battleResult: {
+          ...s.battleResult,
+          leveledUp,
+          recruited,
+          applied: true,
+        },
+      }
+    })
+    setTimeout(() => continueAfterVictory(), 100)
   }
 
   const retry = () => {
@@ -679,9 +714,6 @@ export default function App() {
       setScreenFade(true)
       const t = setTimeout(() => {
         setScreenFade(false)
-        if (state.phase === PHASES.BATTLE_VICTORY) {
-          setState((s) => applyXpAndLevelUps(s))
-        }
       }, 600)
       return () => clearTimeout(t)
     }
@@ -730,7 +762,7 @@ export default function App() {
         return <BattleScreen state={state} anim={anim} onAction={handleAction} />
       case PHASES.BATTLE_VICTORY:
         if (screenFade) return <BattleScreen state={state} anim={anim} onAction={handleAction} />
-        return <VictoryScreen state={state} onContinue={continueAfterVictory} />
+        return <VictoryScreen state={state} onConfirm={confirmXpAllocation} />
       case PHASES.BATTLE_DEFEAT:
         if (screenFade) return <BattleScreen state={state} anim={anim} onAction={handleAction} />
         return <DefeatScreen onRetry={newGame} />

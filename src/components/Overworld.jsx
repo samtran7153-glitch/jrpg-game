@@ -368,36 +368,133 @@ function StoryStage({ state, speaker, dialogueIndex, dialogueLines }) {
   )
 }
 
-export function VictoryScreen({ state, onContinue }) {
-  const { battleResult } = state
+export function VictoryScreen({ state, onConfirm }) {
+  const { battleResult, party } = state
+  const [xpAlloc, setXpAlloc] = useState(() => {
+    if (!battleResult) return {}
+    const total = battleResult.xp
+    const perHero = Math.floor(total / party.length)
+    const remainder = total - perHero * party.length
+    const alloc = {}
+    party.forEach((h, i) => {
+      alloc[h.id] = perHero + (i < remainder ? 1 : 0)
+    })
+    return alloc
+  })
+
   if (!battleResult) return null
 
+  const totalXp = battleResult.xp
+  const allocated = Object.values(xpAlloc).reduce((a, b) => a + b, 0)
+  const remaining = totalXp - allocated
+
+  const adjust = (heroId, delta) => {
+    setXpAlloc((prev) => {
+      const current = prev[heroId] || 0
+      const newVal = Math.max(0, current + delta)
+      const newAllocated = allocated - current + newVal
+      if (newAllocated > totalXp) return prev
+      return { ...prev, [heroId]: newVal }
+    })
+  }
+
+  const splitEvenly = () => {
+    const perHero = Math.floor(totalXp / party.length)
+    const remainder = totalXp - perHero * party.length
+    const alloc = {}
+    party.forEach((h, i) => {
+      alloc[h.id] = perHero + (i < remainder ? 1 : 0)
+    })
+    setXpAlloc(alloc)
+  }
+
+  const focusHero = (heroId) => {
+    const half = Math.floor(totalXp * 0.5)
+    const rest = totalXp - half
+    const others = party.filter((h) => h.id !== heroId)
+    const perOther = Math.floor(rest / others.length)
+    const remainder = rest - perOther * others.length
+    const alloc = {}
+    alloc[heroId] = half
+    others.forEach((h, i) => {
+      alloc[h.id] = perOther + (i < remainder ? 1 : 0)
+    })
+    setXpAlloc(alloc)
+  }
+
+  const canConfirm = remaining === 0
+
   return (
-    <div className="flex flex-col items-center justify-center flex-1 gap-3">
+    <div className="flex flex-col items-center justify-center flex-1 gap-3 overflow-y-auto">
       <div className="font-pixel text-lg text-retro-green">VICTORY!</div>
       <div className="pixel-panel p-3 w-full space-y-2">
         <div className="text-center font-pixel text-[9px] text-retro-text">Battle Rewards</div>
         <div className="flex justify-between font-pixel text-[9px]">
-          <span className="text-retro-dim">XP Gained:</span>
-          <span className="text-retro-green">{battleResult.xpPerHero || battleResult.xp}</span>
+          <span className="text-retro-dim">Total XP:</span>
+          <span className="text-retro-green">{totalXp}</span>
         </div>
         <div className="flex justify-between font-pixel text-[9px]">
           <span className="text-retro-dim">Gold Gained:</span>
           <span className="text-retro-gold">{battleResult.gold}</span>
         </div>
-        {battleResult.leveledUp && battleResult.leveledUp.length > 0 && (
-          <div className="text-center font-pixel text-[8px] text-retro-gold animate-pulse pt-1">
-            LEVEL UP! {battleResult.leveledUp.join(', ')}
-          </div>
-        )}
         {battleResult.recruited && (
           <div className="text-center font-pixel text-[8px] text-retro-green animate-pulse pt-1">
             {battleResult.recruited.name} joined the party!
           </div>
         )}
       </div>
-      <button className="pixel-btn w-40" onClick={onContinue}>
-        Continue
+
+      <div className="pixel-panel p-2 w-full space-y-1">
+        <div className="text-center font-pixel text-[8px] text-retro-gold mb-1">Allocate XP</div>
+        <div className="text-center font-pixel text-[7px] text-retro-dim mb-1">
+          Remaining: {remaining} XP
+        </div>
+        {party.map((hero) => (
+          <div key={hero.id} className="flex items-center gap-1.5">
+            <Sprite type={hero.sprite} size={20} />
+            <div className="flex-1 min-w-0">
+              <div className="font-pixel text-[7px] text-retro-text truncate">{hero.name}</div>
+              <div className="font-pixel text-[6px] text-retro-dim">Lv.{hero.level}</div>
+            </div>
+            <button
+              className="pixel-btn text-[8px] px-1.5 py-0.5"
+              onClick={() => adjust(hero.id, -5)}
+              disabled={xpAlloc[hero.id] <= 0}
+            >
+              -5
+            </button>
+            <span className="font-pixel text-[8px] text-retro-green w-10 text-center">
+              {xpAlloc[hero.id] || 0}
+            </span>
+            <button
+              className="pixel-btn text-[8px] px-1.5 py-0.5"
+              onClick={() => adjust(hero.id, 5)}
+              disabled={remaining < 5}
+            >
+              +5
+            </button>
+            <button
+              className="pixel-btn text-[7px] px-1 py-0.5 text-retro-gold"
+              onClick={() => focusHero(hero.id)}
+              title="Focus 50% XP on this hero"
+            >
+              FOC
+            </button>
+          </div>
+        ))}
+        <div className="flex gap-1 pt-1">
+          <button className="pixel-btn flex-1 text-[7px]" onClick={splitEvenly}>
+            Split Evenly
+          </button>
+        </div>
+      </div>
+
+      <button
+        className="pixel-btn w-40"
+        onClick={() => canConfirm && onConfirm(xpAlloc)}
+        disabled={!canConfirm}
+      >
+        {canConfirm ? 'Confirm' : `Allocate ${remaining} XP`}
       </button>
     </div>
   )
