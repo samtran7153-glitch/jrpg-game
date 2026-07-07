@@ -175,7 +175,7 @@ export default function App() {
   }
 
   const processStatusEffects = (s, actor) => {
-    let updated = { ...actor }
+    let updated = { ...actor, defending: false }
     let log = [...s.log]
     let floats = s.floatTexts
     const effects = updated.statusEffects || []
