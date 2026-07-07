@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import {
   createInitialState, PHASES, SKILLS, ITEMS, AREAS,
   calculateDamage, rollCrit, startBattle, advanceDialogue,
@@ -18,6 +18,7 @@ export default function App() {
   const [state, setState] = useState(createInitialState)
   const [anim, setAnim] = useState({ type: null, target: null })
   const [screenFade, setScreenFade] = useState(false)
+  const enemyTurnInProgress = useRef(false)
 
   const addLog = (prev, msg) => [...prev, msg].slice(-6)
 
@@ -501,18 +502,27 @@ export default function App() {
   }, [state])
 
   // ============ ENEMY AI ============
-  const enemyTurn = useCallback(async () => {
+  const enemyTurn = async () => {
+    if (enemyTurnInProgress.current) return
+    enemyTurnInProgress.current = true
     await sleep(250)
 
     setState((s) => {
-      if (s.phase !== PHASES.ENEMY_TURN) return s
+      if (s.phase !== PHASES.ENEMY_TURN) {
+        enemyTurnInProgress.current = false
+        return s
+      }
       const actor = resolveActor(s, s.turnOrder[s.currentTurnIndex % s.turnOrder.length])
       if (!actor || actor.isPlayer || !actor.alive || actor.hp <= 0) {
+        enemyTurnInProgress.current = false
         return advanceTurn({ ...s, turnNonce: (s.turnNonce || 0) + 1 })
       }
 
       const aliveParty = s.party.filter((h) => h.alive && h.hp > 0)
-      if (aliveParty.length === 0) return s
+      if (aliveParty.length === 0) {
+        enemyTurnInProgress.current = false
+        return s
+      }
 
       // Smart targeting: bosses prioritize healers, then low HP; normal enemies prefer low HP
       let target
@@ -563,6 +573,7 @@ export default function App() {
             const shaken = triggerShake(newState)
             const ended = checkBattleEnd(shaken)
             if (ended) return ended
+            enemyTurnInProgress.current = false
             return advanceTurn(shaken)
           } else {
             const dmg = calculateDamage(updatedActor, target, skill.damage, false, skill.element || 'physical')
@@ -584,6 +595,7 @@ export default function App() {
             const shaken = triggerShake(newState)
             const ended = checkBattleEnd(shaken)
             if (ended) return ended
+            enemyTurnInProgress.current = false
             return advanceTurn(shaken)
           }
         }
@@ -603,15 +615,19 @@ export default function App() {
       const shaken = triggerShake(newState)
       const ended = checkBattleEnd(shaken)
       if (ended) return ended
+      enemyTurnInProgress.current = false
       return advanceTurn(shaken)
     })
-  }, [])
+  }
+
+  const enemyTurnRef = useRef(enemyTurn)
+  enemyTurnRef.current = enemyTurn
 
   useEffect(() => {
     if (state.phase === PHASES.ENEMY_TURN && !state.busy) {
-      enemyTurn()
+      enemyTurnRef.current()
     }
-  }, [state.phase, state.busy, state.turnNonce, enemyTurn])
+  }, [state.phase, state.busy, state.turnNonce])
 
   useEffect(() => {
     if (state.phase === PHASES.BATTLE_INTRO) {
