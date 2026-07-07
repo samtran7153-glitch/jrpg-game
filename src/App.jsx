@@ -246,11 +246,11 @@ export default function App() {
       }
     }
 
+    const stunned = effects.some((e) => e.type === 'stun')
+    const slowed = effects.some((e) => e.type === 'slow')
+
     const newEffects = effects.map((e) => ({ ...e, duration: e.duration - 1 })).filter((e) => e.duration > 0)
     updated = { ...updated, statusEffects: newEffects }
-
-    const stunned = newEffects.some((e) => e.type === 'stun')
-    const slowed = newEffects.some((e) => e.type === 'slow')
 
     return { actor: updated, log, floats, stunned, slowed }
   }
