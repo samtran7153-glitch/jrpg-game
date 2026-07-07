@@ -44,7 +44,7 @@ export const HERO_CLASSES = {
 // ============ ENEMY TYPES ============
 export const ENEMY_TYPES = {
   slime: { name: 'Slime', sprite: 'slime', maxHp: 35, maxMp: 10, attack: 12, defense: 4, speed: 8, xp: 15, gold: 15, skills: ['venomSpit'], weaknesses: { fire: 1.5, ice: 0.5 }, ai: { skillChance: 0.2 } },
-  bat: { name: 'Cave Bat', sprite: 'slime', maxHp: 28, maxMp: 8, attack: 14, defense: 3, speed: 18, xp: 18, gold: 18, skills: ['venomSpit'], weaknesses: { lightning: 1.5, ice: 0.5 }, ai: { skillChance: 0.25 } },
+  bat: { name: 'Cave Bat', sprite: 'bat', maxHp: 28, maxMp: 8, attack: 14, defense: 3, speed: 18, xp: 18, gold: 18, skills: ['venomSpit'], weaknesses: { lightning: 1.5, ice: 0.5 }, ai: { skillChance: 0.25 } },
   goblin: { name: 'Goblin', sprite: 'goblin', maxHp: 55, maxMp: 15, attack: 16, defense: 7, speed: 12, xp: 25, gold: 27, skills: ['fireball'], weaknesses: { fire: 0.5, lightning: 1.5 }, ai: { skillChance: 0.25 } },
   wolf: { name: 'Dire Wolf', sprite: 'goblin', maxHp: 65, maxMp: 10, attack: 20, defense: 6, speed: 15, xp: 30, gold: 30, skills: ['darkSlash'], weaknesses: { ice: 1.5, fire: 1.25 }, ai: { skillChance: 0.3 } },
   skeleton: { name: 'Skeleton', sprite: 'skeleton', maxHp: 50, maxMp: 20, attack: 20, defense: 5, speed: 11, xp: 30, gold: 33, skills: ['boneToss'], weaknesses: { fire: 1.5, lightning: 1.25, dark: 0.25 }, ai: { skillChance: 0.3 } },

@@ -169,6 +169,48 @@ export function SlimeSprite({ size = 64, defeated = false }) {
   )
 }
 
+// ============ BAT ============
+export function BatSprite({ size = 64, defeated = false }) {
+  const c = defeated ? 'opacity-20 grayscale' : ''
+  return (
+    <svg {...svgProps(size, c)}>
+      {/* Left wing top */}
+      <rect x="0" y="5" width="2" height="1" fill="#6a3a7a" />
+      <rect x="1" y="6" width="2" height="1" fill="#7a4a8a" />
+      <rect x="0" y="7" width="2" height="1" fill="#6a3a7a" />
+      {/* Left wing membrane */}
+      <rect x="2" y="5" width="2" height="1" fill="#8a5a9a" />
+      <rect x="2" y="6" width="2" height="2" fill="#7a4a8a" />
+      <rect x="3" y="8" width="2" height="1" fill="#6a3a7a" />
+      {/* Right wing top */}
+      <rect x="14" y="5" width="2" height="1" fill="#6a3a7a" />
+      <rect x="13" y="6" width="2" height="1" fill="#7a4a8a" />
+      <rect x="14" y="7" width="2" height="1" fill="#6a3a7a" />
+      {/* Right wing membrane */}
+      <rect x="12" y="5" width="2" height="1" fill="#8a5a9a" />
+      <rect x="12" y="6" width="2" height="2" fill="#7a4a8a" />
+      <rect x="11" y="8" width="2" height="1" fill="#6a3a7a" />
+      {/* Body */}
+      <rect x="5" y="4" width="6" height="1" fill="#5a2a6a" />
+      <rect x="4" y="5" width="8" height="1" fill="#6a3a7a" />
+      <rect x="4" y="6" width="8" height="3" fill="#7a4a8a" />
+      <rect x="5" y="9" width="6" height="1" fill="#6a3a7a" />
+      <rect x="6" y="10" width="4" height="1" fill="#5a2a6a" />
+      {/* Ears */}
+      <rect x="5" y="3" width="1" height="1" fill="#5a2a6a" />
+      <rect x="10" y="3" width="1" height="1" fill="#5a2a6a" />
+      {/* Eyes - glowing red */}
+      <rect x="5" y="6" width="2" height="1" fill="#e94560" />
+      <rect x="9" y="6" width="2" height="1" fill="#e94560" />
+      <rect x="6" y="6" width="1" height="1" fill="#ff6b6b" />
+      <rect x="10" y="6" width="1" height="1" fill="#ff6b6b" />
+      {/* Fangs */}
+      <rect x="6" y="8" width="1" height="1" fill="#ffffff" />
+      <rect x="9" y="8" width="1" height="1" fill="#ffffff" />
+    </svg>
+  )
+}
+
 // ============ GOBLIN ============
 export function GoblinSprite({ size = 64, defeated = false }) {
   const c = defeated ? 'opacity-20 grayscale' : ''
@@ -411,6 +453,7 @@ const SPRITE_MAP = {
   archer: ArcherSprite,
   healer: HealerSprite,
   slime: SlimeSprite,
+  bat: BatSprite,
   goblin: GoblinSprite,
   skeleton: SkeletonSprite,
   darkKnight: DarkKnightSprite,
