@@ -707,7 +707,16 @@ export default function App() {
   useEffect(() => {
     if (state.phase === PHASES.BATTLE_INTRO) {
       const t = setTimeout(() => {
-        setState((s) => ({ ...s, phase: PHASES.PLAYER_MENU }))
+        setState((s) => {
+          const queuedActor = s.turnOrder[s.currentTurnIndex % s.turnOrder.length]
+          const activeActor = resolveActor(s, queuedActor)
+          if (!activeActor) return { ...s, phase: PHASES.PLAYER_MENU, activeActor: null }
+          return {
+            ...s,
+            activeActor,
+            phase: activeActor.isPlayer ? PHASES.PLAYER_MENU : PHASES.ENEMY_TURN,
+          }
+        })
       }, 450)
       return () => clearTimeout(t)
     }
