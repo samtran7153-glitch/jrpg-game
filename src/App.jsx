@@ -568,7 +568,10 @@ export default function App() {
       }
 
       const ai = actor.ai || { skillChance: 0.2 }
-      const useSkill = actor.mp >= 8 && Math.random() < (ai.skillChance || 0.2)
+      const availableSkills = actor.skills
+        .map((skillId) => SKILLS[skillId])
+        .filter((skill) => skill && actor.mp >= skill.mpCost)
+      const useSkill = availableSkills.length > 0 && Math.random() < (ai.skillChance || 0.2)
 
       let log = [...s.log]
       let party = s.party
@@ -576,9 +579,8 @@ export default function App() {
       let enemies = s.enemies
 
       if (useSkill) {
-        const skillId = actor.skills[Math.floor(Math.random() * actor.skills.length)]
-        const skill = SKILLS[skillId]
-        if (actor.mp >= skill.mpCost) {
+        const skill = availableSkills[Math.floor(Math.random() * availableSkills.length)]
+        if (skill) {
           const updatedActor = { ...actor, mp: actor.mp - skill.mpCost }
           enemies = s.enemies.map((e) => e.id === actor.id ? updatedActor : e)
 
@@ -597,7 +599,10 @@ export default function App() {
             const newState = { ...s, party, enemies, log, floatTexts: floats }
             const shaken = triggerShake(newState)
             const ended = checkBattleEnd(shaken)
-            if (ended) return ended
+            if (ended) {
+              enemyTurnInProgress.current = false
+              return ended
+            }
             enemyTurnInProgress.current = false
             return advanceTurn(shaken)
           } else {
@@ -619,7 +624,10 @@ export default function App() {
             const newState = { ...s, party, enemies, log, floatTexts: floats }
             const shaken = triggerShake(newState)
             const ended = checkBattleEnd(shaken)
-            if (ended) return ended
+            if (ended) {
+              enemyTurnInProgress.current = false
+              return ended
+            }
             enemyTurnInProgress.current = false
             return advanceTurn(shaken)
           }
@@ -639,7 +647,10 @@ export default function App() {
       const newState = { ...s, party, log, floatTexts: floats }
       const shaken = triggerShake(newState)
       const ended = checkBattleEnd(shaken)
-      if (ended) return ended
+      if (ended) {
+        enemyTurnInProgress.current = false
+        return ended
+      }
       enemyTurnInProgress.current = false
       return advanceTurn(shaken)
     })
