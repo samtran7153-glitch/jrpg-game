@@ -50,7 +50,7 @@ export default function App() {
       const recruit = isReplay ? null : battle.recruit
       const dialogueBefore = isReplay ? null : battle.dialogue?.before
       const dialogueAfter = isReplay ? null : battle.dialogue?.after
-      return startBattle(s, battle.enemies, dialogueBefore, dialogueAfter, recruit)
+      return { ...startBattle(s, battle.enemies, dialogueBefore, dialogueAfter, recruit), activeBattleIndex: battleIndex }
     })
   }
 
@@ -61,8 +61,10 @@ export default function App() {
   const continueAfterVictory = () => {
     setState((s) => {
       const area = AREAS[s.currentAreaIndex]
-      const nextBattleIndex = s.currentBattleIndex + 1
-      const afterDialogue = s.dialogueAfter
+      const completedBattleIndex = s.activeBattleIndex ?? s.currentBattleIndex
+      const isReplay = completedBattleIndex < s.currentBattleIndex
+      const nextBattleIndex = isReplay ? s.currentBattleIndex : completedBattleIndex + 1
+      const afterDialogue = isReplay ? null : s.dialogueAfter
 
       const healedParty = s.party.map((h) => ({
         ...h,
@@ -80,13 +82,27 @@ export default function App() {
           dialogueIndex: 0,
           dialogueAfter: null,
           battleResult: null,
+          activeBattleIndex: null,
+        }
+      }
+
+      if (isReplay) {
+        return {
+          ...s,
+          party: healedParty,
+          currentBattleIndex: nextBattleIndex,
+          phase: PHASES.AREA_MAP,
+          battleResult: null,
+          enemies: [],
+          dialogueAfter: null,
+          activeBattleIndex: null,
         }
       }
 
       if (nextBattleIndex >= area.battles.length) {
         const nextAreaIndex = s.currentAreaIndex + 1
         if (nextAreaIndex >= AREAS.length) {
-          return { ...s, phase: PHASES.GAME_COMPLETE, dialogueAfter: null }
+          return { ...s, phase: PHASES.GAME_COMPLETE, dialogueAfter: null, activeBattleIndex: null }
         }
         return {
           ...s,
@@ -97,6 +113,7 @@ export default function App() {
           battleResult: null,
           enemies: [],
           dialogueAfter: null,
+          activeBattleIndex: null,
         }
       }
 
@@ -108,6 +125,7 @@ export default function App() {
         battleResult: null,
         enemies: [],
         dialogueAfter: null,
+        activeBattleIndex: null,
       }
     })
   }
