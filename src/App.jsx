@@ -46,7 +46,11 @@ export default function App() {
     setState((s) => {
       const area = AREAS[s.currentAreaIndex]
       const battle = area.battles[battleIndex]
-      return startBattle(s, battle.enemies, battle.dialogue?.before, battle.dialogue?.after, battle.recruit)
+      const isReplay = battleIndex < s.currentBattleIndex
+      const recruit = isReplay ? null : battle.recruit
+      const dialogueBefore = isReplay ? null : battle.dialogue?.before
+      const dialogueAfter = isReplay ? null : battle.dialogue?.after
+      return startBattle(s, battle.enemies, dialogueBefore, dialogueAfter, recruit)
     })
   }
 
@@ -122,7 +126,7 @@ export default function App() {
       })
 
       let recruited = null
-      if (s.pendingRecruit) {
+      if (s.pendingRecruit && !party.some((hero) => hero.classKey === s.pendingRecruit)) {
         recruited = createHero(s.pendingRecruit)
         party = [...party, recruited]
       }

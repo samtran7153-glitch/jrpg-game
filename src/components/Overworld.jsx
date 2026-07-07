@@ -446,6 +446,9 @@ export function VictoryScreen({ state, onConfirm }) {
 
       <div className="pixel-panel p-2 w-full space-y-1">
         <div className="text-center font-pixel text-[8px] text-retro-gold mb-1">Allocate XP</div>
+        <div className="text-center font-pixel text-[6px] text-retro-dim mb-1 leading-relaxed">
+          Use -5/+5 to adjust. FOC gives 50% to one hero. Split resets to even.
+        </div>
         <div className="text-center font-pixel text-[7px] text-retro-dim mb-1">
           Remaining: {remaining} XP
         </div>
@@ -494,7 +497,7 @@ export function VictoryScreen({ state, onConfirm }) {
         onClick={() => canConfirm && onConfirm(xpAlloc)}
         disabled={!canConfirm}
       >
-        {canConfirm ? 'Confirm' : `Allocate ${remaining} XP`}
+        {canConfirm ? 'Confirm' : `${remaining} XP left to distribute`}
       </button>
     </div>
   )
