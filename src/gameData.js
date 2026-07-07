@@ -26,7 +26,7 @@ export const SKILLS = {
 // ============ ITEMS ============
 export const ITEMS = {
   potion: { name: 'Potion', heal: 30, description: 'Restores 30 HP', price: 30 },
-  hiPotion: { name: 'Hi-Potion', heal: 70, description: 'Restores 70 HP', price: 80 },
+  hiPotion: { name: 'Hi-Potion', heal: 70, description: 'Restores 70 HP', price: 60 },
   ether: { name: 'Ether', mpRestore: 15, description: 'Restores 15 MP', price: 50 },
   hiEther: { name: 'Hi-Ether', mpRestore: 35, description: 'Restores 35 MP', price: 120 },
   phoenixDown: { name: 'Phoenix Down', revive: true, heal: 30, description: 'Revive a fallen ally', price: 150 },
