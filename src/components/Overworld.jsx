@@ -40,9 +40,9 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onCont
 
   const itemIds = Object.keys(state.inventory).filter((id) => state.inventory[id] > 0)
 
-  const handleUseItem = (hero) => {
+  const handleUseItem = (heroId) => {
     if (selectedItem) {
-      onUseItem(selectedItem, hero.id)
+      onUseItem(selectedItem, heroId)
       setSelectedItem(null)
     }
   }
