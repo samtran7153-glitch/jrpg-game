@@ -422,6 +422,14 @@ export function VictoryScreen({ state, onConfirm }) {
     setXpAlloc(alloc)
   }
 
+  const emptyXp = () => {
+    const alloc = {}
+    party.forEach((h) => {
+      alloc[h.id] = 0
+    })
+    setXpAlloc(alloc)
+  }
+
   const canConfirm = remaining === 0
 
   return (
@@ -481,10 +489,10 @@ export function VictoryScreen({ state, onConfirm }) {
                 </span>
                 <button
                   className="pixel-btn text-[8px] px-1.5 py-0.5"
-                  onClick={() => adjust(hero.id, 5)}
-                  disabled={remaining < 5}
+                  onClick={() => adjust(hero.id, Math.min(5, remaining))}
+                  disabled={remaining <= 0}
                 >
-                  +5
+                  +{Math.min(5, remaining)}
                 </button>
                 <button
                   className="pixel-btn text-[7px] px-1 py-0.5 text-retro-gold"
@@ -512,6 +520,9 @@ export function VictoryScreen({ state, onConfirm }) {
         <div className="flex gap-1 pt-1">
           <button className="pixel-btn flex-1 text-[7px]" onClick={splitEvenly}>
             Split Evenly
+          </button>
+          <button className="pixel-btn flex-1 text-[7px] text-retro-dim" onClick={emptyXp}>
+            Empty XP
           </button>
         </div>
       </div>
