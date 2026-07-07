@@ -1,19 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" shape-rendering="crispEdges">
   <rect width="512" height="512" fill="#0f0f1b" rx="64"/>
-  <!-- Sword -->
-  <rect x="232" y="96" width="48" height="240" fill="#c0c0d0"/>
-  <rect x="240" y="96" width="16" height="240" fill="#e0e0f0"/>
-  <!-- Crossguard -->
-  <rect x="176" y="328" width="160" height="32" fill="#f5c518"/>
-  <rect x="180" y="332" width="152" height="8" fill="#ffd940"/>
+  <!-- Shield (green, chunky) -->
+  <path d="M 96 160 L 96 320 Q 256 420 416 320 L 416 160 Q 256 120 96 160 Z" fill="#1a4a2a"/>
+  <path d="M 112 176 L 112 312 Q 256 400 400 312 L 400 176 Q 256 140 112 176 Z" fill="#2d6a3e"/>
+  <path d="M 128 192 L 128 304 Q 256 380 384 304 L 384 192 Q 256 160 128 192 Z" fill="#3d8a4e"/>
+  <!-- Shield border (gold, thick) -->
+  <path d="M 96 160 L 96 320 Q 256 420 416 320 L 416 160 Q 256 120 96 160 Z" fill="none" stroke="#f5c518" stroke-width="12"/>
+  <path d="M 96 160 L 96 320 Q 256 420 416 320 L 416 160 Q 256 120 96 160 Z" fill="none" stroke="#ffd940" stroke-width="4"/>
+  <!-- Sword (diagonal) -->
+  <g transform="rotate(45 256 256)">
+    <rect x="236" y="60" width="40" height="200" fill="#c0c0d0"/>
+    <rect x="244" y="60" width="16" height="200" fill="#e8e8f0"/>
+    <rect x="236" y="60" width="8" height="200" fill="#9090a0"/>
+    <rect x="236" y="48" width="40" height="12" fill="#c0c0d0"/>
+    <rect x="244" y="44" width="16" height="8" fill="#e8e8f0"/>
+    <rect x="248" y="40" width="8" height="8" fill="#e8e8f0"/>
+  </g>
+  <!-- Crossguard (gold) -->
+  <g transform="rotate(45 256 256)">
+    <rect x="180" y="256" width="152" height="28" fill="#f5c518"/>
+    <rect x="184" y="260" width="144" height="8" fill="#ffd940"/>
+    <rect x="180" y="280" width="152" height="4" fill="#c0a010"/>
+  </g>
   <!-- Handle -->
-  <rect x="232" y="360" width="48" height="64" fill="#4a4a6a"/>
-  <rect x="240" y="360" width="16" height="64" fill="#6a6a8a"/>
+  <g transform="rotate(45 256 256)">
+    <rect x="236" y="284" width="40" height="60" fill="#4a4a6a"/>
+    <rect x="244" y="284" width="16" height="60" fill="#6a6a8a"/>
+    <rect x="236" y="284" width="8" height="60" fill="#3a3a4a"/>
+  </g>
   <!-- Pommel -->
-  <rect x="216" y="424" width="80" height="32" fill="#f5c518" rx="8"/>
-  <!-- Shield behind sword -->
-  <path d="M 128 200 L 128 360 Q 256 440 384 360 L 384 200 Q 256 160 128 200 Z" fill="#1a1a2e" stroke="#4ecca3" stroke-width="8"/>
-  <!-- Shield emblem -->
-  <circle cx="256" cy="280" r="32" fill="#4ecca3" opacity="0.3"/>
-  <circle cx="256" cy="280" r="16" fill="#4ecca3" opacity="0.5"/>
+  <g transform="rotate(45 256 256)">
+    <rect x="224" y="340" width="64" height="24" fill="#f5c518" rx="4"/>
+    <rect x="228" y="344" width="56" height="8" fill="#ffd940"/>
+  </g>
 </svg>
