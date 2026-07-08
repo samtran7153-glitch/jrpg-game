@@ -804,6 +804,8 @@ export function DialogueScreen({ state, onAdvance }) {
 }
 
 function StoryStage({ state, speaker, dialogueIndex, dialogueLines }) {
+  const [surprised, setSurprised] = useState(false)
+
   const heroSpeakerMap = {
     Aria: 'knight',
     Elwyn: 'mage',
@@ -827,6 +829,15 @@ function StoryStage({ state, speaker, dialogueIndex, dialogueLines }) {
     return enemyNames.includes(lineSpeaker)
   })
   const enemiesRevealed = enemiesDefeated || hasEnemySpeaker || (isLastLine && allEnemies.length > 0)
+  const hasHiddenEnemies = allEnemies.some((e) => !e.isBoss)
+
+  useEffect(() => {
+    if (enemiesRevealed && hasHiddenEnemies) {
+      setSurprised(true)
+      const t = setTimeout(() => setSurprised(false), 800)
+      return () => clearTimeout(t)
+    }
+  }, [enemiesRevealed, hasHiddenEnemies])
 
   const speakerSprite = heroSpeakerMap[speaker] || enemySpeakerMap[speaker]
 
@@ -836,7 +847,7 @@ function StoryStage({ state, speaker, dialogueIndex, dialogueLines }) {
       <div className="absolute left-0 right-0 bottom-3 h-1 bg-retro-border/70" />
 
       {/* Party side */}
-      <div className="absolute left-4 bottom-4 flex items-end gap-2 animate-story-party-enter">
+      <div className={`absolute left-4 bottom-4 flex items-end gap-2 animate-story-party-enter ${surprised ? 'animate-story-surprise' : ''}`}>
         {visibleParty.map((hero) => (
           <div
             key={hero.id}
@@ -849,22 +860,21 @@ function StoryStage({ state, speaker, dialogueIndex, dialogueLines }) {
 
       {/* Enemy side — hiding bushes before reveal, jump-out after */}
       <div className="absolute right-4 bottom-4 flex items-end gap-2">
-        {!enemiesRevealed && allEnemies.length > 0 && (
-          <>
-            {allEnemies.map((enemy) => (
+        {allEnemies.map((enemy) => {
+          const isDefeated = !enemy.alive || enemy.hp <= 0
+          const isHidden = !enemiesRevealed && !enemy.isBoss
+          if (isHidden) {
+            return (
               <div key={enemy.id} className="story-bush">
                 <div className="story-bush-eyes" />
               </div>
-            ))}
-            <div className="absolute -top-3 right-8 animate-story-rustle font-pixel text-[6px] text-retro-dim">?</div>
-          </>
-        )}
-        {enemiesRevealed && allEnemies.map((enemy) => {
-          const isDefeated = !enemy.alive || enemy.hp <= 0
+            )
+          }
           return (
-            <div key={enemy.id} className={isDefeated ? '' : 'animate-story-jumpout'}>
+            <div key={enemy.id} className={isDefeated || enemy.isBoss ? '' : 'animate-story-jumpout'}>
               <div className={`story-actor ${!isDefeated && speakerSprite === enemy.sprite ? 'story-speaker' : ''}`}>
                 <div className={`story-enemy ${isDefeated ? 'story-defeated' : ''}`}>
+                  {enemy.isBoss && <div className="absolute -top-2 left-1/2 -translate-x-1/2 font-pixel text-[7px] text-retro-accent bg-retro-bg px-1 whitespace-nowrap">BOSS</div>}
                   <Sprite type={enemy.sprite} size={speakerSprite === enemy.sprite ? 48 : 36} defeated={isDefeated} />
                 </div>
               </div>
