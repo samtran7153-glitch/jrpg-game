@@ -446,6 +446,78 @@ export function DeathSprite({ size = 64 }) {
   )
 }
 
+// ============ AREA SPRITES ============
+function CaveSprite({ size }) {
+  const c = colors(size)
+  return (
+    <svg {...svgProps(size, c)}>
+      {/* Cave entrance */}
+      <rect x="2" y="8" width="12" height="6" fill="#2c3e50" />
+      <rect x="3" y="9" width="10" height="4" fill="#34495e" />
+      <rect x="4" y="10" width="8" height="2" fill="#1a252f" />
+      {/* Rocky top */}
+      <rect x="1" y="6" width="14" height="2" fill="#7f8c8d" />
+      <rect x="0" y="5" width="16" height="1" fill="#95a5a6" />
+      <rect x="2" y="4" width="12" height="1" fill="#95a5a6" />
+    </svg>
+  )
+}
+
+function ShadowSprite({ size }) {
+  const c = colors(size)
+  return (
+    <svg {...svgProps(size, c)}>
+      {/* Swirling shadow */}
+      <rect x="3" y="2" width="10" height="12" fill="#2c3e50" opacity="0.8" />
+      <rect x="4" y="3" width="8" height="10" fill="#34495e" opacity="0.6" />
+      <rect x="5" y="4" width="6" height="8" fill="#1a252f" opacity="0.7" />
+      {/* Shadow wisps */}
+      <rect x="2" y="3" width="2" height="8" fill="#2c3e50" opacity="0.4" />
+      <rect x="12" y="4" width="2" height="6" fill="#2c3e50" opacity="0.4" />
+      <rect x="6" y="1" width="4" height="2" fill="#2c3e50" opacity="0.3" />
+    </svg>
+  )
+}
+
+function ForestSprite({ size }) {
+  const c = colors(size)
+  return (
+    <svg {...svgProps(size, c)}>
+      {/* Tree trunks */}
+      <rect x="3" y="8" width="2" height="6" fill="#8b4513" />
+      <rect x="11" y="7" width="2" height="7" fill="#8b4513" />
+      <rect x="7" y="9" width="2" height="5" fill="#8b4513" />
+      {/* Tree tops */}
+      <rect x="1" y="4" width="6" height="4" fill="#228b22" />
+      <rect x="9" y="3" width="6" height="4" fill="#228b22" />
+      <rect x="5" y="6" width="6" height="3" fill="#32cd32" />
+      {/* Leaves */}
+      <rect x="2" y="5" width="4" height="1" fill="#90ee90" />
+      <rect x="10" y="4" width="4" height="1" fill="#90ee90" />
+    </svg>
+  )
+}
+
+function CastleSprite({ size }) {
+  const c = colors(size)
+  return (
+    <svg {...svgProps(size, c)}>
+      {/* Castle base */}
+      <rect x="2" y="10" width="12" height="4" fill="#708090" />
+      {/* Towers */}
+      <rect x="1" y="6" width="3" height="6" fill="#708090" />
+      <rect x="12" y="5" width="3" height="7" fill="#708090" />
+      <rect x="6" y="7" width="4" height="5" fill="#708090" />
+      {/* Tower tops */}
+      <rect x="0" y="5" width="5" height="1" fill="#2f4f4f" />
+      <rect x="11" y="4" width="5" height="1" fill="#2f4f4f" />
+      <rect x="5" y="6" width="6" height="1" fill="#2f4f4f" />
+      {/* Gate */}
+      <rect x="6" y="12" width="4" height="2" fill="#1a1a1a" />
+    </svg>
+  )
+}
+
 // ============ SPRITE LOOKUP ============
 const SPRITE_MAP = {
   knight: KnightSprite,
@@ -459,6 +531,11 @@ const SPRITE_MAP = {
   darkKnight: DarkKnightSprite,
   goblinKing: GoblinKingSprite,
   dragon: DragonSprite,
+  // Area sprites
+  cave: CaveSprite,
+  shadow: ShadowSprite,
+  forest: ForestSprite,
+  castle: CastleSprite,
 }
 
 export function Sprite({ type, size = 64, defeated = false }) {
