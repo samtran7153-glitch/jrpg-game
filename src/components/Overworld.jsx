@@ -452,7 +452,9 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
                 key={hero.id}
                 actor={hero}
                 size={32}
-                onStatsClick={() => setStatsHero(hero)}
+                isTargetable={isValidTarget(hero)}
+                onTarget={() => handleUseItem(hero.id)}
+                onStatsClick={selectedItem ? undefined : () => setStatsHero(hero)}
               />
             ))}
           </div>
@@ -463,7 +465,7 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
       {showItems ? (
         <div className="pixel-panel p-2 flex-1">
           <div className="font-pixel text-[8px] text-retro-gold mb-2">ITEMS</div>
-          <div className="space-y-1 overflow-y-auto max-h-48">
+          <div className="space-y-1">
             {itemIds.length === 0 && (
               <div className="font-pixel text-[8px] text-retro-dim">No items left! Visit the shop.</div>
             )}
@@ -472,7 +474,9 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
               return (
                 <button
                   key={itemId}
-                  className="pixel-btn w-full text-left flex justify-between items-center"
+                  className={`pixel-btn w-full text-left flex justify-between items-center ${
+                    selectedItem === itemId ? 'ring-2 ring-retro-gold' : ''
+                  }`}
                   onClick={() => setSelectedItem(itemId)}
                 >
                   <div>
@@ -483,6 +487,11 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
                 </button>
               )
             })}
+            {selectedItem && (
+              <div className="font-pixel text-[7px] text-retro-gold text-center mt-2">
+                Click a glowing hero card to use it.
+              </div>
+            )}
           </div>
           <button className="pixel-btn w-full text-retro-dim mt-2" onClick={() => { setShowItems(false); setSelectedItem(null) }}>
             Close
