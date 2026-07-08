@@ -22,6 +22,7 @@ export default function App() {
   const [state, setState] = useState(createInitialState)
   const [anim, setAnim] = useState({ type: null, target: null })
   const [screenFade, setScreenFade] = useState(false)
+  const [updateNotice, setUpdateNotice] = useState(false)
   const enemyTurnInProgress = useRef(false)
 
   const addLog = (prev, msg) => [...prev, msg].slice(-6)
@@ -864,6 +865,21 @@ export default function App() {
     }
   }, [state.phase])
 
+  useEffect(() => {
+    const currentScript = document.querySelector('script[type="module"]')
+    const currentHash = currentScript ? currentScript.src.split('/').pop() : null
+    const storedHash = localStorage.getItem('jrpg-game-hash')
+
+    if (currentHash && storedHash && currentHash !== storedHash) {
+      setUpdateNotice(true)
+      setTimeout(() => setUpdateNotice(false), 4000)
+    }
+
+    if (currentHash) {
+      localStorage.setItem('jrpg-game-hash', currentHash)
+    }
+  }, [])
+
   // ============ RENDER ============
   const renderPhase = () => {
     switch (state.phase) {
@@ -966,6 +982,14 @@ export default function App() {
       </div>
       {screenFade && (
         <div className="fixed inset-0 z-50 pointer-events-none bg-black animate-fade-in" />
+      )}
+
+      {updateNotice && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 pixel-panel border-retro-gold animate-fade-in">
+          <div className="font-pixel text-[8px] text-retro-gold text-center">
+            Game updated to the latest version!
+          </div>
+        </div>
       )}
     </div>
   )
