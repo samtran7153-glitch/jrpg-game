@@ -28,7 +28,6 @@ function WorldExplorationPanel({ areas, currentAreaIndex, party }) {
               <div className="flex items-center gap-2">
                 <Sprite type={area.sprite} size={20} />
                 <div>
-                  <div className="font-pixel text-[6px]">{area.name}</div>
                   <div className="font-pixel text-[4px] text-retro-dim">
                     {isUnlocked ? 'Unlocked' : 'Locked'}
                   </div>
@@ -41,12 +40,6 @@ function WorldExplorationPanel({ areas, currentAreaIndex, party }) {
 
       {selectedArea && (
         <div className="mt-4 p-2 bg-retro-bg border border-retro-border rounded">
-          <div className="text-center font-pixel text-[6px] text-retro-gold mb-2">
-            {selectedArea.name}
-          </div>
-          <div className="text-center font-pixel text-[4px] text-retro-dim">
-            {selectedArea.description}
-          </div>
           {hero && (
             <div className="flex justify-center mt-2">
               <Sprite type={hero.sprite} size={24} />
