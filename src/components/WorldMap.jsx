@@ -55,36 +55,36 @@ export function WorldMap({ state, onSelectArea, onBack }) {
       case 'mountain':
         return (
           <div key={index} className={baseClass} style={{ left: `${landmark.x}%`, top: `${landmark.y}%` }}>
-            <div className="text-retro-dim opacity-30" style={{ fontSize: '20px' }}>⛰️</div>
-            <div className="font-pixel text-[4px] text-retro-dim opacity-50 text-center mt-0.5">{landmark.name}</div>
+            <div className="text-retro-dim opacity-60" style={{ fontSize: '18px' }}>⛰️</div>
+            <div className="font-pixel text-[5px] text-retro-dim opacity-80 text-center mt-0.5">{landmark.name}</div>
           </div>
         )
       case 'lake':
         return (
           <div key={index} className={baseClass} style={{ left: `${landmark.x}%`, top: `${landmark.y}%` }}>
-            <div className="w-8 h-8 bg-retro-blue/20 rounded-full border border-retro-blue/30" />
-            <div className="font-pixel text-[4px] text-retro-dim opacity-50 text-center mt-0.5">{landmark.name}</div>
+            <div className="w-8 h-8 bg-retro-blue/40 rounded-full border border-retro-blue/50" />
+            <div className="font-pixel text-[5px] text-retro-dim opacity-80 text-center mt-0.5">{landmark.name}</div>
           </div>
         )
       case 'forest':
         return (
           <div key={index} className={baseClass} style={{ left: `${landmark.x}%`, top: `${landmark.y}%` }}>
-            <div className="text-retro-green opacity-20" style={{ fontSize: '16px' }}>🌲</div>
-            <div className="font-pixel text-[4px] text-retro-dim opacity-50 text-center mt-0.5">{landmark.name}</div>
+            <div className="text-retro-green opacity-60" style={{ fontSize: '14px' }}>🌲</div>
+            <div className="font-pixel text-[5px] text-retro-dim opacity-80 text-center mt-0.5">{landmark.name}</div>
           </div>
         )
       case 'ruins':
         return (
           <div key={index} className={baseClass} style={{ left: `${landmark.x}%`, top: `${landmark.y}%` }}>
-            <div className="text-retro-dim opacity-25" style={{ fontSize: '14px' }}>🏛️</div>
-            <div className="font-pixel text-[4px] text-retro-dim opacity-50 text-center mt-0.5">{landmark.name}</div>
+            <div className="text-retro-dim opacity-60" style={{ fontSize: '12px' }}>🏛️</div>
+            <div className="font-pixel text-[5px] text-retro-dim opacity-80 text-center mt-0.5">{landmark.name}</div>
           </div>
         )
       case 'village':
         return (
           <div key={index} className={baseClass} style={{ left: `${landmark.x}%`, top: `${landmark.y}%` }}>
-            <div className="text-retro-accent opacity-20" style={{ fontSize: '12px' }}>🏘️</div>
-            <div className="font-pixel text-[4px] text-retro-dim opacity-50 text-center mt-0.5">{landmark.name}</div>
+            <div className="text-retro-accent opacity-60" style={{ fontSize: '10px' }}>🏘️</div>
+            <div className="font-pixel text-[5px] text-retro-dim opacity-80 text-center mt-0.5">{landmark.name}</div>
           </div>
         )
       default:
