@@ -68,6 +68,28 @@ export const AREAS = [
       { enemies: ['wolf'], dialogue: { before: ['Aria: A dire wolf! Watch out for its speed!'], after: ['Kira: That thing was fast. Good thing I\'m faster.'] } },
       { enemies: ['goblinKing'], dialogue: { before: ['Aria: The Goblin King! So you\'re the one terrorizing these woods.', 'Goblin King: You dare challenge me?! I\'ll crush you all!'], after: ['Aria: The forest is safe now.', 'Elwyn: But I sense a darker presence coming from the caves...'] } },
     ],
+    // Branching paths
+    paths: {
+      easy: {
+        name: 'Safe Path',
+        description: 'Follow the cleared trail through the forest',
+        battles: [0, 1, 2], // Use battles 0, 1, 2
+        rewards: { xpMultiplier: 0.8, goldMultiplier: 0.8 }
+      },
+      hard: {
+        name: 'Deep Woods',
+        description: 'Venture into the dangerous parts of the forest',
+        battles: [3, 4, 5], // Use battles 3, 4, 5
+        rewards: { xpMultiplier: 1.3, goldMultiplier: 1.3 }
+      }
+    },
+    hiddenTreasures: [
+      { id: 'ancient_tree', name: 'Ancient Tree', x: 20, y: 60, gold: 50, item: 'potion', hint: 'A mysterious ancient tree stands alone...' },
+      { id: 'hidden_grove', name: 'Hidden Grove', x: 80, y: 30, gold: 80, item: 'ether', hint: 'Sunlight filters through a hidden grove...' },
+    ],
+    secretBattles: [
+      { id: 'alpha_wolf', name: 'Alpha Wolf', x: 60, y: 70, enemies: ['wolf', 'wolf'], gold: 100, xp: 60, hint: 'Powerful howls echo from the deep woods...' },
+    ]
   },
   {
     id: 'cave', name: 'Shadow Caverns', sprite: 'cave',
@@ -81,6 +103,27 @@ export const AREAS = [
       { enemies: ['shadow'], dialogue: { before: ['Sera: A shadow creature! It feeds on dark energy!', 'Shadow: ...'], after: ['Elwyn: That thing was made of pure darkness.'] } },
       { enemies: ['darkKnight'], dialogue: { before: ["Dark Knight: You shall pass no further. My master's plans will not be interrupted.", 'Aria: Who is your master?', 'Dark Knight: You will learn soon enough... in death.'], after: ['Elwyn: The Dark Knight mentioned a master...', 'Aria: Then we press on to the castle.'] } },
     ],
+    paths: {
+      easy: {
+        name: 'Upper Tunnels',
+        description: 'Stay in the safer upper levels of the cave',
+        battles: [0, 1, 2, 3],
+        rewards: { xpMultiplier: 0.8, goldMultiplier: 0.8 }
+      },
+      hard: {
+        name: 'Lower Depths',
+        description: 'Descend into the dangerous lower caverns',
+        battles: [4, 5, 6],
+        rewards: { xpMultiplier: 1.4, goldMultiplier: 1.4 }
+      }
+    },
+    hiddenTreasures: [
+      { id: 'crystal_cache', name: 'Crystal Cache', x: 30, y: 40, gold: 120, item: 'ether', hint: 'Crystals shimmer faintly in the darkness...' },
+      { id: 'forgotten_chest', name: 'Forgotten Chest', x: 70, y: 60, gold: 90, item: 'phoenixDown', hint: 'An old chest half-buried in rubble...' },
+    ],
+    secretBattles: [
+      { id: 'cave_troll', name: 'Cave Troll', x: 50, y: 25, enemies: ['goblin', 'goblin', 'goblin'], gold: 150, xp: 80, hint: 'Heavy footsteps echo from above...' },
+    ]
   },
   {
     id: 'castle', name: 'Obsidian Castle', sprite: 'castle',
@@ -93,6 +136,27 @@ export const AREAS = [
       { enemies: ['darkKnight', 'shadow'], dialogue: { before: ['Elwyn: The dark energy is peaking. We\'re near the end.', 'Aria: One more fight. I can feel it.'], after: ['Kira: The throne room is just ahead!'] } },
       { enemies: ['dragon'], dialogue: { before: ['Dragon: Fools. You have come to your doom.', "Aria: You're the one behind everything!", 'Dragon: I am eternal. I am power. You are nothing but insects.', 'Sera: Together, we can do this!'], after: ["Aria: It's over. The dragon is defeated.", 'Elwyn: But... the dark energy hasn\'t faded.', 'Kira: You feel it too? Something else is here.'] } },
     ],
+    paths: {
+      easy: {
+        name: 'Side Entrance',
+        description: 'Sneak in through the less guarded side passages',
+        battles: [0, 1, 2, 3],
+        rewards: { xpMultiplier: 0.8, goldMultiplier: 0.8 }
+      },
+      hard: {
+        name: 'Main Hall',
+        description: 'Charge directly through the main castle halls',
+        battles: [4, 5],
+        rewards: { xpMultiplier: 1.5, goldMultiplier: 1.5 }
+      }
+    },
+    hiddenTreasures: [
+      { id: 'armory', name: 'Castle Armory', x: 25, y: 50, gold: 200, item: 'potion', hint: 'Weapons and armor glint in the torchlight...' },
+      { id: 'treasury', name: 'Royal Treasury', x: 75, y: 35, gold: 300, item: 'phoenixDown', hint: 'Gold coins spill from an unlocked vault...' },
+    ],
+    secretBattles: [
+      { id: 'royal_guard', name: 'Royal Guard Captain', x: 50, y: 65, enemies: ['darkKnight', 'darkKnight'], gold: 250, xp: 120, hint: 'A imposing guard blocks the secret passage...' },
+    ]
   },
   {
     id: 'shadow', name: 'Shadow Realm', sprite: 'shadow',
@@ -104,6 +168,27 @@ export const AREAS = [
       { enemies: ['shadow', 'shadow', 'shadow'], dialogue: { before: ['Sera: A wall of shadows! The Shadow Lord knows we\'re here.', 'Aria: Then let\'s not keep him waiting.'], after: ['Elwyn: The rift is destabilizing. We need to finish this!'] } },
       { enemies: ['shadowLord'], dialogue: { before: ['Shadow Lord: So, the insects who slew my dragon have arrived.', 'Aria: You\'re the one behind everything! The forest, the caves, the castle!', 'Shadow Lord: I am the void between worlds. I am eternal darkness.', 'Sera: Your darkness ends here!', 'Shadow Lord: You cannot destroy what is nothing. Come, let me consume your light!'], after: ['Aria: The Shadow Lord is gone. The rift is closing!', 'Elwyn: The darkness is fading from the land.', 'Kira: We actually did it!', 'Sera: The world is safe. Our adventure... is complete.'] } },
     ],
+    paths: {
+      easy: {
+        name: 'Shadow Path',
+        description: 'Follow the stable shadow pathways',
+        battles: [0, 1, 2, 3],
+        rewards: { xpMultiplier: 0.8, goldMultiplier: 0.8 }
+      },
+      hard: {
+        name: 'Void Core',
+        description: 'Venture directly into the heart of darkness',
+        battles: [4],
+        rewards: { xpMultiplier: 2.0, goldMultiplier: 2.0 }
+      }
+    },
+    hiddenTreasures: [
+      { id: 'void_crystal', name: 'Void Crystal', x: 30, y: 45, gold: 400, item: 'ether', hint: 'A crystal pulses with otherworldly energy...' },
+      { id: 'shadow_artifact', name: 'Shadow Artifact', x: 70, y: 55, gold: 500, item: 'phoenixDown', hint: 'Dark power radiates from an ancient artifact...' },
+    ],
+    secretBattles: [
+      { id: 'shadow_beast', name: 'Shadow Beast', x: 50, y: 30, enemies: ['shadow', 'shadow', 'darkKnight'], gold: 350, xp: 180, hint: 'A terrifying shadow stirs in the void...' },
+    ]
   },
 ]
 

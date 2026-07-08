@@ -51,6 +51,23 @@ export default function App() {
     setState((s) => {
       if (areaIndex < 0 || areaIndex >= AREAS.length) return s
       if (areaIndex > s.currentAreaIndex) return s // Can't jump ahead
+      
+      // Check for random encounter when traveling
+      const distance = Math.abs(areaIndex - s.currentAreaIndex)
+      const encounterChance = distance * 0.3 // 30% chance per area traveled
+      const hasEncounter = Math.random() < encounterChance
+      
+      if (hasEncounter && areaIndex !== s.currentAreaIndex) {
+        // Start random encounter
+        const currentArea = AREAS[s.currentAreaIndex]
+        const randomEnemies = currentArea.battles[Math.floor(Math.random() * currentArea.battles.length)].enemies
+        return { 
+          ...startBattle(s, randomEnemies, null, null, null), 
+          currentAreaIndex: areaIndex,
+          activeBattleIndex: null,
+        }
+      }
+      
       return {
         ...s,
         currentAreaIndex: areaIndex,
