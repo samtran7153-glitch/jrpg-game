@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Sprite } from '../Sprites'
 import { CharacterCard, GoldDisplay, HeroStatsModal } from './Shared'
 import { AREAS, ITEMS, xpForLevel } from '../gameState'
+import { WorldMap } from './WorldMap'
 
 export function TitleScreen({ onStart }) {
   return (
