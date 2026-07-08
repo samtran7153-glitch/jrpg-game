@@ -19,7 +19,7 @@ export const SKILLS = {
   // Enemy skills
   boneToss: { name: 'Bone Toss', mpCost: 5, damage: 18, type: 'physical', element: 'physical', target: 'enemy', description: 'Hurls a sharpened bone' },
   darkSlash: { name: 'Dark Slash', mpCost: 8, damage: 28, type: 'magic', element: 'dark', target: 'enemy', description: 'A shadow-infused strike' },
-  dragonBreath: { name: 'Dragon Breath', mpCost: 15, damage: 45, type: 'magic', element: 'fire', target: 'enemy_all', description: 'Scorching breath hits all' },
+  dragonBreath: { name: 'Dragon Breath', mpCost: 20, damage: 35, type: 'magic', element: 'fire', target: 'enemy_all', description: 'Scorching breath hits all' },
   venomSpit: { name: 'Venom Spit', mpCost: 4, damage: 8, type: 'physical', element: 'physical', target: 'enemy', effect: 'poison', effectChance: 0.5, duration: 3, description: 'Poisonous spit' },
 }
 
