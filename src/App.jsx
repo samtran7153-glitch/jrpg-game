@@ -43,6 +43,10 @@ export default function App() {
     setState((s) => ({ ...s, phase: PHASES.AREA_MAP }))
   }
 
+  const openWorldMap = () => {
+    setState((s) => ({ ...s, phase: PHASES.WORLD_MAP }))
+  }
+
   const selectArea = (areaIndex) => {
     setState((s) => {
       if (areaIndex < 0 || areaIndex >= AREAS.length) return s
@@ -781,6 +785,15 @@ export default function App() {
             onSelectArea={selectArea}
             onUseItem={useOverworldItem}
             onShop={() => setState((s) => ({ ...s, phase: PHASES.SHOP }))}
+            onWorldMap={openWorldMap}
+          />
+        )
+      case PHASES.WORLD_MAP:
+        return (
+          <WorldMap
+            state={state}
+            onSelectArea={selectArea}
+            onBack={() => setState((s) => ({ ...s, phase: PHASES.AREA_MAP }))}
           />
         )
       case PHASES.SHOP:

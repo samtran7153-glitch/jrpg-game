@@ -17,6 +17,7 @@ export const PHASES = {
   ENEMY_TURN: 'enemy_turn',
   BATTLE_VICTORY: 'battle_victory',
   BATTLE_DEFEAT: 'battle_defeat',
+  WORLD_MAP: 'world_map',
   GAME_COMPLETE: 'game_complete',
 }
 
