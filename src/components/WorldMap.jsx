@@ -37,7 +37,7 @@ export function WorldMap({ state, onSelectArea, onBack }) {
   const landmarks = [
     { type: 'mountain', x: 15, y: 25, name: 'Dragon Peaks' },
     { type: 'lake', x: 85, y: 25, name: 'Mirror Lake' },
-    { type: 'forest', x: 10, y: 70, name: 'Ancient Woods' },
+    { type: 'mountain', x: 10, y: 70, name: 'Stone Ridge' },
     { type: 'ruins', x: 90, y: 75, name: 'Forgotten Ruins' },
     { type: 'village', x: 50, y: 15, name: 'Outpost' },
   ]
