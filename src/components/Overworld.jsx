@@ -325,6 +325,33 @@ function ExplorationPanel({ area, party, onTreasureFound, onBattleStart }) {
 
 export function SettingsScreen({ onReset, onBack }) {
   const [confirming, setConfirming] = useState(false)
+  const [updateStatus, setUpdateStatus] = useState(null)
+  const [checking, setChecking] = useState(false)
+
+  const checkForUpdates = async () => {
+    setChecking(true)
+    setUpdateStatus(null)
+    try {
+      const response = await fetch(`/index.html?_=${Date.now()}`, { cache: 'no-store' })
+      const html = await response.text()
+      const match = html.match(/index-[A-Za-z0-9]+\.js/)
+      const remoteBundle = match ? match[0] : null
+
+      const currentScript = document.querySelector('script[type="module"]')
+      const currentSrc = currentScript ? currentScript.src : ''
+      const currentBundle = currentSrc.split('/').pop()
+
+      if (remoteBundle && currentBundle && remoteBundle !== currentBundle) {
+        setUpdateStatus('new')
+      } else {
+        setUpdateStatus('latest')
+      }
+    } catch (e) {
+      setUpdateStatus('error')
+    } finally {
+      setChecking(false)
+    }
+  }
 
   return (
     <div className="flex justify-center items-center flex-1">
@@ -335,9 +362,30 @@ export function SettingsScreen({ onReset, onBack }) {
           <div className="pixel-panel p-3 w-full">
             <div className="font-pixel text-[8px] text-retro-text mb-2">Check for Updates</div>
             <div className="font-pixel text-[6px] text-retro-dim mb-3">
-              Refresh the game to get the latest version.
+              Compares the running version with the deployed version.
             </div>
-            <button className="pixel-btn w-full" onClick={() => window.location.reload()}>
+
+            {updateStatus === 'latest' && (
+              <div className="font-pixel text-[7px] text-retro-green text-center mb-2">
+                You have the latest version.
+              </div>
+            )}
+            {updateStatus === 'new' && (
+              <div className="font-pixel text-[7px] text-retro-gold text-center mb-2">
+                A new version is available! Refresh to update.
+              </div>
+            )}
+            {updateStatus === 'error' && (
+              <div className="font-pixel text-[7px] text-retro-accent text-center mb-2">
+                Could not check for updates.
+              </div>
+            )}
+
+            <button className="pixel-btn w-full" onClick={checkForUpdates} disabled={checking}>
+              {checking ? 'Checking...' : 'Check for Updates'}
+            </button>
+
+            <button className="pixel-btn w-full mt-2" onClick={() => window.location.reload()}>
               Refresh Game
             </button>
           </div>
