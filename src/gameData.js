@@ -95,7 +95,7 @@ export const AREAS = [
     ],
   },
   {
-    id: 'shadow', name: 'Shadow Realm', sprite: 'cave',
+    id: 'shadow', name: 'Shadow Realm', sprite: 'shadow',
     description: 'A void between worlds where the true enemy lurks.',
     battles: [
       { enemies: ['shadow', 'shadow'], dialogue: { before: ['Aria: Where are we? This isn\'t the castle anymore.', 'Elwyn: The dragon\'s death must have opened a rift.', 'Sera: The real mastermind is here.'], after: ['Kira: These shadows are stronger than before.'] } },
