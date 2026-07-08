@@ -442,14 +442,6 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
       </div>
 
       <div className="flex gap-2 flex-1 min-h-0">
-        {/* Side-Scrolling Exploration */}
-        <ExplorationPanel
-          area={area}
-          party={state.party}
-          onTreasureFound={onTreasureFound}
-          onBattleStart={onBattleStart}
-        />
-
         {/* Side panels */}
         {!showItems ? (
           <div className="pixel-panel p-2 flex-1 max-w-xs">

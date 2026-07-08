@@ -1,5 +1,156 @@
+import { useState, useEffect, useRef } from 'react'
 import { AREAS } from '../gameState'
 import { Sprite } from '../Sprites'
+
+// Side-scrolling exploration component for World Map
+function WorldExplorationPanel({ areas, currentAreaIndex, party }) {
+  const [selectedArea, setSelectedArea] = useState(null)
+  const [playerPos, setPlayerPos] = useState({ x: 100, y: 200 })
+  const [isMoving, setIsMoving] = useState(false)
+  const [facing, setFacing] = useState('right')
+  const [keys, setKeys] = useState({})
+
+  // Area-specific backgrounds
+  const areaBackgrounds = {
+    forest: 'linear-gradient(to bottom, #87CEEB 0%, #98D98E 60%, #2a4a2a 100%)',
+    cave: 'linear-gradient(to bottom, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)',
+    castle: 'linear-gradient(to bottom, #2a2a3a 0%, #3a3a4a 50%, #2a2a3a 100%)',
+    shadow: 'linear-gradient(to bottom, #0a0a1a 0%, #1a1a2a 50%, #0a0a1a 100%)'
+  }
+
+  // Handle keyboard input
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'a', 'd', 'w', 's'].includes(e.key)) {
+        e.preventDefault()
+        setKeys(prev => ({ ...prev, [e.key]: true }))
+      }
+    }
+
+    const handleKeyUp = (e) => {
+      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'a', 'd', 'w', 's'].includes(e.key)) {
+        e.preventDefault()
+        setKeys(prev => ({ ...prev, [e.key]: false }))
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
+    }
+  }, [])
+
+  // Game loop
+  useEffect(() => {
+    const gameLoop = () => {
+      setPlayerPos(prevPos => {
+        let newX = prevPos.x
+        let newY = prevPos.y
+        let moving = false
+        let newFacing = facing
+
+        const speed = 3
+
+        if (keys['ArrowLeft'] || keys['a']) {
+          newX -= speed
+          moving = true
+          newFacing = 'left'
+        }
+        if (keys['ArrowRight'] || keys['d']) {
+          newX += speed
+          moving = true
+          newFacing = 'right'
+        }
+        if (keys['ArrowUp'] || keys['w']) {
+          newY -= speed
+          moving = true
+        }
+        if (keys['ArrowDown'] || keys['s']) {
+          newY += speed
+          moving = true
+        }
+
+        // Boundary checking
+        newX = Math.max(20, Math.min(380, newX))
+        newY = Math.max(20, Math.min(108, newY))
+
+        if (newX !== prevPos.x || newY !== prevPos.y) {
+          setIsMoving(moving)
+          setFacing(newFacing)
+          return { x: newX, y: newY }
+        } else {
+          setIsMoving(false)
+          return prevPos
+        }
+      })
+    }
+
+    const intervalId = setInterval(gameLoop, 16)
+    return () => clearInterval(intervalId)
+  }, [keys, facing])
+
+  const hero = party[0]
+
+  return (
+    <div className="pixel-panel p-2 flex-1">
+      <div className="text-center font-pixel text-[8px] text-retro-gold mb-2">WORLD EXPLORATION</div>
+      <div className="text-center font-pixel text-[5px] text-retro-dim mb-2">Select an area to explore</div>
+      
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        {areas.map((area, index) => {
+          const isUnlocked = index <= currentAreaIndex
+          return (
+            <button
+              key={area.id}
+              className={`pixel-btn p-2 text-left ${
+                !isUnlocked ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
+              } ${selectedArea?.id === area.id ? 'ring-2 ring-retro-gold' : ''}`}
+              disabled={!isUnlocked}
+              onClick={() => setSelectedArea(area)}
+            >
+              <div className="flex items-center gap-2">
+                <Sprite type={area.sprite} size={20} />
+                <div>
+                  <div className="font-pixel text-[6px]">{area.name}</div>
+                  <div className="font-pixel text-[4px] text-retro-dim">
+                    {isUnlocked ? 'Unlocked' : 'Locked'}
+                  </div>
+                </div>
+              </div>
+            </button>
+          )
+        })}
+      </div>
+
+      {selectedArea && (
+        <div className="relative h-32 bg-retro-bg border border-retro-border rounded overflow-hidden">
+          <div 
+            className="absolute inset-0"
+            style={{
+              background: areaBackgrounds[selectedArea.id] || '#2a4a2a'
+            }}
+          >
+            {hero && (
+              <div
+                className={`absolute ${isMoving ? 'duration-100' : 'duration-200'}`}
+                style={{
+                  left: `${playerPos.x - 10}px`,
+                  top: `${playerPos.y - 10}px`,
+                  transform: `scaleX(${facing === 'left' ? -1 : 1})`
+                }}
+              >
+                <Sprite type={hero.sprite} size={20} />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export function WorldMap({ state, onSelectArea, onBack }) {
   const { currentAreaIndex } = state
@@ -241,6 +392,13 @@ export function WorldMap({ state, onSelectArea, onBack }) {
       <div className="text-center font-pixel text-[6px] text-retro-dim">
         Click any unlocked area to travel
       </div>
+
+      <WorldExplorationPanel
+        areas={AREAS}
+        currentAreaIndex={currentAreaIndex}
+        party={state.party}
+      />
+
       <button className="pixel-btn w-full" onClick={onBack}>
         Back
       </button>
