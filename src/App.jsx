@@ -88,7 +88,8 @@ export default function App() {
       }
       
       const newArea = AREAS[areaIndex]
-      const needsPathSelection = newArea.paths && !s.selectedPaths[areaIndex]
+      const hasSelectedPath = s.selectedPaths[areaIndex]
+      const needsPathSelection = newArea.paths && !hasSelectedPath && areaIndex !== s.currentAreaIndex
       
       if (needsPathSelection) {
         return {

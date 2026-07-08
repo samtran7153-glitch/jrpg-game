@@ -7,6 +7,7 @@ export function WorldMap({ state, onSelectArea, onBack }) {
   const getAreaStatus = (index) => {
     if (index < currentAreaIndex) return 'completed'
     if (index === currentAreaIndex) return 'current'
+    if (index === currentAreaIndex + 1) return 'next' // Next unlockable area
     return 'locked'
   }
 
@@ -192,6 +193,8 @@ export function WorldMap({ state, onSelectArea, onBack }) {
           const isLocked = status === 'locked'
           const isCurrent = status === 'current'
           const isCompleted = status === 'completed'
+          const isNext = status === 'next'
+          const isUnknown = isLocked && index > currentAreaIndex + 1
 
           return (
             <button
@@ -204,22 +207,33 @@ export function WorldMap({ state, onSelectArea, onBack }) {
               style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
               disabled={isLocked}
               onClick={() => handleAreaClick(index)}
-              title={area.name}
+              title={isUnknown ? '???' : area.name}
             >
-              <Sprite type={area.sprite} size={24} />
-              {isCompleted && (
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-retro-green rounded-full flex items-center justify-center border border-retro-bg">
-                  <span className="font-pixel text-[6px] text-white">✓</span>
-                </div>
+              {isUnknown ? (
+                <>
+                  <div className="text-retro-dim opacity-40" style={{ fontSize: '20px' }}>?</div>
+                  <span className="font-pixel text-[5px] text-retro-dim opacity-30 leading-none mt-0.5">
+                    ???
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Sprite type={area.sprite} size={24} />
+                  {isCompleted && (
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-retro-green rounded-full flex items-center justify-center border border-retro-bg">
+                      <span className="font-pixel text-[6px] text-white">✓</span>
+                    </div>
+                  )}
+                  {isLocked && (
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-retro-accent rounded-full flex items-center justify-center border border-retro-bg">
+                      <span className="font-pixel text-[6px] text-white">🔒</span>
+                    </div>
+                  )}
+                  <span className="font-pixel text-[5px] text-retro-text leading-none mt-0.5 text-center">
+                    {area.name.split(' ')[0]}
+                  </span>
+                </>
               )}
-              {isLocked && (
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-retro-accent rounded-full flex items-center justify-center border border-retro-bg">
-                  <span className="font-pixel text-[6px] text-white">🔒</span>
-                </div>
-              )}
-              <span className="font-pixel text-[5px] text-retro-text leading-none mt-0.5 text-center">
-                {area.name.split(' ')[0]}
-              </span>
             </button>
           )
         })}
