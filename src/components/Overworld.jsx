@@ -333,6 +333,16 @@ export function SettingsScreen({ onReset, onBack }) {
 
         <div className="w-full space-y-3">
           <div className="pixel-panel p-3 w-full">
+            <div className="font-pixel text-[8px] text-retro-text mb-2">Check for Updates</div>
+            <div className="font-pixel text-[6px] text-retro-dim mb-3">
+              Refresh the game to get the latest version.
+            </div>
+            <button className="pixel-btn w-full" onClick={() => window.location.reload()}>
+              Refresh Game
+            </button>
+          </div>
+
+          <div className="pixel-panel p-3 w-full">
             <div className="font-pixel text-[8px] text-retro-text mb-2">Reset Progress</div>
             <div className="font-pixel text-[6px] text-retro-dim mb-3">
               This will erase all progress and start a new game.
