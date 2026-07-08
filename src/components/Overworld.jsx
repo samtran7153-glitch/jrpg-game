@@ -461,7 +461,11 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
                 const isCompleted = battleIndex < state.currentBattleIndex
                 const isCurrent = battleIndex === state.currentBattleIndex
                 const isLocked = battleIndex > state.currentBattleIndex
-                const showSprites = isCompleted || isCurrent
+                
+                // Skip current battle - only show after it's completed
+                if (isCurrent && !isCompleted) return null
+                
+                const showSprites = isCompleted
                 return (
                   <button
                     key={battleIndex}
@@ -472,7 +476,7 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
                     onClick={() => onSelectBattle(battleIndex)}
                   >
                     <span className="text-[7px]">
-                      {isCompleted ? '[DONE]' : isCurrent ? '[!]' : isLocked ? '[ ]' : '[DONE]'}
+                      {isCompleted ? '[DONE]' : isLocked ? '[ ]' : '[DONE]'}
                     </span>
                     <span className="flex gap-1">
                       {showSprites
