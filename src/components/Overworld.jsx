@@ -132,7 +132,7 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onCont
               const isCompleted = i < state.currentBattleIndex
               const isCurrent = i === state.currentBattleIndex
               const isLocked = i > state.currentBattleIndex
-              const showSprites = isCompleted || (isCurrent && state.currentBattleIndex === area.battles.length - 1)
+              const showSprites = isCompleted || isCurrent
               return (
                 <button
                   key={i}
@@ -143,7 +143,7 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onCont
                   onClick={() => onSelectBattle(i)}
                 >
                   <span className="text-[7px]">
-                    {isCompleted ? '[DONE]' : isCurrent ? '[!]' : '[ ]'}
+                    {isCompleted ? '[DONE]' : isCurrent ? '[!]' : isLocked ? '[ ]' : '[DONE]'}
                   </span>
                   <span className="flex gap-1">
                     {showSprites
