@@ -498,11 +498,11 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
         </div>
       </div>
 
-      {/* Items Panel */}
-      {showItems && (
-        <div className="pixel-panel p-2">
+      {/* Items Panel - Replaces side panels when open */}
+      {showItems ? (
+        <div className="pixel-panel p-2 flex-1">
           <div className="font-pixel text-[8px] text-retro-gold mb-2">ITEMS</div>
-          <div className="space-y-1">
+          <div className="space-y-1 overflow-y-auto max-h-48">
             {itemIds.length === 0 && (
               <div className="font-pixel text-[8px] text-retro-dim">No items left! Visit the shop.</div>
             )}
@@ -526,6 +526,47 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
           <button className="pixel-btn w-full text-retro-dim mt-2" onClick={() => { setShowItems(false); setSelectedItem(null) }}>
             Close
           </button>
+        </div>
+      ) : (
+        <div className="pixel-panel p-2 flex-1">
+          {/* Battles */}
+          <div className="font-pixel text-[8px] text-retro-gold mb-2">BATTLES</div>
+          <div className="space-y-2">
+            {area.battles.map((battle, i) => {
+              const battleIndex = pathBattles[i]
+              if (battleIndex === undefined) return null
+              const isCompleted = battleIndex < state.currentBattleIndex
+              const isCurrent = battleIndex === state.currentBattleIndex
+              const isLocked = battleIndex > state.currentBattleIndex
+              const showSprites = isCompleted && !isCurrent
+              
+              return (
+                <button
+                  key={battleIndex}
+                  className={`pixel-btn w-full text-left flex items-center gap-2 ${
+                    isLocked ? 'opacity-40' : ''
+                  } ${isCurrent ? 'ring-2 ring-retro-gold animate-pulse' : ''}`}
+                  disabled={isLocked}
+                  onClick={() => onSelectBattle(battleIndex)}
+                >
+                  <span className="text-[7px]">
+                    {isCompleted ? '[DONE]' : isCurrent ? '[!]' : isLocked ? '[ ]' : '[!]'}
+                  </span>
+                  <span className="flex gap-1">
+                    {showSprites
+                      ? battle.enemies.map((e, ei) => (
+                          <Sprite key={ei} type={e} size={16} />
+                        ))
+                      : <span className="font-pixel text-[7px] text-retro-dim">???</span>
+                    }
+                  </span>
+                  <span className="text-[7px] ml-auto">
+                    Battle {battleIndex + 1}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
         </div>
       )}
 
