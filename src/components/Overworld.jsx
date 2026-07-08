@@ -442,10 +442,11 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
       </div>
 
       <div className="flex gap-2 flex-1 min-h-0">
-        {/* Party Display */}
-        <div className="pixel-panel p-2 flex-1 max-w-xs">
+        {/* Side panels */}
+        <div className="pixel-panel p-2 flex-1">
+          {/* Party Display */}
           <div className="font-pixel text-[8px] text-retro-gold mb-2">PARTY</div>
-          <div className="flex gap-1 flex-wrap justify-center">
+          <div className="flex gap-1 flex-wrap justify-center mb-3">
             {state.party.map((hero) => (
               <CharacterCard
                 key={hero.id}
@@ -455,10 +456,8 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
               />
             ))}
           </div>
-        </div>
 
-        {/* Battles */}
-        <div className="pixel-panel p-2 flex-1 max-w-xs">
+          {/* Battles */}
           <div className="font-pixel text-[8px] text-retro-gold mb-2">BATTLES</div>
           <div className="space-y-2">
             {area.battles.map((battle, i) => {
