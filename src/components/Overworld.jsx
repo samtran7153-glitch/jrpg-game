@@ -152,31 +152,35 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
               )
             })}
 
-            {/* Hidden treasures - show faint glows when not discovered */}
+            {/* Hidden treasures - always visible and tappable */}
             {(area.hiddenTreasures || []).map((treasure) => {
               if (state.discoveredTreasures[treasure.id]) return null
               return (
-                <div
+                <button
                   key={treasure.id}
-                  className="absolute transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-retro-gold opacity-30 animate-pulse cursor-pointer hover:opacity-60"
+                  className="absolute transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-retro-gold opacity-60 animate-pulse hover:opacity-80 border-2 border-retro-gold/30 flex items-center justify-center"
                   style={{ left: `${treasure.x}%`, top: `${treasure.y}%` }}
                   onClick={() => setDiscoveryHint({ type: 'treasure', content: treasure })}
                   title={treasure.name}
-                />
+                >
+                  <span className="text-[12px]">💎</span>
+                </button>
               )
             })}
 
-            {/* Secret battles - show faint glows when not completed */}
+            {/* Secret battles - always visible and tappable */}
             {(area.secretBattles || []).map((battle) => {
               if (state.completedSecretBattles[battle.id]) return null
               return (
-                <div
+                <button
                   key={battle.id}
-                  className="absolute transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-retro-accent opacity-30 animate-pulse cursor-pointer hover:opacity-60"
+                  className="absolute transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-retro-accent opacity-60 animate-pulse hover:opacity-80 border-2 border-retro-accent/30 flex items-center justify-center"
                   style={{ left: `${battle.x}%`, top: `${battle.y}%` }}
                   onClick={() => setDiscoveryHint({ type: 'battle', content: battle })}
                   title={battle.name}
-                />
+                >
+                  <span className="text-[12px]">⚔️</span>
+                </button>
               )
             })}
           </div>
