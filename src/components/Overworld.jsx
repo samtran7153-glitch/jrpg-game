@@ -1,8 +1,327 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Sprite } from '../Sprites'
 import { CharacterCard, GoldDisplay, HeroStatsModal } from './Shared'
 import { AREAS, ITEMS, xpForLevel } from '../gameState'
 import { WorldMap } from './WorldMap'
+
+// Side-scrolling exploration component
+function ExplorationPanel({ area, party, onTreasureFound, onBattleStart }) {
+  const [playerPos, setPlayerPos] = useState({ x: 100, y: 200 })
+  const [isMoving, setIsMoving] = useState(false)
+  const [facing, setFacing] = useState('right')
+  const [keys, setKeys] = useState({})
+  const animationRef = useRef(null)
+  const lastUpdateRef = useRef(Date.now())
+
+  // Area-specific configurations
+  const areaConfigs = {
+    forest: {
+      width: 1200,
+      height: 400,
+      playerStart: { x: 100, y: 200 },
+      treasures: [
+        { id: 'ancient_tree', x: 300, y: 150, width: 60, height: 80, name: 'Ancient Tree' },
+        { id: 'hidden_grove', x: 800, y: 250, width: 50, height: 60, name: 'Hidden Grove' },
+      ],
+      battles: [
+        { id: 'alpha_wolf', x: 600, y: 180, width: 40, height: 40, name: 'Alpha Wolf' },
+      ],
+      obstacles: [
+        { x: 200, y: 100, width: 80, height: 200 }, // Tree cluster
+        { x: 500, y: 250, width: 100, height: 100 }, // Rock formation
+      ],
+      background: 'linear-gradient(to bottom, #87CEEB 0%, #98D98E 60%, #2a4a2a 100%)'
+    },
+    cave: {
+      width: 1200,
+      height: 400,
+      playerStart: { x: 100, y: 200 },
+      treasures: [
+        { id: 'crystal_cache', x: 400, y: 180, width: 50, height: 60, name: 'Crystal Cache' },
+        { id: 'forgotten_chest', x: 900, y: 220, width: 40, height: 40, name: 'Forgotten Chest' },
+      ],
+      battles: [
+        { id: 'cave_troll', x: 650, y: 200, width: 50, height: 50, name: 'Cave Troll' },
+      ],
+      obstacles: [
+        { x: 300, y: 120, width: 120, height: 180 }, // Rock formation
+        { x: 750, y: 280, width: 80, height: 80 }, // Stalagmites
+      ],
+      background: 'linear-gradient(to bottom, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)'
+    },
+    castle: {
+      width: 1200,
+      height: 400,
+      playerStart: { x: 100, y: 200 },
+      treasures: [
+        { id: 'armory', x: 350, y: 160, width: 60, height: 70, name: 'Castle Armory' },
+        { id: 'treasury', x: 850, y: 240, width: 50, height: 50, name: 'Royal Treasury' },
+      ],
+      battles: [
+        { id: 'royal_guard', x: 600, y: 200, width: 45, height: 45, name: 'Royal Guard Captain' },
+      ],
+      obstacles: [
+        { x: 250, y: 100, width: 100, height: 200 }, // Pillar
+        { x: 700, y: 250, width: 150, height: 100 }, // Furniture
+      ],
+      background: 'linear-gradient(to bottom, #2a2a3a 0%, #3a3a4a 50%, #2a2a3a 100%)'
+    },
+    shadow: {
+      width: 1200,
+      height: 400,
+      playerStart: { x: 100, y: 200 },
+      treasures: [
+        { id: 'void_crystal', x: 450, y: 170, width: 55, height: 65, name: 'Void Crystal' },
+        { id: 'shadow_artifact', x: 820, y: 230, width: 45, height: 45, name: 'Shadow Artifact' },
+      ],
+      battles: [
+        { id: 'shadow_beast', x: 630, y: 190, width: 48, height: 48, name: 'Shadow Beast' },
+      ],
+      obstacles: [
+        { x: 350, y: 130, width: 90, height: 170 }, // Void mass
+        { x: 780, y: 270, width: 110, height: 90 }, // Dark energy
+      ],
+      background: 'linear-gradient(to bottom, #0a0a1a 0%, #1a1a2a 50%, #0a0a1a 100%)'
+    }
+  }
+
+  const config = areaConfigs[area.id] || areaConfigs.forest
+
+  // Handle keyboard input
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'a', 'd', 'w', 's'].includes(e.key)) {
+        e.preventDefault()
+        setKeys(prev => ({ ...prev, [e.key]: true }))
+      }
+    }
+
+    const handleKeyUp = (e) => {
+      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'a', 'd', 'w', 's'].includes(e.key)) {
+        e.preventDefault()
+        setKeys(prev => ({ ...prev, [e.key]: false }))
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
+    }
+  }, [])
+
+  // Check collisions
+  const checkCollisions = useCallback((newX, newY) => {
+    // Check treasure collisions
+    for (const treasure of config.treasures) {
+      if (
+        newX + 15 > treasure.x &&
+        newX - 15 < treasure.x + treasure.width &&
+        newY + 15 > treasure.y &&
+        newY - 15 < treasure.y + treasure.height
+      ) {
+        onTreasureFound(treasure)
+        return 'treasure'
+      }
+    }
+
+    // Check battle collisions
+    for (const battle of config.battles) {
+      if (
+        newX + 15 > battle.x &&
+        newX - 15 < battle.x + battle.width &&
+        newY + 15 > battle.y &&
+        newY - 15 < battle.y + battle.height
+      ) {
+        onBattleStart(battle)
+        return 'battle'
+      }
+    }
+
+    return null
+  }, [config.treasures, config.battles, onTreasureFound, onBattleStart])
+
+  // Game loop
+  useEffect(() => {
+    const gameLoop = () => {
+      const now = Date.now()
+      const deltaTime = now - lastUpdateRef.current
+      
+      if (deltaTime < 16) { // Cap at ~60 FPS
+        animationRef.current = requestAnimationFrame(gameLoop)
+        return
+      }
+      
+      lastUpdateRef.current = now
+
+      setPlayerPos(prevPos => {
+        let newX = prevPos.x
+        let newY = prevPos.y
+        let moving = false
+        let newFacing = facing
+
+        const speed = 3
+
+        if (keys['ArrowLeft'] || keys['a']) {
+          newX -= speed
+          moving = true
+          newFacing = 'left'
+        }
+        if (keys['ArrowRight'] || keys['d']) {
+          newX += speed
+          moving = true
+          newFacing = 'right'
+        }
+        if (keys['ArrowUp'] || keys['w']) {
+          newY -= speed
+          moving = true
+        }
+        if (keys['ArrowDown'] || keys['s']) {
+          newY += speed
+          moving = true
+        }
+
+        // Boundary checking
+        newX = Math.max(20, Math.min(config.width - 20, newX))
+        newY = Math.max(20, Math.min(config.height - 20, newY))
+
+        // Collision detection with obstacles
+        let canMove = true
+        for (const obstacle of config.obstacles) {
+          if (
+            newX + 15 > obstacle.x &&
+            newX - 15 < obstacle.x + obstacle.width &&
+            newY + 15 > obstacle.y &&
+            newY - 15 < obstacle.y + obstacle.height
+          ) {
+            canMove = false
+            break
+          }
+        }
+
+        if (canMove && (newX !== prevPos.x || newY !== prevPos.y)) {
+          setIsMoving(moving)
+          setFacing(newFacing)
+
+          // Check collisions
+          const collision = checkCollisions(newX, newY)
+          if (collision) {
+            return prevPos // Don't move if collision occurred
+          }
+
+          return { x: newX, y: newY }
+        } else {
+          setIsMoving(false)
+          return prevPos
+        }
+      })
+
+      animationRef.current = requestAnimationFrame(gameLoop)
+    }
+
+    animationRef.current = requestAnimationFrame(gameLoop)
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+      }
+    }
+  }, [keys, facing, config, checkCollisions])
+
+  // Camera follow player
+  const cameraX = Math.max(0, Math.min(config.width - 400, playerPos.x - 200))
+  const cameraY = Math.max(0, Math.min(config.height - 300, playerPos.y - 150))
+
+  // Use the first hero in the party
+  const hero = party[0]
+
+  return (
+    <div className="pixel-panel p-2 flex-1">
+      <div className="text-center font-pixel text-[8px] text-retro-gold mb-2">EXPLORE</div>
+      <div className="text-center font-pixel text-[5px] text-retro-dim mb-2">Use arrow keys or WASD to move</div>
+      
+      <div className="relative h-48 bg-retro-bg border border-retro-border rounded overflow-hidden">
+        <div 
+          className="absolute inset-0"
+          style={{
+            width: `${config.width}px`,
+            height: `${config.height}px`,
+            background: config.background,
+            transform: `translate(${-cameraX}px, ${-cameraY}px)`
+          }}
+        >
+          {/* Render obstacles */}
+          {config.obstacles.map((obstacle, index) => (
+            <div
+              key={`obstacle-${index}`}
+              className="absolute bg-retro-dim/50 border border-retro-dim"
+              style={{
+                left: `${obstacle.x}px`,
+                top: `${obstacle.y}px`,
+                width: `${obstacle.width}px`,
+                height: `${obstacle.height}px`
+              }}
+            />
+          ))}
+
+          {/* Render treasures */}
+          {config.treasures.map((treasure) => (
+            <div
+              key={treasure.id}
+              className="absolute flex items-center justify-center animate-pulse"
+              style={{
+                left: `${treasure.x}px`,
+                top: `${treasure.y}px`,
+                width: `${treasure.width}px`,
+                height: `${treasure.height}px`
+              }}
+            >
+              <div className="text-xl">💎</div>
+              <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 font-pixel text-[3px] text-retro-gold whitespace-nowrap">
+                {treasure.name}
+              </div>
+            </div>
+          ))}
+
+          {/* Render battles */}
+          {config.battles.map((battle) => (
+            <div
+              key={battle.id}
+              className="absolute flex items-center justify-center animate-pulse"
+              style={{
+                left: `${battle.x}px`,
+                top: `${battle.y}px`,
+                width: `${battle.width}px`,
+                height: `${battle.height}px`
+              }}
+            >
+              <div className="text-xl">⚔️</div>
+              <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 font-pixel text-[3px] text-retro-accent whitespace-nowrap">
+                {battle.name}
+              </div>
+            </div>
+          ))}
+
+          {/* Player */}
+          {hero && (
+            <div
+              className={`absolute ${isMoving ? 'duration-100' : 'duration-200'}`}
+              style={{
+                left: `${playerPos.x - 15}px`,
+                top: `${playerPos.y - 15}px`,
+                transform: `scaleX(${facing === 'left' ? -1 : 1})`
+              }}
+            >
+              <Sprite type={hero.sprite} size={24} />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export function TitleScreen({ onStart }) {
   return (
@@ -31,7 +350,7 @@ export function TitleScreen({ onStart }) {
   )
 }
 
-export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, onShop, onWorldMap }) {
+export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, onShop, onWorldMap, onExplore, onTreasureFound, onBattleStart }) {
   const area = AREAS[state.currentAreaIndex]
   if (!area) return null
   const areaComplete = state.currentBattleIndex >= area.battles.length
@@ -123,71 +442,13 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
       </div>
 
       <div className="flex gap-2 flex-1 min-h-0">
-        {/* Interactive Exploration Map */}
-        <div className="pixel-panel p-2 flex-1">
-          <div className="text-center font-pixel text-[8px] text-retro-gold mb-2">EXPLORE</div>
-          <div className="relative h-48 bg-retro-bg border border-retro-border rounded">
-            {/* Battle locations */}
-            {pathBattles.map((battleIndex, i) => {
-              const battle = area.battles[battleIndex]
-              const isCompleted = battleIndex < state.currentBattleIndex
-              const isCurrent = battleIndex === state.currentBattleIndex
-              const isLocked = battleIndex > state.currentBattleIndex
-              
-              return (
-                <button
-                  key={battleIndex}
-                  className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 pixel-panel p-1 flex items-center justify-center transition-all ${
-                    isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-110'
-                  } ${isCurrent ? 'ring-2 ring-retro-gold animate-pulse' : ''}`}
-                  style={{ left: `${20 + (i % 3) * 30}%`, top: `${20 + Math.floor(i / 3) * 30}%` }}
-                  disabled={isLocked}
-                  onClick={() => onSelectBattle(battleIndex)}
-                  title={`Battle ${battleIndex + 1}`}
-                >
-                  <div className="text-[8px]">
-                    {isCompleted ? '✓' : isCurrent ? '!' : '?'}
-                  </div>
-                </button>
-              )
-            })}
-
-            {/* Hidden treasures - always visible and tappable */}
-            {(area.hiddenTreasures || []).map((treasure) => {
-              if (state.discoveredTreasures[treasure.id]) return null
-              return (
-                <button
-                  key={treasure.id}
-                  className="absolute transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-retro-gold opacity-60 animate-pulse hover:opacity-80 border-2 border-retro-gold/30 flex items-center justify-center"
-                  style={{ left: `${treasure.x}%`, top: `${treasure.y}%` }}
-                  onClick={() => setDiscoveryHint({ type: 'treasure', content: treasure })}
-                  title={treasure.name}
-                >
-                  <span className="text-[12px]">💎</span>
-                </button>
-              )
-            })}
-
-            {/* Secret battles - always visible and tappable */}
-            {(area.secretBattles || []).map((battle) => {
-              if (state.completedSecretBattles[battle.id]) return null
-              return (
-                <button
-                  key={battle.id}
-                  className="absolute transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-retro-accent opacity-60 animate-pulse hover:opacity-80 border-2 border-retro-accent/30 flex items-center justify-center"
-                  style={{ left: `${battle.x}%`, top: `${battle.y}%` }}
-                  onClick={() => setDiscoveryHint({ type: 'battle', content: battle })}
-                  title={battle.name}
-                >
-                  <span className="text-[12px]">⚔️</span>
-                </button>
-              )
-            })}
-          </div>
-          <div className="text-center font-pixel text-[5px] text-retro-dim mt-1">
-            Click glowing spots to investigate
-          </div>
-        </div>
+        {/* Side-Scrolling Exploration */}
+        <ExplorationPanel
+          area={area}
+          party={state.party}
+          onTreasureFound={onTreasureFound}
+          onBattleStart={onBattleStart}
+        />
 
         {/* Side panels */}
         {!showItems ? (

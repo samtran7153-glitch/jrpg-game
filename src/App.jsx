@@ -13,6 +13,7 @@ import {
 import { GoldDisplay } from './components/Shared'
 import { WorldMap } from './components/WorldMap'
 import { PathSelection } from './components/PathSelection'
+import { ExplorationMap } from './components/ExplorationMap'
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 let floatId = 0
@@ -46,6 +47,49 @@ export default function App() {
 
   const openWorldMap = () => {
     setState((s) => ({ ...s, phase: PHASES.WORLD_MAP }))
+  }
+
+  const startExploration = () => {
+    setState((s) => ({ ...s, phase: PHASES.EXPLORATION }))
+  }
+
+  const handleTreasureFound = (treasure) => {
+    setState((s) => {
+      // Find the treasure data from the current area
+      const area = AREAS[s.currentAreaIndex]
+      const treasureData = area.hiddenTreasures?.find(t => t.id === treasure.id)
+      
+      if (treasureData) {
+        return {
+          ...s,
+          gold: s.gold + (treasureData.gold || 0),
+          inventory: { ...s.inventory, [treasureData.item]: (s.inventory[treasureData.item] || 0) + 1 },
+          discoveredTreasures: { ...s.discoveredTreasures, [treasure.id]: true },
+          log: [...s.log, `Found ${treasureData.name}! +${treasureData.gold} gold, +1 ${treasureData.item}`].slice(-6),
+        }
+      }
+      return s
+    })
+  }
+
+  const handleExplorationBattle = (battle) => {
+    setState((s) => {
+      // Find the battle data from the current area
+      const area = AREAS[s.currentAreaIndex]
+      const battleData = area.secretBattles?.find(b => b.id === battle.id)
+      
+      if (battleData) {
+        return { 
+          ...startBattle(s, battleData.enemies, null, null, null, battleData), 
+          completedSecretBattles: { ...s.completedSecretBattles, [battle.id]: true },
+        }
+      }
+      return s
+    })
+  }
+
+  const exitExploration = () => {
+    setState((s) => ({ ...s, phase: PHASES.AREA_MAP }))
   }
 
   const selectPath = (pathKey) => {
@@ -834,6 +878,19 @@ export default function App() {
             onUseItem={useOverworldItem}
             onShop={() => setState((s) => ({ ...s, phase: PHASES.SHOP }))}
             onWorldMap={openWorldMap}
+            onExplore={startExploration}
+            onTreasureFound={handleTreasureFound}
+            onBattleStart={handleExplorationBattle}
+          />
+        )
+      case PHASES.EXPLORATION:
+        return (
+          <ExplorationMap
+            area={AREAS[state.currentAreaIndex]}
+            party={state.party}
+            onTreasureFound={handleTreasureFound}
+            onBattleStart={handleExplorationBattle}
+            onExit={exitExploration}
           />
         )
       case PHASES.PATH_SELECTION:

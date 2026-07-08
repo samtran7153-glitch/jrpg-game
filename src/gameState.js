@@ -19,6 +19,7 @@ export const PHASES = {
   BATTLE_DEFEAT: 'battle_defeat',
   WORLD_MAP: 'world_map',
   PATH_SELECTION: 'path_selection',
+  EXPLORATION: 'exploration',
   GAME_COMPLETE: 'game_complete',
 }
 
