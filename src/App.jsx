@@ -12,6 +12,7 @@ import {
 } from './components/Overworld'
 import { GoldDisplay } from './components/Shared'
 import { WorldMap } from './components/WorldMap'
+import { PathSelection } from './components/PathSelection'
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 let floatId = 0
@@ -47,6 +48,24 @@ export default function App() {
     setState((s) => ({ ...s, phase: PHASES.WORLD_MAP }))
   }
 
+  const selectPath = (pathKey) => {
+    setState((s) => {
+      const area = AREAS[s.currentAreaIndex]
+      const path = area.paths[pathKey]
+      if (!path) return s
+      
+      return {
+        ...s,
+        selectedPaths: { ...s.selectedPaths, [s.currentAreaIndex]: pathKey },
+        phase: PHASES.AREA_MAP,
+        currentBattleIndex: 0,
+        // Set up battles based on selected path
+        pathBattles: path.battles,
+        pathRewards: path.rewards,
+      }
+    })
+  }
+
   const selectArea = (areaIndex) => {
     setState((s) => {
       if (areaIndex < 0 || areaIndex >= AREAS.length) return s
@@ -65,6 +84,17 @@ export default function App() {
           ...startBattle(s, randomEnemies, null, null, null), 
           currentAreaIndex: areaIndex,
           activeBattleIndex: null,
+        }
+      }
+      
+      const newArea = AREAS[areaIndex]
+      const needsPathSelection = newArea.paths && !s.selectedPaths[areaIndex]
+      
+      if (needsPathSelection) {
+        return {
+          ...s,
+          currentAreaIndex: areaIndex,
+          phase: PHASES.PATH_SELECTION,
         }
       }
       
@@ -803,6 +833,14 @@ export default function App() {
             onUseItem={useOverworldItem}
             onShop={() => setState((s) => ({ ...s, phase: PHASES.SHOP }))}
             onWorldMap={openWorldMap}
+          />
+        )
+      case PHASES.PATH_SELECTION:
+        return (
+          <PathSelection
+            area={AREAS[state.currentAreaIndex]}
+            onSelectPath={selectPath}
+            onBack={() => setState((s) => ({ ...s, phase: PHASES.WORLD_MAP }))}
           />
         )
       case PHASES.WORLD_MAP:

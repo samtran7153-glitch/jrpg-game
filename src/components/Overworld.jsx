@@ -35,12 +35,61 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
   const area = AREAS[state.currentAreaIndex]
   if (!area) return null
   const areaComplete = state.currentBattleIndex >= area.battles.length
+  const selectedPath = state.selectedPaths[state.currentAreaIndex]
+  const pathBattles = selectedPath ? area.paths[selectedPath].battles : area.battles.map((_, i) => i)
 
   const [showItems, setShowItems] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
   const [statsHero, setStatsHero] = useState(null)
+  const [discoveryHint, setDiscoveryHint] = useState(null)
 
   const itemIds = Object.keys(state.inventory).filter((id) => state.inventory[id] > 0)
+
+  // Check for nearby hidden content
+  const checkForHiddenContent = (x, y) => {
+    const checkNearby = (content) => {
+      const distance = Math.sqrt(Math.pow(content.x - x, 2) + Math.pow(content.y - y, 2))
+      return distance < 15 // Within discovery radius
+    }
+
+    // Check treasures
+    for (const treasure of area.hiddenTreasures || []) {
+      if (!state.discoveredTreasures[treasure.id] && checkNearby(treasure)) {
+        setDiscoveryHint({ type: 'treasure', content: treasure })
+        return
+      }
+    }
+
+    // Check secret battles
+    for (const battle of area.secretBattles || []) {
+      if (!state.completedSecretBattles[battle.id] && checkNearby(battle)) {
+        setDiscoveryHint({ type: 'battle', content: battle })
+        return
+      }
+    }
+
+    setDiscoveryHint(null)
+  }
+
+  const handleDiscovery = () => {
+    if (!discoveryHint) return
+
+    if (discoveryHint.type === 'treasure') {
+      const treasure = discoveryHint.content
+      setState((s) => ({
+        ...s,
+        gold: s.gold + (treasure.gold || 0),
+        inventory: { ...s.inventory, [treasure.item]: (s.inventory[treasure.item] || 0) + 1 },
+        discoveredTreasures: { ...s.discoveredTreasures, [treasure.id]: true },
+        log: [...s.log, `Found ${treasure.name}! +${treasure.gold} gold, +1 ${treasure.item}`].slice(-6),
+      }))
+    } else if (discoveryHint.type === 'battle') {
+      const battle = discoveryHint.content
+      onSelectBattle(null, battle.enemies, null, null, null, battle)
+    }
+
+    setDiscoveryHint(null)
+  }
 
   const handleUseItem = (heroId) => {
     if (selectedItem) {
@@ -130,18 +179,20 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
           <div className="font-pixel text-[8px] text-retro-gold mb-2">BATTLES</div>
           <div className="space-y-2">
             {area.battles.map((battle, i) => {
-              const isCompleted = i < state.currentBattleIndex
-              const isCurrent = i === state.currentBattleIndex
-              const isLocked = i > state.currentBattleIndex
+              const battleIndex = pathBattles[i]
+              if (battleIndex === undefined) return null
+              const isCompleted = battleIndex < state.currentBattleIndex
+              const isCurrent = battleIndex === state.currentBattleIndex
+              const isLocked = battleIndex > state.currentBattleIndex
               const showSprites = isCompleted || isCurrent
               return (
                 <button
-                  key={i}
+                  key={battleIndex}
                   className={`pixel-btn w-full text-left flex items-center gap-2 ${
                     isLocked ? 'opacity-40' : ''
                   }`}
                   disabled={isLocked}
-                  onClick={() => onSelectBattle(i)}
+                  onClick={() => onSelectBattle(battleIndex)}
                 >
                   <span className="text-[7px]">
                     {isCompleted ? '[DONE]' : isCurrent ? '[!]' : isLocked ? '[ ]' : '[DONE]'}
@@ -155,7 +206,7 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
                     }
                   </span>
                   <span className="text-[7px] ml-auto">
-                    Battle {i + 1}
+                    Battle {battleIndex + 1}
                   </span>
                 </button>
               )
@@ -172,6 +223,21 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
       <button className="pixel-btn w-full" onClick={onWorldMap}>
         World Map
       </button>
+
+      {/* Discovery popup */}
+      {discoveryHint && (
+        <div className="pixel-panel p-3 w-full space-y-2 animate-pulse">
+          <div className="font-pixel text-[8px] text-retro-gold text-center">
+            Something nearby!
+          </div>
+          <div className="font-pixel text-[6px] text-retro-dim text-center">
+            {discoveryHint.content.hint}
+          </div>
+          <button className="pixel-btn w-full" onClick={handleDiscovery}>
+            {discoveryHint.type === 'treasure' ? 'Investigate' : 'Challenge'}
+          </button>
+        </div>
+      )}
 
       {statsHero && <HeroStatsModal hero={statsHero} onClose={() => setStatsHero(null)} />}
     </div>

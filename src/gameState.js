@@ -18,6 +18,7 @@ export const PHASES = {
   BATTLE_VICTORY: 'battle_victory',
   BATTLE_DEFEAT: 'battle_defeat',
   WORLD_MAP: 'world_map',
+  PATH_SELECTION: 'path_selection',
   GAME_COMPLETE: 'game_complete',
 }
 
@@ -47,6 +48,11 @@ export function createInitialState() {
     screenShake: 0,
     pendingRecruit: null,
     battleCompletions: {},
+    // Exploration features
+    discoveredTreasures: {},
+    completedSecretBattles: {},
+    selectedPaths: {}, // Track which path (easy/hard) player chose for each area
+    explorationMode: null, // 'path_selection' or 'exploring'
   }
 }
 
