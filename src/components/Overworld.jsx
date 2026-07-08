@@ -437,13 +437,18 @@ export function VictoryScreen({ state, onConfirm }) {
       <div className="font-pixel text-lg text-retro-green">VICTORY!</div>
       <div className="pixel-panel p-3 w-full space-y-2">
         <div className="text-center font-pixel text-[9px] text-retro-text">Battle Rewards</div>
+        {battleResult.isReplay && (
+          <div className="text-center font-pixel text-[7px] text-retro-dim animate-pulse">
+            Replay: 50% rewards
+          </div>
+        )}
         <div className="flex justify-between font-pixel text-[9px]">
           <span className="text-retro-dim">Total XP:</span>
-          <span className="text-retro-green">{totalXp}</span>
+          <span className={battleResult.isReplay ? 'text-retro-dim' : 'text-retro-green'}>{totalXp}</span>
         </div>
         <div className="flex justify-between font-pixel text-[9px]">
           <span className="text-retro-dim">Gold Gained:</span>
-          <span className="text-retro-gold">{battleResult.gold}</span>
+          <span className={battleResult.isReplay ? 'text-retro-dim' : 'text-retro-gold'}>{battleResult.gold}</span>
         </div>
         {battleResult.recruited && (
           <div className="text-center font-pixel text-[8px] text-retro-green animate-pulse pt-1">

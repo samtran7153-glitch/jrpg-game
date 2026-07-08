@@ -45,6 +45,7 @@ export function createInitialState() {
     floatTexts: [],
     screenShake: 0,
     pendingRecruit: null,
+    battleCompletions: {},
   }
 }
 
@@ -113,14 +114,21 @@ export function checkBattleEnd(state) {
   const aliveParty = state.party.filter((h) => h.alive && h.hp > 0)
 
   if (aliveEnemies.length === 0) {
-    const totalXp = state.enemies.reduce((sum, e) => sum + (e.xp || 0), 0)
-    const totalGold = state.enemies.reduce((sum, e) => sum + (e.gold || 0), 0)
+    const baseXp = state.enemies.reduce((sum, e) => sum + (e.xp || 0), 0)
+    const baseGold = state.enemies.reduce((sum, e) => sum + (e.gold || 0), 0)
+    const battleKey = `${state.currentAreaIndex}-${state.activeBattleIndex ?? state.currentBattleIndex}`
+    const completions = (state.battleCompletions[battleKey] || 0) + 1
+    const isReplay = completions > 1
+    const penaltyMultiplier = isReplay ? 0.5 : 1
+    const totalXp = Math.floor(baseXp * penaltyMultiplier)
+    const totalGold = Math.floor(baseGold * penaltyMultiplier)
     return {
       ...state,
       phase: PHASES.BATTLE_VICTORY,
-      battleResult: { xp: totalXp, gold: totalGold },
+      battleResult: { xp: totalXp, gold: totalGold, isReplay },
       gold: state.gold + totalGold,
-      log: [...state.log, 'All enemies defeated!'].slice(-6),
+      log: [...state.log, isReplay ? `Replay complete! (${Math.floor(penaltyMultiplier * 100)}% rewards)` : 'All enemies defeated!'].slice(-6),
+      battleCompletions: { ...state.battleCompletions, [battleKey]: completions },
     }
   }
 
