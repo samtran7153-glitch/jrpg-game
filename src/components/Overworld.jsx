@@ -111,109 +111,150 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
   }
 
   return (
-    <div className="flex flex-col gap-2 flex-1">
-      <div className="pixel-panel p-2 text-center">
-        <div className="font-pixel text-[10px] text-retro-gold">{area.name}</div>
-        <div className="font-pixel text-[7px] text-retro-dim mt-1">{area.description}</div>
-      </div>
-
-      <div className="flex justify-between items-center pixel-panel p-2">
-        <div className="font-pixel text-[8px] text-retro-text">Party Status</div>
-        <GoldDisplay gold={state.gold} />
-      </div>
-
-      <div className="pixel-panel p-2 flex gap-1 flex-wrap justify-center">
-        {state.party.map((hero) => (
-          <CharacterCard
-            key={hero.id}
-            actor={hero}
-            size={32}
-            isTargetable={isValidTarget(hero)}
-            onTarget={() => handleUseItem(hero.id)}
-            onStatsClick={selectedItem === null ? () => setStatsHero(hero) : undefined}
-          />
-        ))}
-      </div>
-
-      {selectedItem && (
-        <div className="pixel-panel p-1.5 text-center">
-          <div className="font-pixel text-[8px] text-retro-accent animate-pulse">
-            Select a hero to use {ITEMS[selectedItem]?.name} on...
+    <div className="flex flex-col h-full gap-2">
+      <div className="pixel-panel p-2">
+        <div className="flex justify-between items-center">
+          <div className="font-pixel text-[10px] text-retro-gold">{area.name}</div>
+          <div className="font-pixel text-[7px] text-retro-dim">
+            {selectedPath ? `Path: ${area.paths[selectedPath].name}` : 'No path selected'}
           </div>
-          <button className="pixel-btn text-[7px] px-1 py-0.5 mt-1" onClick={() => setSelectedItem(null)}>
-            Cancel
-          </button>
         </div>
-      )}
+        <div className="font-pixel text-[6px] text-retro-dim mt-1">{area.description}</div>
+      </div>
 
-      {showItems ? (
+      <div className="flex gap-2 flex-1 min-h-0">
+        {/* Interactive Exploration Map */}
         <div className="pixel-panel p-2 flex-1">
-          <div className="font-pixel text-[8px] text-retro-gold mb-2">ITEMS</div>
-          <div className="space-y-1">
-            {itemIds.length === 0 && (
-              <div className="font-pixel text-[8px] text-retro-dim">No items left! Visit the shop.</div>
-            )}
-            {itemIds.map((itemId) => {
-              const item = ITEMS[itemId]
-              return (
-                <button
-                  key={itemId}
-                  className="pixel-btn w-full text-left flex justify-between items-center"
-                  onClick={() => setSelectedItem(itemId)}
-                >
-                  <div>
-                    <div className="font-pixel text-[8px]">{item.name}</div>
-                    <div className="font-pixel text-[6px] text-retro-dim">{item.description}</div>
-                  </div>
-                  <div className="font-pixel text-[8px] text-retro-dim">x{state.inventory[itemId]}</div>
-                </button>
-              )
-            })}
-          </div>
-          <button className="pixel-btn w-full text-retro-dim mt-2" onClick={() => { setShowItems(false); setSelectedItem(null) }}>
-            Close
-          </button>
-        </div>
-      ) : (
-        <div className="pixel-panel p-2 flex-1">
-          <div className="font-pixel text-[8px] text-retro-gold mb-2">BATTLES</div>
-          <div className="space-y-2">
-            {area.battles.map((battle, i) => {
-              const battleIndex = pathBattles[i]
-              if (battleIndex === undefined) return null
+          <div className="text-center font-pixel text-[8px] text-retro-gold mb-2">EXPLORE</div>
+          <div className="relative h-48 bg-retro-bg border border-retro-border rounded">
+            {/* Battle locations */}
+            {pathBattles.map((battleIndex, i) => {
+              const battle = area.battles[battleIndex]
               const isCompleted = battleIndex < state.currentBattleIndex
               const isCurrent = battleIndex === state.currentBattleIndex
               const isLocked = battleIndex > state.currentBattleIndex
-              const showSprites = isCompleted || isCurrent
+              
               return (
                 <button
                   key={battleIndex}
-                  className={`pixel-btn w-full text-left flex items-center gap-2 ${
-                    isLocked ? 'opacity-40' : ''
-                  }`}
+                  className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 pixel-panel p-1 flex items-center justify-center transition-all ${
+                    isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-110'
+                  } ${isCurrent ? 'ring-2 ring-retro-gold animate-pulse' : ''}`}
+                  style={{ left: `${20 + (i % 3) * 30}%`, top: `${20 + Math.floor(i / 3) * 30}%` }}
                   disabled={isLocked}
                   onClick={() => onSelectBattle(battleIndex)}
+                  title={`Battle ${battleIndex + 1}`}
                 >
-                  <span className="text-[7px]">
-                    {isCompleted ? '[DONE]' : isCurrent ? '[!]' : isLocked ? '[ ]' : '[DONE]'}
-                  </span>
-                  <span className="flex gap-1">
-                    {showSprites
-                      ? battle.enemies.map((e, ei) => (
-                          <Sprite key={ei} type={e} size={16} />
-                        ))
-                      : <span className="font-pixel text-[7px] text-retro-dim">???</span>
-                    }
-                  </span>
-                  <span className="text-[7px] ml-auto">
-                    Battle {battleIndex + 1}
-                  </span>
+                  <div className="text-[8px]">
+                    {isCompleted ? '✓' : isCurrent ? '!' : '?'}
+                  </div>
                 </button>
               )
             })}
+
+            {/* Hidden treasures - show faint glows when not discovered */}
+            {(area.hiddenTreasures || []).map((treasure) => {
+              if (state.discoveredTreasures[treasure.id]) return null
+              return (
+                <div
+                  key={treasure.id}
+                  className="absolute transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-retro-gold opacity-30 animate-pulse cursor-pointer hover:opacity-60"
+                  style={{ left: `${treasure.x}%`, top: `${treasure.y}%` }}
+                  onClick={() => setDiscoveryHint({ type: 'treasure', content: treasure })}
+                  title={treasure.name}
+                />
+              )
+            })}
+
+            {/* Secret battles - show faint glows when not completed */}
+            {(area.secretBattles || []).map((battle) => {
+              if (state.completedSecretBattles[battle.id]) return null
+              return (
+                <div
+                  key={battle.id}
+                  className="absolute transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-retro-accent opacity-30 animate-pulse cursor-pointer hover:opacity-60"
+                  style={{ left: `${battle.x}%`, top: `${battle.y}%` }}
+                  onClick={() => setDiscoveryHint({ type: 'battle', content: battle })}
+                  title={battle.name}
+                />
+              )
+            })}
+          </div>
+          <div className="text-center font-pixel text-[5px] text-retro-dim mt-1">
+            Click glowing spots to investigate
           </div>
         </div>
-      )}
+
+        {/* Side panels */}
+        {!showItems ? (
+          <div className="pixel-panel p-2 flex-1 max-w-xs">
+            <div className="font-pixel text-[8px] text-retro-gold mb-2">BATTLES</div>
+            <div className="space-y-2">
+              {area.battles.map((battle, i) => {
+                const battleIndex = pathBattles[i]
+                if (battleIndex === undefined) return null
+                const isCompleted = battleIndex < state.currentBattleIndex
+                const isCurrent = battleIndex === state.currentBattleIndex
+                const isLocked = battleIndex > state.currentBattleIndex
+                const showSprites = isCompleted || isCurrent
+                return (
+                  <button
+                    key={battleIndex}
+                    className={`pixel-btn w-full text-left flex items-center gap-2 ${
+                      isLocked ? 'opacity-40' : ''
+                    }`}
+                    disabled={isLocked}
+                    onClick={() => onSelectBattle(battleIndex)}
+                  >
+                    <span className="text-[7px]">
+                      {isCompleted ? '[DONE]' : isCurrent ? '[!]' : isLocked ? '[ ]' : '[DONE]'}
+                    </span>
+                    <span className="flex gap-1">
+                      {showSprites
+                        ? battle.enemies.map((e, ei) => (
+                            <Sprite key={ei} type={e} size={16} />
+                          ))
+                        : <span className="font-pixel text-[7px] text-retro-dim">???</span>
+                    }
+                    </span>
+                    <span className="text-[7px] ml-auto">
+                      Battle {battleIndex + 1}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ) : (
+          <div className="pixel-panel p-2 flex-1">
+            <div className="font-pixel text-[8px] text-retro-gold mb-2">ITEMS</div>
+            <div className="space-y-1">
+              {itemIds.length === 0 && (
+                <div className="font-pixel text-[8px] text-retro-dim">No items left! Visit the shop.</div>
+              )}
+              {itemIds.map((itemId) => {
+                const item = ITEMS[itemId]
+                return (
+                  <button
+                    key={itemId}
+                    className="pixel-btn w-full text-left flex justify-between items-center"
+                    onClick={() => setSelectedItem(itemId)}
+                  >
+                    <div>
+                      <div className="font-pixel text-[8px]">{item.name}</div>
+                      <div className="font-pixel text-[6px] text-retro-dim">{item.description}</div>
+                    </div>
+                    <div className="font-pixel text-[8px] text-retro-dim">x{state.inventory[itemId]}</div>
+                  </button>
+                )
+              })}
+            </div>
+            <button className="pixel-btn w-full text-retro-dim mt-2" onClick={() => { setShowItems(false); setSelectedItem(null) }}>
+              Close
+            </button>
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-2 gap-1">
         <button className="pixel-btn" onClick={() => { setShowItems(!showItems); setSelectedItem(null) }}>Items</button>
