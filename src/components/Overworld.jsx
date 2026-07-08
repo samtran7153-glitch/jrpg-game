@@ -443,10 +443,10 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
 
       <div className="flex gap-2 flex-1 min-h-0">
         {/* Side panels */}
-        <div className="pixel-panel p-2 flex-1">
+        <div className="pixel-panel p-2 flex-1 h-44">
           {/* Party Display */}
           <div className="font-pixel text-[8px] text-retro-gold mb-2">PARTY</div>
-          <div className="flex gap-1 flex-wrap justify-center mb-3">
+          <div className="flex gap-1 flex-wrap justify-center">
             {state.party.map((hero) => (
               <CharacterCard
                 key={hero.id}
