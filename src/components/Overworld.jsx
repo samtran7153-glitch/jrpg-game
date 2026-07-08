@@ -453,22 +453,19 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
                 const isCompleted = battleIndex < state.currentBattleIndex
                 const isCurrent = battleIndex === state.currentBattleIndex
                 const isLocked = battleIndex > state.currentBattleIndex
+                const showSprites = isCompleted || isCurrent
                 
-                // Skip current battle - only show after it's completed
-                if (isCurrent && !isCompleted) return null
-                
-                const showSprites = isCompleted
                 return (
                   <button
                     key={battleIndex}
                     className={`pixel-btn w-full text-left flex items-center gap-2 ${
                       isLocked ? 'opacity-40' : ''
-                    }`}
+                    } ${isCurrent ? 'ring-2 ring-retro-gold animate-pulse' : ''}`}
                     disabled={isLocked}
                     onClick={() => onSelectBattle(battleIndex)}
                   >
                     <span className="text-[7px]">
-                      {isCompleted ? '[DONE]' : isLocked ? '[ ]' : '[DONE]'}
+                      {isCompleted ? '[DONE]' : isCurrent ? '[!]' : isLocked ? '[ ]' : '[!]'}
                     </span>
                     <span className="flex gap-1">
                       {showSprites
