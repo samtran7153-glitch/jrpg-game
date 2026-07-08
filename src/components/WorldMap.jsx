@@ -33,10 +33,63 @@ export function WorldMap({ state, onSelectArea, onBack }) {
     { from: 1, to: 3 }, // cave -> shadow (alternative path)
   ]
 
+  // Decorative landmarks positioned around the map
+  const landmarks = [
+    { type: 'mountain', x: 15, y: 25, name: 'Dragon Peaks' },
+    { type: 'lake', x: 85, y: 25, name: 'Mirror Lake' },
+    { type: 'forest', x: 10, y: 70, name: 'Ancient Woods' },
+    { type: 'ruins', x: 90, y: 75, name: 'Forgotten Ruins' },
+    { type: 'village', x: 50, y: 15, name: 'Outpost' },
+  ]
+
   const isPathUnlocked = (from, to) => {
     const fromStatus = getAreaStatus(from)
     const toStatus = getAreaStatus(to)
     return fromStatus !== 'locked' && toStatus !== 'locked'
+  }
+
+  const renderLandmark = (landmark, index) => {
+    const baseClass = "absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+    
+    switch(landmark.type) {
+      case 'mountain':
+        return (
+          <div key={index} className={baseClass} style={{ left: `${landmark.x}%`, top: `${landmark.y}%` }}>
+            <div className="text-retro-dim opacity-30" style={{ fontSize: '20px' }}>⛰️</div>
+            <div className="font-pixel text-[4px] text-retro-dim opacity-50 text-center mt-0.5">{landmark.name}</div>
+          </div>
+        )
+      case 'lake':
+        return (
+          <div key={index} className={baseClass} style={{ left: `${landmark.x}%`, top: `${landmark.y}%` }}>
+            <div className="w-8 h-8 bg-retro-blue/20 rounded-full border border-retro-blue/30" />
+            <div className="font-pixel text-[4px] text-retro-dim opacity-50 text-center mt-0.5">{landmark.name}</div>
+          </div>
+        )
+      case 'forest':
+        return (
+          <div key={index} className={baseClass} style={{ left: `${landmark.x}%`, top: `${landmark.y}%` }}>
+            <div className="text-retro-green opacity-20" style={{ fontSize: '16px' }}>🌲</div>
+            <div className="font-pixel text-[4px] text-retro-dim opacity-50 text-center mt-0.5">{landmark.name}</div>
+          </div>
+        )
+      case 'ruins':
+        return (
+          <div key={index} className={baseClass} style={{ left: `${landmark.x}%`, top: `${landmark.y}%` }}>
+            <div className="text-retro-dim opacity-25" style={{ fontSize: '14px' }}>🏛️</div>
+            <div className="font-pixel text-[4px] text-retro-dim opacity-50 text-center mt-0.5">{landmark.name}</div>
+          </div>
+        )
+      case 'village':
+        return (
+          <div key={index} className={baseClass} style={{ left: `${landmark.x}%`, top: `${landmark.y}%` }}>
+            <div className="text-retro-accent opacity-20" style={{ fontSize: '12px' }}>🏘️</div>
+            <div className="font-pixel text-[4px] text-retro-dim opacity-50 text-center mt-0.5">{landmark.name}</div>
+          </div>
+        )
+      default:
+        return null
+    }
   }
 
   return (
@@ -45,11 +98,55 @@ export function WorldMap({ state, onSelectArea, onBack }) {
       <div className="relative h-64 bg-retro-bg border border-retro-border rounded overflow-hidden">
         {/* Background texture */}
         <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0 bg-gradient-to-br from-retro-purple/10 to-retro-blue/10" />
+          <div className="absolute inset-0 bg-gradient-to-br from-retro-green/5 via-retro-bg to-retro-purple/5" />
           <div className="absolute inset-0" style={{
             backgroundImage: 'radial-gradient(circle, #6a6a8a 1px, transparent 1px)',
-            backgroundSize: '8px 8px'
+            backgroundSize: '12px 12px'
           }} />
+        </div>
+
+        {/* Terrain biomes */}
+        <div className="absolute top-0 left-0 w-1/3 h-1/3 bg-retro-green/10 rounded-bl-full" />
+        <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-retro-blue/10 rounded-br-full" />
+        <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-retro-purple/10 rounded-tl-full" />
+        <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-retro-accent/10 rounded-tr-full" />
+
+        {/* Landmarks */}
+        {landmarks.map(renderLandmark)}
+
+        {/* Compass rose */}
+        <div className="absolute top-2 right-2 w-10 h-10 pointer-events-none">
+          <div className="relative w-full h-full">
+            <div className="absolute inset-0 border border-retro-dim/30 rounded-full" />
+            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-0.5 text-retro-dim/40 text-[8px]">N</div>
+            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-0.5 text-retro-dim/20 text-[6px]">S</div>
+            <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-0.5 text-retro-dim/20 text-[6px]">W</div>
+            <div className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-0.5 text-retro-dim/20 text-[6px]">E</div>
+            <div className="absolute inset-2 border border-retro-dim/20 rounded-full" />
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-0.5 h-3 bg-retro-accent/30" />
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3 h-0.5 bg-retro-accent/30" />
+          </div>
+        </div>
+
+        {/* Map legend */}
+        <div className="absolute bottom-2 left-2 pointer-events-none">
+          <div className="pixel-panel p-1 bg-retro-bg/90 border border-retro-dim/30">
+            <div className="font-pixel text-[4px] text-retro-dim mb-0.5">LEGEND</div>
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-retro-green rounded-full" />
+                <span className="font-pixel text-[3px] text-retro-dim">Completed</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-retro-gold rounded-full animate-pulse" />
+                <span className="font-pixel text-[3px] text-retro-dim">Current</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-retro-accent rounded-full" />
+                <span className="font-pixel text-[3px] text-retro-dim">Locked</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Connection paths */}
