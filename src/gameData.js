@@ -92,7 +92,7 @@ export const AREAS = [
     ]
   },
   {
-    id: 'cave', name: 'Shadow Caverns', sprite: 'cave',
+    id: 'cave', name: 'Darkstone Caverns', sprite: 'cave',
     description: 'Dark caves where the undead roam freely.',
     battles: [
       { enemies: ['bat', 'bat'], dialogue: { before: ['Kira: Bats! They\'re fast but fragile.'], after: ['Aria: The cave entrance is clear.'] } },
@@ -159,7 +159,7 @@ export const AREAS = [
     ]
   },
   {
-    id: 'shadow', name: 'Shadow Realm', sprite: 'shadow',
+    id: 'shadow', name: 'Void Realm', sprite: 'shadow',
     description: 'A void between worlds where the true enemy lurks.',
     battles: [
       { enemies: ['shadow', 'shadow'], dialogue: { before: ['Aria: Where are we? This isn\'t the castle anymore.', 'Elwyn: The dragon\'s death must have opened a rift.', 'Sera: The real mastermind is here.'], after: ['Kira: These shadows are stronger than before.'] } },
