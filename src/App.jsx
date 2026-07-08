@@ -8,7 +8,7 @@ import { createHero } from './gameData'
 import { BattleScreen } from './components/BattleScreen'
 import {
   TitleScreen, AreaMapScreen, ShopScreen, DialogueScreen,
-  VictoryScreen, DefeatScreen, GameCompleteScreen,
+  VictoryScreen, DefeatScreen, GameCompleteScreen, SettingsScreen,
 } from './components/Overworld'
 import { GoldDisplay } from './components/Shared'
 import { WorldMap } from './components/WorldMap'
@@ -881,6 +881,7 @@ export default function App() {
             onExplore={startExploration}
             onTreasureFound={handleTreasureFound}
             onBattleStart={handleExplorationBattle}
+            onSettings={() => setState((s) => ({ ...s, phase: PHASES.SETTINGS }))}
           />
         )
       case PHASES.EXPLORATION:
@@ -933,6 +934,13 @@ export default function App() {
       case PHASES.BATTLE_DEFEAT:
         if (screenFade) return <BattleScreen state={state} anim={anim} onAction={handleAction} />
         return <DefeatScreen onRetry={newGame} />
+      case PHASES.SETTINGS:
+        return (
+          <SettingsScreen
+            onReset={newGame}
+            onBack={() => setState((s) => ({ ...s, phase: PHASES.AREA_MAP }))}
+          />
+        )
       case PHASES.GAME_COMPLETE:
         return <GameCompleteScreen onRestart={newGame} />
       default:

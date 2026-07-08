@@ -21,6 +21,7 @@ export const PHASES = {
   PATH_SELECTION: 'path_selection',
   EXPLORATION: 'exploration',
   GAME_COMPLETE: 'game_complete',
+  SETTINGS: 'settings',
 }
 
 export { SKILLS, ITEMS, calculateDamage, rollCrit, levelUp, xpForLevel, AREAS }

@@ -323,6 +323,50 @@ function ExplorationPanel({ area, party, onTreasureFound, onBattleStart }) {
   )
 }
 
+export function SettingsScreen({ onReset, onBack }) {
+  const [confirming, setConfirming] = useState(false)
+
+  return (
+    <div className="flex justify-center items-center flex-1">
+      <div className="pixel-panel w-full max-w-sm p-5 flex flex-col items-center gap-4">
+        <h2 className="font-pixel text-sm text-retro-gold tracking-wider">SETTINGS</h2>
+
+        <div className="w-full space-y-3">
+          <div className="pixel-panel p-3 w-full">
+            <div className="font-pixel text-[8px] text-retro-text mb-2">Reset Progress</div>
+            <div className="font-pixel text-[6px] text-retro-dim mb-3">
+              This will erase all progress and start a new game.
+            </div>
+            {!confirming ? (
+              <button className="pixel-btn w-full text-retro-accent" onClick={() => setConfirming(true)}>
+                Reset
+              </button>
+            ) : (
+              <div className="space-y-2">
+                <div className="font-pixel text-[7px] text-retro-accent text-center">
+                  Are you sure?
+                </div>
+                <div className="flex gap-2">
+                  <button className="pixel-btn flex-1 text-retro-accent" onClick={onReset}>
+                    Yes, Reset
+                  </button>
+                  <button className="pixel-btn flex-1" onClick={() => setConfirming(false)}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <button className="pixel-btn w-48" onClick={onBack}>
+          Back
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export function TitleScreen({ onStart }) {
   return (
     <div className="flex justify-center items-center flex-1">
@@ -350,7 +394,7 @@ export function TitleScreen({ onStart }) {
   )
 }
 
-export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, onShop, onWorldMap, onExplore, onTreasureFound, onBattleStart }) {
+export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, onShop, onWorldMap, onExplore, onTreasureFound, onBattleStart, onSettings }) {
   const area = AREAS[state.currentAreaIndex]
   if (!area) return null
   const areaComplete = state.currentBattleIndex >= area.battles.length
@@ -430,7 +474,7 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
   }
 
   return (
-    <div className="flex flex-col h-full gap-2">
+    <div className="flex flex-col h-full gap-2 relative">
       <div className="pixel-panel p-2">
         <div className="flex justify-between items-center">
           <div className="font-pixel text-[10px] text-retro-gold">{area.name}</div>
@@ -471,13 +515,22 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
             )}
             {itemIds.map((itemId) => {
               const item = ITEMS[itemId]
+              const hasValidTarget = state.party.some((h) => {
+                if (item.revive) return !h.alive || h.hp <= 0
+                if (!h.alive || h.hp <= 0) return false
+                if (item.heal) return h.hp < h.maxHp
+                if (item.mpRestore) return h.mp < h.maxMp
+                if (item.cure) return (h.statusEffects || []).some((e) => e.type === item.cure)
+                return false
+              })
               return (
                 <button
                   key={itemId}
                   className={`pixel-btn w-full text-left flex justify-between items-center ${
                     selectedItem === itemId ? 'ring-2 ring-retro-gold' : ''
-                  }`}
-                  onClick={() => setSelectedItem(itemId)}
+                  } ${!hasValidTarget ? 'opacity-40 cursor-not-allowed' : ''}`}
+                  disabled={!hasValidTarget}
+                  onClick={() => setSelectedItem(selectedItem === itemId ? null : itemId)}
                 >
                   <div>
                     <div className="font-pixel text-[8px]">{item.name}</div>
@@ -545,9 +598,16 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
         <button className="pixel-btn" onClick={onShop}>Shop</button>
       </div>
 
-      <button className="pixel-btn w-full" onClick={onWorldMap}>
-        World Map
-      </button>
+      <div className="flex gap-1 items-stretch">
+        <button className="pixel-btn flex-1" onClick={onWorldMap}>
+          World Map
+        </button>
+        <button className="pixel-btn w-12 flex items-center justify-center !py-3 !px-0" onClick={onSettings} title="Settings">
+          <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
+            <path d="M19.4 12.9c0-.3.1-.6.1-.9s0-.6-.1-.9l2-1.6c.2-.2.3-.5.2-.7l-1.9-3.3c-.1-.2-.4-.3-.7-.2l-2.4.9c-.5-.4-1-.7-1.6-1l-.4-2.6c0-.3-.3-.5-.6-.5h-3.8c-.3 0-.6.2-.6.5l-.4 2.6c-.6.3-1.1.6-1.6 1l-2.4-.9c-.3-.1-.6 0-.7.2L2.2 8.8c-.1.2 0 .5.2.7l2 1.6c0 .3-.1.6-.1.9s0 .6.1.9l-2 1.6c-.2.2-.3.5-.2.7l1.9 3.3c.1.2.4.3.7.2l2.4-.9c.5.4 1 .7 1.6 1l.4 2.6c0 .3.3.5.6.5h3.8c.3 0 .6-.2.6-.5l.4-2.6c.6-.3 1.1-.6 1.6-1l2.4.9c.3.1.6 0 .7-.2l1.9-3.3c.1-.2 0-.5-.2-.7l-2-1.6zM12 15.5c-1.9 0-3.5-1.6-3.5-3.5s1.6-3.5 3.5-3.5 3.5 1.6 3.5 3.5-1.6 3.5-3.5 3.5z" />
+          </svg>
+        </button>
+      </div>
 
       {/* Discovery popup */}
       {discoveryHint && (
