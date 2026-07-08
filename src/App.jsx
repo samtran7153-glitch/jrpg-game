@@ -11,6 +11,7 @@ import {
   VictoryScreen, DefeatScreen, GameCompleteScreen,
 } from './components/Overworld'
 import { GoldDisplay } from './components/Shared'
+import { WorldMap } from './components/WorldMap'
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 let floatId = 0
@@ -40,6 +41,23 @@ export default function App() {
   // ============ GAME FLOW ============
   const startGame = () => {
     setState((s) => ({ ...s, phase: PHASES.AREA_MAP }))
+  }
+
+  const selectArea = (areaIndex) => {
+    setState((s) => {
+      if (areaIndex < 0 || areaIndex >= AREAS.length) return s
+      if (areaIndex > s.currentAreaIndex) return s // Can't jump ahead
+      return {
+        ...s,
+        currentAreaIndex: areaIndex,
+        currentBattleIndex: 0,
+        phase: PHASES.AREA_MAP,
+        battleResult: null,
+        enemies: [],
+        dialogueAfter: null,
+        activeBattleIndex: null,
+      }
+    })
   }
 
   const selectBattle = (battleIndex) => {
@@ -760,17 +778,9 @@ export default function App() {
           <AreaMapScreen
             state={state}
             onSelectBattle={selectBattle}
+            onSelectArea={selectArea}
             onUseItem={useOverworldItem}
             onShop={() => setState((s) => ({ ...s, phase: PHASES.SHOP }))}
-            onContinue={() => {
-              setState((s) => {
-                const area = AREAS[s.currentAreaIndex]
-                if (!area || s.currentBattleIndex < area.battles.length) return s
-                const nextArea = s.currentAreaIndex + 1
-                if (nextArea >= AREAS.length) return { ...s, phase: PHASES.GAME_COMPLETE }
-                return { ...s, currentAreaIndex: nextArea, currentBattleIndex: 0 }
-              })
-            }}
           />
         )
       case PHASES.SHOP:

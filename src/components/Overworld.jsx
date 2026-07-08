@@ -30,7 +30,7 @@ export function TitleScreen({ onStart }) {
   )
 }
 
-export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onContinue }) {
+export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, onShop }) {
   const area = AREAS[state.currentAreaIndex]
   if (!area) return null
   const areaComplete = state.currentBattleIndex >= area.battles.length
@@ -163,13 +163,12 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onCont
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-1">
+      <div className="grid grid-cols-2 gap-1">
         <button className="pixel-btn" onClick={() => { setShowItems(!showItems); setSelectedItem(null) }}>Items</button>
         <button className="pixel-btn" onClick={onShop}>Shop</button>
-        <button className="pixel-btn" onClick={onContinue} disabled={!areaComplete}>
-          Next
-        </button>
       </div>
+
+      <WorldMap state={state} onSelectArea={onSelectArea} />
 
       {statsHero && <HeroStatsModal hero={statsHero} onClose={() => setStatsHero(null)} />}
     </div>
