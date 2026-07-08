@@ -447,8 +447,8 @@ export function DeathSprite({ size = 64 }) {
 }
 
 // ============ AREA SPRITES ============
-function CaveSprite({ size }) {
-  const c = colors(size)
+function CaveSprite({ size = 64, defeated = false }) {
+  const c = defeated ? 'opacity-20 grayscale' : ''
   return (
     <svg {...svgProps(size, c)}>
       {/* Cave entrance */}
@@ -463,8 +463,8 @@ function CaveSprite({ size }) {
   )
 }
 
-function ShadowSprite({ size }) {
-  const c = colors(size)
+function ShadowSprite({ size = 64, defeated = false }) {
+  const c = defeated ? 'opacity-20 grayscale' : ''
   return (
     <svg {...svgProps(size, c)}>
       {/* Swirling shadow */}
@@ -479,8 +479,8 @@ function ShadowSprite({ size }) {
   )
 }
 
-function ForestSprite({ size }) {
-  const c = colors(size)
+function ForestSprite({ size = 64, defeated = false }) {
+  const c = defeated ? 'opacity-20 grayscale' : ''
   return (
     <svg {...svgProps(size, c)}>
       {/* Tree trunks */}
@@ -498,8 +498,8 @@ function ForestSprite({ size }) {
   )
 }
 
-function CastleSprite({ size }) {
-  const c = colors(size)
+function CastleSprite({ size = 64, defeated = false }) {
+  const c = defeated ? 'opacity-20 grayscale' : ''
   return (
     <svg {...svgProps(size, c)}>
       {/* Castle base */}
