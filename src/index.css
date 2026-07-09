@@ -195,8 +195,16 @@ body {
   filter: drop-shadow(0 0 6px rgba(245, 197, 24, 0.65));
 }
 
-.story-speaker.story-enemy {
-  animation: story-speaker-pop 0.55s steps(4, end) infinite;
+@keyframes story-boss-enter {
+  0% { transform: translateX(80px) scale(0.5); opacity: 0; }
+  40% { transform: translateX(-10px) scale(1.15); opacity: 1; }
+  60% { transform: translateX(6px) scale(0.95); }
+  80% { transform: translateX(-3px) scale(1.05); }
+  100% { transform: translateX(0) scale(1); opacity: 1; }
+}
+
+.animate-story-boss-enter {
+  animation: story-boss-enter 0.7s steps(8, end) both;
 }
 
 @keyframes story-sparkle {
@@ -305,234 +313,37 @@ body {
   transform: scaleX(-1) rotate(-90deg) translateY(8px);
 }
 
-/* ============ BATTLEFIELD DECORATION ============ */
+/* ============ BATTLEFIELD (FLAT 2D PLANE) ============ */
 
-.battlefield-arena {
+.battlefield-plane {
   position: relative;
 }
 
 .battlefield-ground {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 24px;
-  border-top: 2px solid rgba(0, 0, 0, 0.3);
+  inset: 0;
   z-index: 1;
+  opacity: 0.35;
 }
 
 .battlefield-ground::before {
   content: '';
   position: absolute;
-  top: -2px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: rgba(255, 255, 255, 0.06);
+  top: 50%;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
 }
 
-/* Dotted ground texture */
 .battlefield-ground::after {
   content: '';
   position: absolute;
-  inset: 0;
-  background-image: radial-gradient(circle, rgba(0,0,0,0.15) 1px, transparent 1.5px);
-  background-size: 6px 6px;
-}
-
-/* Atmospheric particles (floating dust/spores) */
-.battlefield-particles {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 2;
-  overflow: hidden;
-}
-
-.battlefield-particles::before,
-.battlefield-particles::after {
-  content: '';
-  position: absolute;
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  opacity: 0.4;
-}
-
-.battlefield-particles::before {
-  background: rgba(245, 197, 24, 0.5);
-  box-shadow:
-    20px 30px 0 rgba(245, 197, 24, 0.3),
-    50px 60px 0 rgba(78, 204, 163, 0.3),
-    80px 20px 0 rgba(245, 197, 24, 0.2),
-    120px 50px 0 rgba(78, 168, 222, 0.3),
-    160px 35px 0 rgba(245, 197, 24, 0.25),
-    200px 70px 0 rgba(78, 204, 163, 0.2),
-    240px 25px 0 rgba(157, 78, 221, 0.3),
-    280px 55px 0 rgba(245, 197, 24, 0.2),
-    30px 90px 0 rgba(78, 168, 222, 0.25),
-    100px 100px 0 rgba(245, 197, 24, 0.2),
-    180px 85px 0 rgba(78, 204, 163, 0.3),
-    260px 95px 0 rgba(157, 78, 221, 0.2);
-  animation: battlefield-particle-drift 4s steps(8, end) infinite;
-}
-
-.battlefield-particles::after {
-  background: rgba(78, 204, 163, 0.4);
-  box-shadow:
-    40px 40px 0 rgba(245, 197, 24, 0.2),
-    90px 70px 0 rgba(78, 204, 163, 0.25),
-    140px 30px 0 rgba(157, 78, 221, 0.2),
-    190px 65px 0 rgba(245, 197, 24, 0.3),
-    230px 45px 0 rgba(78, 168, 222, 0.2),
-    270px 80px 0 rgba(78, 204, 163, 0.25),
-    60px 110px 0 rgba(245, 197, 24, 0.2),
-    150px 105px 0 rgba(157, 78, 221, 0.3),
-    250px 100px 0 rgba(78, 204, 163, 0.2);
-  animation: battlefield-particle-drift 5s steps(8, end) infinite reverse;
-}
-
-@keyframes battlefield-particle-drift {
-  0%, 100% { transform: translateY(0) translateX(0); }
-  50% { transform: translateY(-12px) translateX(4px); }
-}
-
-/* Area-specific background decorations */
-.battlefield-bg-decor {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  overflow: hidden;
-}
-
-/* Forest: trees and grass tufts */
-.battlefield-bg-decor[data-area="forest"]::before {
-  content: '';
-  position: absolute;
-  bottom: 24px;
-  left: 0;
-  right: 0;
-  height: 40px;
-  background:
-    radial-gradient(ellipse 12px 20px at 8% 80%, #1a3a12 60%, transparent 65%),
-    radial-gradient(ellipse 10px 16px at 20% 90%, #2d5a1e 55%, transparent 60%),
-    radial-gradient(ellipse 14px 24px at 92% 75%, #1a3a12 60%, transparent 65%),
-    radial-gradient(ellipse 8px 14px at 75% 85%, #2d5a1e 55%, transparent 60%),
-    radial-gradient(ellipse 6px 10px at 45% 95%, #3d7a2a 50%, transparent 55%),
-    radial-gradient(ellipse 7px 12px at 60% 92%, #2d5a1e 50%, transparent 55%);
-}
-
-.battlefield-bg-decor[data-area="forest"]::after {
-  content: '';
-  position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
-  height: 100%;
-  background:
-    radial-gradient(ellipse 30px 50px at 5% 30%, rgba(45, 90, 30, 0.15) 60%, transparent 70%),
-    radial-gradient(ellipse 25px 45px at 95% 25%, rgba(45, 90, 30, 0.12) 60%, transparent 70%);
-}
-
-/* Cave: stalactites and rock formations */
-.battlefield-bg-decor[data-area="cave"]::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 30px;
-  background:
-    linear-gradient(180deg, rgba(74, 74, 106, 0.3) 0%, transparent 100%),
-    radial-gradient(ellipse 8px 16px at 10% 0%, #3a3a4a 60%, transparent 65%),
-    radial-gradient(ellipse 6px 12px at 30% 0%, #4a4a6a 55%, transparent 60%),
-    radial-gradient(ellipse 10px 20px at 55% 0%, #3a3a4a 60%, transparent 65%),
-    radial-gradient(ellipse 7px 14px at 78% 0%, #4a4a6a 55%, transparent 60%),
-    radial-gradient(ellipse 9px 18px at 92% 0%, #3a3a4a 60%, transparent 65%);
-}
-
-.battlefield-bg-decor[data-area="cave"]::after {
-  content: '';
-  position: absolute;
-  bottom: 24px;
-  left: 0;
-  right: 0;
-  height: 20px;
-  background:
-    radial-gradient(ellipse 16px 12px at 15% 100%, #2a2a3a 60%, transparent 65%),
-    radial-gradient(ellipse 12px 10px at 50% 100%, #3a3a4a 55%, transparent 60%),
-    radial-gradient(ellipse 18px 14px at 85% 100%, #2a2a3a 60%, transparent 65%);
-}
-
-/* Castle: pillars and torches */
-.battlefield-bg-decor[data-area="castle"]::before {
-  content: '';
-  position: absolute;
-  bottom: 24px;
-  left: 0;
-  right: 0;
-  height: 60px;
-  background:
-    linear-gradient(90deg,
-      transparent 0%, transparent 8%,
-      rgba(58, 58, 74, 0.4) 8%, rgba(58, 58, 74, 0.4) 14%,
-      transparent 14%, transparent 86%,
-      rgba(58, 58, 74, 0.4) 86%, rgba(58, 58, 74, 0.4) 92%,
-      transparent 92%, transparent 100%);
-}
-
-.battlefield-bg-decor[data-area="castle"]::after {
-  content: '';
-  position: absolute;
-  top: 10px;
-  left: 10%;
-  width: 4px;
-  height: 4px;
-  background: #f5c518;
-  border-radius: 50%;
-  box-shadow:
-    0 0 8px 2px rgba(245, 197, 24, 0.5),
-    0 12px 0 0 #f5c518,
-    0 12px 8px 2px rgba(245, 197, 24, 0.5),
-    0 24px 0 0 #e94560,
-    0 24px 8px 2px rgba(233, 69, 96, 0.4);
-  animation: castle-torch-flicker 0.3s steps(2, end) infinite;
-}
-
-@keyframes castle-torch-flicker {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
-
-/* Shadow realm: dark void with purple energy */
-.battlefield-bg-decor[data-area="shadow"]::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 20% 30%, rgba(157, 78, 221, 0.08) 0%, transparent 30%),
-    radial-gradient(circle at 80% 60%, rgba(157, 78, 221, 0.06) 0%, transparent 35%),
-    radial-gradient(circle at 50% 20%, rgba(233, 69, 96, 0.04) 0%, transparent 25%);
-  animation: shadow-aura 3s steps(6, end) infinite;
-}
-
-.battlefield-bg-decor[data-area="shadow"]::after {
-  content: '';
-  position: absolute;
-  bottom: 24px;
-  left: 0;
-  right: 0;
-  height: 30px;
-  background:
-    radial-gradient(ellipse 20px 8px at 25% 100%, rgba(157, 78, 221, 0.15) 60%, transparent 65%),
-    radial-gradient(ellipse 16px 6px at 65% 100%, rgba(157, 78, 221, 0.12) 55%, transparent 60%),
-    radial-gradient(ellipse 24px 10px at 90% 100%, rgba(233, 69, 96, 0.08) 60%, transparent 65%);
-}
-
-@keyframes shadow-aura {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+  left: 50%;
+  bottom: 0;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 /* Idle bounce for enemy and party rows */

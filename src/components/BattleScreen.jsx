@@ -42,20 +42,14 @@ export function BattleScreen({ state, anim, onAction }) {
       <TurnOrderBar turnOrder={turnOrder} currentTurnIndex={currentTurnIndex} party={party} enemies={enemies} highlighted={showTutorial && TUTORIAL_TIPS[tutorialStep]?.highlight === 'turn_order'} />
 
       {/* Battle field */}
-      <div className="pixel-panel p-2 relative flex-1 overflow-hidden flex flex-col justify-center battlefield-arena" style={{ background: theme.sky }}>
-        {/* Atmospheric particles */}
-        <div className="battlefield-particles" />
-
-        {/* Background decorations */}
-        <div className="battlefield-bg-decor" data-area={area?.id} />
-
-        {/* Ground line */}
-        <div className="battlefield-ground" style={{ background: `linear-gradient(180deg, ${theme.ground} 0%, ${theme.groundAccent} 100%)` }} />
+      <div className="pixel-panel p-2 relative flex-1 overflow-hidden flex flex-col justify-center battlefield-plane" style={{ background: theme.sky }}>
+        {/* Flat ground plane */}
+        <div className="battlefield-ground" style={{ background: theme.ground }} />
 
         <FloatText texts={floatTexts} />
 
-        {/* Enemies row */}
-        <div className="flex justify-center gap-2 mb-3 flex-wrap relative z-10 battle-enemies-row">
+        {/* Enemies front row (top) */}
+        <div className="flex justify-center gap-4 mb-10 flex-wrap relative z-10 battle-enemies-row">
           {enemies.map((enemy) => (
             <CharacterCard
               key={enemy.id}
@@ -70,15 +64,8 @@ export function BattleScreen({ state, anim, onAction }) {
           ))}
         </div>
 
-        {/* VS divider */}
-        <div className="flex items-center justify-center my-1 relative z-10">
-          <div className="h-px flex-1 bg-retro-border" />
-          <span className="font-pixel text-[8px] text-retro-accent px-2 animate-pulse">VS</span>
-          <div className="h-px flex-1 bg-retro-border" />
-        </div>
-
-        {/* Party row */}
-        <div className="flex justify-center gap-1.5 flex-wrap relative z-10 battle-party-row">
+        {/* Party front row (bottom) */}
+        <div className="flex justify-center gap-3 flex-wrap relative z-10 battle-party-row">
           {party.map((hero) => (
             <CharacterCard
               key={hero.id}

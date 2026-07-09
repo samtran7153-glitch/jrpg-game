@@ -155,7 +155,7 @@ export const AREAS = [
       { id: 'treasury', name: 'Royal Treasury', x: 75, y: 35, gold: 300, item: 'phoenixDown', hint: 'Gold coins spill from an unlocked vault...' },
     ],
     secretBattles: [
-      { id: 'royal_guard', name: 'Royal Guard Captain', x: 50, y: 65, enemies: ['darkKnight', 'darkKnight'], gold: 250, xp: 120, hint: 'A imposing guard blocks the secret passage...' },
+      { id: 'royal_guard', name: 'Royal Guard Captain', x: 50, y: 65, enemies: ['darkKnight', 'darkKnight'], gold: 250, xp: 120, hint: 'An imposing guard blocks the secret passage...' },
     ]
   },
   {

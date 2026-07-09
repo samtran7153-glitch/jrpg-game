@@ -816,6 +816,8 @@ function StoryStage({ state, speaker, dialogueIndex, dialogueLines }) {
     'Goblin King': 'goblinKing',
     'Dark Knight': 'darkKnight',
     Dragon: 'dragon',
+    Shadow: 'skeleton',
+    'Shadow Lord': 'darkKnight',
   }
   const enemyNames = Object.keys(enemySpeakerMap)
 
@@ -871,8 +873,8 @@ function StoryStage({ state, speaker, dialogueIndex, dialogueLines }) {
             )
           }
           return (
-            <div key={enemy.id} className={isDefeated || enemy.isBoss ? '' : 'animate-story-jumpout'}>
-              <div className={`story-actor ${!isDefeated && speakerSprite === enemy.sprite ? 'story-speaker' : ''}`}>
+            <div key={enemy.id} className={isDefeated ? '' : enemy.isBoss ? 'animate-story-boss-enter' : 'animate-story-jumpout'}>
+              <div className={`story-actor ${speakerSprite === enemy.sprite && !isDefeated ? 'story-speaker' : ''}`}>
                 <div className={`story-enemy ${isDefeated ? 'story-defeated' : ''}`}>
                   {enemy.isBoss && <div className="absolute -top-2 left-1/2 -translate-x-1/2 font-pixel text-[7px] text-retro-accent bg-retro-bg px-1 whitespace-nowrap">BOSS</div>}
                   <Sprite type={enemy.sprite} size={speakerSprite === enemy.sprite ? 48 : 36} defeated={isDefeated} />
