@@ -19,6 +19,53 @@ const AREA_THEMES = {
   shadow: { ground: '#1a1a2e', groundAccent: '#2a2a3e', sky: 'linear-gradient(180deg, #0a0a14 0%, #0f0f1b 50%, #1a1a2e 100%)', accent: '#9d4edd' },
 }
 
+const AREA_DECORATIONS = {
+  forest: [
+    { type: 'tree', x: 12, y: 20, size: 18 },
+    { type: 'tree', x: 82, y: 25, size: 16 },
+    { type: 'tree', x: 70, y: 70, size: 20 },
+    { type: 'bush', x: 28, y: 75, size: 12 },
+    { type: 'bush', x: 88, y: 55, size: 10 },
+    { type: 'rock', x: 45, y: 15, size: 10 },
+  ],
+  cave: [
+    { type: 'rock', x: 10, y: 22, size: 18 },
+    { type: 'rock', x: 85, y: 18, size: 22 },
+    { type: 'rock', x: 75, y: 75, size: 16 },
+    { type: 'crystal', x: 25, y: 70, size: 14 },
+    { type: 'crystal', x: 60, y: 25, size: 12 },
+    { type: 'stalagmite', x: 40, y: 80, size: 16 },
+  ],
+  castle: [
+    { type: 'pillar', x: 18, y: 20, size: 16 },
+    { type: 'pillar', x: 80, y: 20, size: 16 },
+    { type: 'torch', x: 12, y: 45, size: 12 },
+    { type: 'torch', x: 86, y: 45, size: 12 },
+    { type: 'shield', x: 30, y: 78, size: 14 },
+    { type: 'shield', x: 68, y: 76, size: 14 },
+  ],
+  shadow: [
+    { type: 'void', x: 20, y: 20, size: 22 },
+    { type: 'void', x: 70, y: 25, size: 18 },
+    { type: 'void', x: 45, y: 75, size: 24 },
+    { type: 'crack', x: 15, y: 60, size: 18 },
+    { type: 'crack', x: 80, y: 70, size: 16 },
+  ],
+}
+
+const DECOR_ICONS = {
+  tree: '🌲',
+  bush: '🌿',
+  rock: '🪨',
+  crystal: '💎',
+  stalagmite: '🔺',
+  pillar: '🏛️',
+  torch: '🔥',
+  shield: '🛡️',
+  void: '🌑',
+  crack: '⚡',
+}
+
 export function BattleScreen({ state, anim, onAction }) {
   const { party, enemies, turnOrder, currentTurnIndex, phase, log, floatTexts, screenShake } = state
   const area = AREAS[state.currentAreaIndex]
@@ -47,7 +94,15 @@ export function BattleScreen({ state, anim, onAction }) {
         <div className="battlefield-ground" style={{ background: theme.ground }} />
 
         {/* Top-down area decorations */}
-        <div className={`battlefield-decor battlefield-decor-${area?.id || 'forest'}`} />
+        {(AREA_DECORATIONS[area?.id] || []).map((decor, i) => (
+          <div
+            key={i}
+            className="absolute pointer-events-none z-0 opacity-60"
+            style={{ left: `${decor.x}%`, top: `${decor.y}%`, fontSize: `${decor.size}px`, transform: 'translate(-50%, -50%)' }}
+          >
+            {DECOR_ICONS[decor.type]}
+          </div>
+        ))}
 
         <FloatText texts={floatTexts} />
 
