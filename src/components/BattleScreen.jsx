@@ -46,6 +46,9 @@ export function BattleScreen({ state, anim, onAction }) {
         {/* Flat ground plane */}
         <div className="battlefield-ground" style={{ background: theme.ground }} />
 
+        {/* Top-down area decorations */}
+        <div className={`battlefield-decor battlefield-decor-${area?.id || 'forest'}`} />
+
         <FloatText texts={floatTexts} />
 
         {/* Enemies front row (top) */}

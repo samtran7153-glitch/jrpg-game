@@ -346,6 +346,50 @@ body {
   background: rgba(255, 255, 255, 0.04);
 }
 
+.battlefield-decor {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.55;
+}
+
+/* Forest: scattered top-down bushes/trees */
+.battlefield-decor-forest {
+  background-image:
+    radial-gradient(circle, #1a3a12 3px, transparent 4px),
+    radial-gradient(circle, #2d5a1e 2px, transparent 3px),
+    radial-gradient(circle, #1a3a12 4px, transparent 5px);
+  background-size: 42px 42px, 28px 28px, 56px 56px;
+  background-position: 12px 18px, 80px 60px, 140px 20px;
+}
+
+/* Cave: rocky clusters */
+.battlefield-decor-cave {
+  background-image:
+    radial-gradient(circle, #3a3a4a 3px, transparent 4px),
+    radial-gradient(circle, #2a2a3a 4px, transparent 5px);
+  background-size: 38px 38px, 52px 52px;
+  background-position: 18px 22px, 90px 50px;
+}
+
+/* Castle: pillar/tile marks */
+.battlefield-decor-castle {
+  background-image:
+    linear-gradient(90deg, rgba(245, 197, 24, 0.15) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(245, 197, 24, 0.1) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Shadow: void cracks */
+.battlefield-decor-shadow {
+  background-image:
+    linear-gradient(45deg, transparent 48%, rgba(157, 78, 221, 0.2) 49%, rgba(157, 78, 221, 0.2) 51%, transparent 52%),
+    linear-gradient(-45deg, transparent 48%, rgba(233, 69, 96, 0.15) 49%, rgba(233, 69, 96, 0.15) 51%, transparent 52%);
+  background-size: 64px 64px, 48px 48px;
+  animation: shadow-aura 3s steps(6, end) infinite;
+}
+
 /* Idle bounce for enemy and party rows */
 .battle-enemies-row > *,
 .battle-party-row > * {
