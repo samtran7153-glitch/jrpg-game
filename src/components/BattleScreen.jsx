@@ -53,17 +53,78 @@ const AREA_DECORATIONS = {
   ],
 }
 
-const DECOR_ICONS = {
-  tree: '🌲',
-  bush: '🌿',
-  rock: '🪨',
-  crystal: '💎',
-  stalagmite: '🔺',
-  pillar: '🏛️',
-  torch: '🔥',
-  shield: '🛡️',
-  void: '🌑',
-  crack: '⚡',
+function DecorIcon({ type, size }) {
+  const common = { width: size, height: size, viewBox: '0 0 24 24', fill: 'currentColor' }
+  switch (type) {
+    case 'tree':
+      return (
+        <svg {...common} className="text-retro-green">
+          <path d="M12 2L6 10h4l-3 5h4l-3 5h6l-3-5h4l-3-5h4L12 2z" />
+        </svg>
+      )
+    case 'bush':
+      return (
+        <svg {...common} className="text-retro-green">
+          <circle cx="8" cy="16" r="5" />
+          <circle cx="14" cy="14" r="6" />
+          <circle cx="18" cy="17" r="4" />
+        </svg>
+      )
+    case 'rock':
+      return (
+        <svg {...common} className="text-retro-dim">
+          <path d="M4 18l3-9 6-2 5 3 2 8H4z" />
+        </svg>
+      )
+    case 'crystal':
+      return (
+        <svg {...common} className="text-retro-blue">
+          <path d="M12 2l8 10-8 10-8-10L12 2z" opacity="0.85" />
+        </svg>
+      )
+    case 'stalagmite':
+      return (
+        <svg {...common} className="text-retro-dim">
+          <path d="M12 22L7 8l5-6 5 6-5 14z" />
+        </svg>
+      )
+    case 'pillar':
+      return (
+        <svg {...common} className="text-retro-dim">
+          <rect x="7" y="2" width="10" height="20" rx="1" />
+          <rect x="5" y="2" width="14" height="3" />
+          <rect x="5" y="19" width="14" height="3" />
+        </svg>
+      )
+    case 'torch':
+      return (
+        <svg {...common} className="text-retro-gold">
+          <path d="M10 22h4v-8h-4v8z" />
+          <path d="M12 2c-2 3-4 6-3 9 0 0 1-2 3-2s3 2 3 2c1-3-1-6-3-9z" />
+        </svg>
+      )
+    case 'shield':
+      return (
+        <svg {...common} className="text-retro-accent">
+          <path d="M12 2C8 2 4 4 4 4v7c0 6 8 11 8 11s8-5 8-11V4s-4-2-8-2z" />
+        </svg>
+      )
+    case 'void':
+      return (
+        <svg {...common} className="text-retro-purple">
+          <circle cx="12" cy="12" r="10" />
+          <circle cx="12" cy="12" r="5" fill="#0f0f1b" />
+        </svg>
+      )
+    case 'crack':
+      return (
+        <svg {...common} className="text-retro-accent">
+          <path d="M12 2l-2 6 4 3-3 5 5 4-4 2" fill="none" stroke="currentColor" strokeWidth="2" />
+        </svg>
+      )
+    default:
+      return null
+  }
 }
 
 export function BattleScreen({ state, anim, onAction }) {
@@ -97,10 +158,10 @@ export function BattleScreen({ state, anim, onAction }) {
         {(AREA_DECORATIONS[area?.id] || []).map((decor, i) => (
           <div
             key={i}
-            className="absolute pointer-events-none z-0 opacity-60"
-            style={{ left: `${decor.x}%`, top: `${decor.y}%`, fontSize: `${decor.size}px`, transform: 'translate(-50%, -50%)' }}
+            className="absolute pointer-events-none z-0 opacity-70"
+            style={{ left: `${decor.x}%`, top: `${decor.y}%`, transform: 'translate(-50%, -50%)' }}
           >
-            {DECOR_ICONS[decor.type]}
+            <DecorIcon type={decor.type} size={decor.size} />
           </div>
         ))}
 
