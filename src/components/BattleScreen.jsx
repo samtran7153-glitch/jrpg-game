@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Sprite } from '../Sprites'
-import { CharacterCard, FloatText } from './Shared'
+import { CharacterCard, FloatText, HeroStatsModal } from './Shared'
 import { SKILLS, ITEMS, AREAS } from '../gameState'
 
 const TUTORIAL_TIPS = [
@@ -174,6 +174,7 @@ export function BattleScreen({ state, anim, onAction }) {
   const isFirstBattle = state.currentAreaIndex === 0 && state.currentBattleIndex === 0
   const [tutorialStep, setTutorialStep] = useState(0)
   const [tutorialDismissed, setTutorialDismissed] = useState(false)
+  const [statsHero, setStatsHero] = useState(null)
   const showTutorial = isFirstBattle && !tutorialDismissed && phase === 'player_menu'
 
   return (
@@ -226,12 +227,17 @@ export function BattleScreen({ state, anim, onAction }) {
               isActive={activeActor?.id === hero.id}
               isTargetable={needsAllyTarget && hero.alive && hero.hp > 0}
               onTarget={(h) => onAction('target_ally', h)}
+              onStatsClick={() => setStatsHero(hero)}
               size={34}
               compact
             />
           ))}
         </div>
       </div>
+
+      {statsHero && (
+        <HeroStatsModal hero={statsHero} onClose={() => setStatsHero(null)} />
+      )}
 
       {/* Battle log */}
       <div className="pixel-panel p-1.5 h-14 overflow-hidden">
