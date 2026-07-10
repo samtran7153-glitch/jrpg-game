@@ -323,7 +323,13 @@ function ExplorationPanel({ area, party, onTreasureFound, onBattleStart }) {
   )
 }
 
-export function SettingsScreen({ onReset, onBack, onSave, onLoad, saveStatus }) {
+function formatSavedAt(ts) {
+  if (!ts) return 'Never'
+  const date = new Date(ts)
+  return date.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })
+}
+
+export function SettingsScreen({ onReset, onBack, onSave, onLoad, saveStatus, lastSavedAt }) {
   const [confirming, setConfirming] = useState(false)
   const [updateStatus, setUpdateStatus] = useState(null)
   const [checking, setChecking] = useState(false)
@@ -394,6 +400,10 @@ export function SettingsScreen({ onReset, onBack, onSave, onLoad, saveStatus }) 
             <div className="font-pixel text-[8px] text-retro-text mb-2">Cloud Save</div>
             <div className="font-pixel text-[6px] text-retro-dim mb-3">
               Progress is automatically saved while you play. You can also save or load manually.
+            </div>
+
+            <div className="font-pixel text-[7px] text-retro-dim text-center mb-2">
+              Last saved: {formatSavedAt(lastSavedAt)}
             </div>
 
             {saveStatus === 'saving' && (

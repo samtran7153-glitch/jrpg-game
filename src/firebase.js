@@ -37,14 +37,16 @@ export async function saveGame(uid, gameState) {
   try {
     const saveRef = doc(db, 'saves', uid)
     const serializable = JSON.parse(JSON.stringify(gameState))
+    const savedAt = Date.now()
     await setDoc(saveRef, {
       state: serializable,
+      savedAt,
       updatedAt: serverTimestamp(),
     })
-    return true
+    return { success: true, savedAt }
   } catch (err) {
     console.error('Failed to save game:', err)
-    return false
+    return { success: false, savedAt: null }
   }
 }
 
@@ -53,7 +55,8 @@ export async function loadGame(uid) {
     const saveRef = doc(db, 'saves', uid)
     const snap = await getDoc(saveRef)
     if (snap.exists()) {
-      return snap.data().state
+      const data = snap.data()
+      return { state: data.state, savedAt: data.savedAt || null }
     }
     return null
   } catch (err) {
@@ -77,18 +80,21 @@ const LOCAL_KEY = 'pixelQuestSave'
 
 export function saveLocalGame(gameState) {
   try {
-    localStorage.setItem(LOCAL_KEY, JSON.stringify(gameState))
-    return true
+    const savedAt = Date.now()
+    localStorage.setItem(LOCAL_KEY, JSON.stringify({ state: gameState, savedAt }))
+    return { success: true, savedAt }
   } catch (err) {
     console.error('Failed to save local game:', err)
-    return false
+    return { success: false, savedAt: null }
   }
 }
 
 export function loadLocalGame() {
   try {
     const raw = localStorage.getItem(LOCAL_KEY)
-    return raw ? JSON.parse(raw) : null
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    return { state: parsed.state, savedAt: parsed.savedAt || null }
   } catch (err) {
     console.error('Failed to load local game:', err)
     return null

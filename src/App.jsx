@@ -32,12 +32,14 @@ export default function App() {
   const saveTimeoutRef = useRef(null)
   const [saveStatus, setSaveStatus] = useState('idle')
   const [hasCloudSave, setHasCloudSave] = useState(false)
+  const [lastSavedAt, setLastSavedAt] = useState(null)
 
   useEffect(() => {
     let mounted = true
     const local = loadLocalGame()
     if (local) {
       setHasCloudSave(true)
+      setLastSavedAt(local.savedAt)
     }
     ensureAnonymousUser().then(async (user) => {
       if (!mounted) return
@@ -46,6 +48,7 @@ export default function App() {
         const cloud = await loadGame(user.uid)
         if (cloud) {
           setHasCloudSave(true)
+          setLastSavedAt(cloud.savedAt)
         }
       }
     })
@@ -78,10 +81,11 @@ export default function App() {
 
   const handleSaveGame = async () => {
     setSaveStatus('saving')
-    saveLocalGame(state)
-    let ok = false
+    const local = saveLocalGame(state)
+    if (local.success) setLastSavedAt(local.savedAt)
     if (uidRef.current) {
-      ok = await saveGame(uidRef.current, state)
+      const cloud = await saveGame(uidRef.current, state)
+      if (cloud.success) setLastSavedAt(cloud.savedAt)
     }
     setSaveStatus('saved')
     setTimeout(() => setSaveStatus('idle'), 2000)
@@ -89,24 +93,34 @@ export default function App() {
 
   const handleLoadGame = async () => {
     setSaveStatus('loading')
-    const saved = uidRef.current ? await loadGame(uidRef.current) : null
-    if (saved) {
+    let user = uidRef.current ? { uid: uidRef.current } : null
+    if (!user) {
+      user = await ensureAnonymousUser()
+    }
+    if (user) {
+      uidRef.current = user.uid
+      const saved = await loadGame(user.uid)
+      if (saved) {
+        const base = createInitialState()
+        setState({ ...base, ...saved.state, phase: PHASES.AREA_MAP })
+        setHasCloudSave(true)
+        setLastSavedAt(saved.savedAt)
+        saveLocalGame(saved.state)
+        setSaveStatus('loaded')
+        setTimeout(() => setSaveStatus('idle'), 2000)
+        return
+      }
+    }
+    const local = loadLocalGame()
+    if (local) {
       const base = createInitialState()
-      setState({ ...base, ...saved, phase: PHASES.AREA_MAP })
+      setState({ ...base, ...local.state, phase: PHASES.AREA_MAP })
       setHasCloudSave(true)
-      saveLocalGame(saved)
+      setLastSavedAt(local.savedAt)
       setSaveStatus('loaded')
     } else {
-      const local = loadLocalGame()
-      if (local) {
-        const base = createInitialState()
-        setState({ ...base, ...local, phase: PHASES.AREA_MAP })
-        setHasCloudSave(true)
-        setSaveStatus('loaded')
-      } else {
-        setSaveStatus('none')
-        setHasCloudSave(false)
-      }
+      setSaveStatus('none')
+      setHasCloudSave(false)
     }
     setTimeout(() => setSaveStatus('idle'), 2000)
   }
@@ -115,9 +129,12 @@ export default function App() {
     if (state.phase === PHASES.TITLE) return
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
     saveTimeoutRef.current = setTimeout(() => {
-      saveLocalGame(state)
+      const local = saveLocalGame(state)
+      if (local.success) setLastSavedAt(local.savedAt)
       if (uidRef.current) {
-        saveGame(uidRef.current, state).catch(() => {})
+        saveGame(uidRef.current, state).then((cloud) => {
+          if (cloud.success) setLastSavedAt(cloud.savedAt)
+        }).catch(() => {})
       }
     }, 3000)
     return () => {
@@ -1109,6 +1126,7 @@ export default function App() {
             onSave={handleSaveGame}
             onLoad={handleLoadGame}
             saveStatus={saveStatus}
+            lastSavedAt={lastSavedAt}
           />
         )
       case PHASES.GAME_COMPLETE:
