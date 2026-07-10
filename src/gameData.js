@@ -250,10 +250,12 @@ export function levelUp(hero) {
   const mpGain = Math.floor(hero.maxMp * 0.15) + 3
   const atkGain = Math.max(3, Math.floor(hero.attack * 0.15))
   const defGain = Math.max(2, Math.floor(hero.defense * 0.15))
+  const isAlive = hero.alive && hero.hp > 0
   return {
     ...hero, level: newLevel,
     maxHp: hero.maxHp + hpGain, maxMp: hero.maxMp + mpGain,
-    hp: hero.maxHp + hpGain, mp: hero.maxMp + mpGain,
+    hp: isAlive ? hero.maxHp + hpGain : hero.hp,
+    mp: isAlive ? hero.maxMp + mpGain : hero.mp,
     attack: hero.attack + atkGain, defense: hero.defense + defGain,
   }
 }

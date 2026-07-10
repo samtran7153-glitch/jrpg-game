@@ -43,7 +43,7 @@ export function CharacterCard({ actor, isEnemy, isActive, isTargetable, isSelect
           x{selectedCount}
         </div>
       )}
-      <Sprite type={actor.sprite} size={size} defeated={actor.hp <= 0} />
+      <Sprite type={actor.sprite} size={size} defeated={!actor.alive || actor.hp <= 0} />
       <div className="mt-1 text-center">
         <div className="font-pixel text-[7px] text-retro-text leading-tight">{actor.name}</div>
         <div className="font-pixel text-[6px] text-retro-dim">Lv.{actor.level}</div>
@@ -112,7 +112,7 @@ export function HeroStatsModal({ hero, onClose }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={onClose}>
       <div className="pixel-panel p-3 w-64 max-w-[90vw]" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-2 mb-3">
-          <Sprite type={hero.sprite} size={40} defeated={hero.hp <= 0} />
+          <Sprite type={hero.sprite} size={40} defeated={!hero.alive || hero.hp <= 0} />
           <div>
             <div className="font-pixel text-[10px] text-retro-gold">{hero.name}</div>
             <div className="font-pixel text-[8px] text-retro-dim">{hero.title} · Lv.{hero.level}</div>
