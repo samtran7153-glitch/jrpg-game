@@ -263,6 +263,11 @@ export default function App() {
       const nextBattleIndex = isReplay ? s.currentBattleIndex : completedBattleIndex + 1
       const afterDialogue = isReplay ? null : s.dialogueAfter
 
+      const selectedPathKey = s.selectedPaths[s.currentAreaIndex]
+      const selectedPath = selectedPathKey ? area.paths[selectedPathKey] : null
+      const pathBattles = selectedPath ? selectedPath.battles : area.battles.map((_, i) => i)
+      const isLastPathBattle = pathBattles.indexOf(completedBattleIndex) === pathBattles.length - 1
+
       const healedParty = s.party.map((h) => ({
         ...h,
         defending: false,
@@ -296,7 +301,7 @@ export default function App() {
         }
       }
 
-      if (nextBattleIndex >= area.battles.length) {
+      if (isLastPathBattle) {
         const nextAreaIndex = s.currentAreaIndex + 1
         if (nextAreaIndex >= AREAS.length) {
           return { ...s, phase: PHASES.GAME_COMPLETE, dialogueAfter: null, activeBattleIndex: null }

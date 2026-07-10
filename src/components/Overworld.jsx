@@ -497,9 +497,10 @@ export function TitleScreen({ onStart, onContinue, hasCloudSave }) {
 export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, onShop, onWorldMap, onExplore, onTreasureFound, onBattleStart, onSettings }) {
   const area = AREAS[state.currentAreaIndex]
   if (!area) return null
-  const areaComplete = state.currentBattleIndex >= area.battles.length
   const selectedPath = state.selectedPaths[state.currentAreaIndex]
   const pathBattles = selectedPath ? area.paths[selectedPath].battles : area.battles.map((_, i) => i)
+  const lastPathBattle = pathBattles[pathBattles.length - 1]
+  const areaComplete = state.currentBattleIndex > lastPathBattle
 
   const [showItems, setShowItems] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
