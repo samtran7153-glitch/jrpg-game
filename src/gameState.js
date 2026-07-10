@@ -13,6 +13,7 @@ export const PHASES = {
   PLAYER_SKILLS: 'player_skills',
   PLAYER_ITEMS: 'player_items',
   PLAYER_TARGET: 'player_target',
+  PLAYER_MULTI_TARGET: 'player_multi_target',
   PLAYER_ALLY_TARGET: 'player_ally_target',
   ENEMY_TURN: 'enemy_turn',
   BATTLE_VICTORY: 'battle_victory',

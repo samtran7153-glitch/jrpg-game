@@ -16,7 +16,7 @@ export function Bar({ label, value, max, color }) {
   )
 }
 
-export function CharacterCard({ actor, isEnemy, isActive, isTargetable, onTarget, onStatsClick, size = 48, compact = false }) {
+export function CharacterCard({ actor, isEnemy, isActive, isTargetable, isSelected, onTarget, onStatsClick, size = 48, compact = false }) {
   const hpPercent = (actor.hp / actor.maxHp) * 100
   const hpColor = hpPercent > 50 ? 'bg-retro-green' : hpPercent > 25 ? 'bg-retro-gold' : 'bg-retro-accent'
   const mpColor = 'bg-retro-blue'
@@ -26,7 +26,8 @@ export function CharacterCard({ actor, isEnemy, isActive, isTargetable, onTarget
       className={`pixel-panel ${compact ? 'p-1 w-16' : 'p-1.5'} flex flex-col items-center relative transition-all duration-200 ${
         isActive ? 'ring-2 ring-retro-gold scale-105' : ''
       } ${isTargetable ? 'ring-2 ring-retro-accent cursor-pointer animate-pulse' : ''} ${
-        onStatsClick && !isTargetable ? 'cursor-pointer hover:border-retro-gold' : ''
+        isSelected ? 'ring-2 ring-retro-green scale-105' : ''
+      } ${onStatsClick && !isTargetable ? 'cursor-pointer hover:border-retro-gold' : ''
       } ${
         !actor.alive || actor.hp <= 0 ? 'animate-defeat' : ''
       }`}

@@ -11,7 +11,7 @@ export const SKILLS = {
   // Archer skills
   preciseShot: { name: 'Precise Shot', mpCost: 3, damage: 18, type: 'physical', element: 'physical', target: 'enemy', critBonus: 0.3, description: 'High crit chance arrow' },
   poisonArrow: { name: 'Poison Arrow', mpCost: 5, damage: 12, type: 'physical', element: 'physical', target: 'enemy', effect: 'poison', effectChance: 0.7, duration: 3, description: 'Damage + poison for 3 turns' },
-  rapidFire: { name: 'Rapid Fire', mpCost: 8, damage: 10, type: 'physical', element: 'physical', target: 'enemy', hits: 3, description: 'Fire 3 arrows' },
+  rapidFire: { name: 'Rapid Fire', mpCost: 8, damage: 14, type: 'physical', element: 'physical', target: 'multi_enemy', hits: 3, description: 'Fire 3 arrows at chosen targets' },
   // Healer skills
   heal: { name: 'Heal', mpCost: 6, heal: 35, type: 'support', target: 'ally', description: 'Restore HP' },
   greaterHeal: { name: 'Greater Heal', mpCost: 12, heal: 70, type: 'support', target: 'ally', description: 'Restore a lot of HP' },

@@ -21,64 +21,35 @@ const AREA_THEMES = {
 
 const AREA_DECORATIONS = {
   forest: [
-    { type: 'tree', x: 8, y: 18, size: 92 },
-    { type: 'tree', x: 22, y: 10, size: 82 },
-    { type: 'tree', x: 85, y: 22, size: 90 },
-    { type: 'tree', x: 72, y: 12, size: 78 },
-    { type: 'tree', x: 65, y: 72, size: 92 },
-    { type: 'tree', x: 90, y: 68, size: 82 },
-    { type: 'tree', x: 5, y: 55, size: 72 },
-    { type: 'bush', x: 35, y: 78, size: 58 },
-    { type: 'bush', x: 55, y: 82, size: 52 },
-    { type: 'bush', x: 92, y: 48, size: 58 },
-    { type: 'bush', x: 18, y: 42, size: 46 },
-    { type: 'bush', x: 48, y: 8, size: 52 },
-    { type: 'rock', x: 42, y: 15, size: 52 },
-    { type: 'rock', x: 78, y: 42, size: 48 },
+    { type: 'tree', x: 12, y: 20, size: 18 },
+    { type: 'tree', x: 82, y: 25, size: 16 },
+    { type: 'tree', x: 70, y: 70, size: 20 },
+    { type: 'bush', x: 28, y: 75, size: 12 },
+    { type: 'bush', x: 88, y: 55, size: 10 },
+    { type: 'rock', x: 45, y: 15, size: 10 },
   ],
   cave: [
-    { type: 'rock', x: 8, y: 20, size: 94 },
-    { type: 'rock', x: 25, y: 10, size: 84 },
-    { type: 'rock', x: 88, y: 18, size: 96 },
-    { type: 'rock', x: 74, y: 8, size: 80 },
-    { type: 'rock', x: 78, y: 78, size: 92 },
-    { type: 'rock', x: 92, y: 62, size: 74 },
-    { type: 'rock', x: 5, y: 58, size: 72 },
-    { type: 'crystal', x: 30, y: 74, size: 68 },
-    { type: 'crystal', x: 58, y: 22, size: 66 },
-    { type: 'crystal', x: 18, y: 36, size: 60 },
-    { type: 'crystal', x: 70, y: 48, size: 52 },
-    { type: 'stalagmite', x: 42, y: 82, size: 82 },
-    { type: 'stalagmite', x: 12, y: 78, size: 74 },
-    { type: 'stalagmite', x: 62, y: 65, size: 66 },
+    { type: 'rock', x: 10, y: 22, size: 18 },
+    { type: 'rock', x: 85, y: 18, size: 22 },
+    { type: 'rock', x: 75, y: 75, size: 16 },
+    { type: 'crystal', x: 25, y: 70, size: 14 },
+    { type: 'crystal', x: 60, y: 25, size: 12 },
+    { type: 'stalagmite', x: 40, y: 80, size: 16 },
   ],
   castle: [
-    { type: 'pillar', x: 12, y: 18, size: 92 },
-    { type: 'pillar', x: 28, y: 12, size: 80 },
-    { type: 'pillar', x: 72, y: 12, size: 80 },
-    { type: 'pillar', x: 86, y: 18, size: 92 },
-    { type: 'torch', x: 8, y: 42, size: 66 },
-    { type: 'torch', x: 22, y: 52, size: 62 },
-    { type: 'torch', x: 78, y: 52, size: 62 },
-    { type: 'torch', x: 92, y: 42, size: 66 },
-    { type: 'shield', x: 35, y: 80, size: 68 },
-    { type: 'shield', x: 50, y: 85, size: 66 },
-    { type: 'shield', x: 65, y: 78, size: 68 },
-    { type: 'shield', x: 18, y: 68, size: 58 },
-    { type: 'shield', x: 82, y: 68, size: 58 },
+    { type: 'pillar', x: 18, y: 20, size: 16 },
+    { type: 'pillar', x: 80, y: 20, size: 16 },
+    { type: 'torch', x: 12, y: 45, size: 12 },
+    { type: 'torch', x: 86, y: 45, size: 12 },
+    { type: 'shield', x: 30, y: 78, size: 14 },
+    { type: 'shield', x: 68, y: 76, size: 14 },
   ],
   shadow: [
-    { type: 'void', x: 15, y: 18, size: 106 },
-    { type: 'void', x: 42, y: 10, size: 86 },
-    { type: 'void', x: 75, y: 22, size: 98 },
-    { type: 'void', x: 88, y: 48, size: 84 },
-    { type: 'void', x: 45, y: 78, size: 108 },
-    { type: 'void', x: 10, y: 68, size: 74 },
-    { type: 'crack', x: 12, y: 58, size: 82 },
-    { type: 'crack', x: 32, y: 42, size: 74 },
-    { type: 'crack', x: 58, y: 55, size: 78 },
-    { type: 'crack', x: 82, y: 72, size: 82 },
-    { type: 'crack', x: 65, y: 35, size: 66 },
+    { type: 'void', x: 20, y: 20, size: 22 },
+    { type: 'void', x: 70, y: 25, size: 18 },
+    { type: 'void', x: 45, y: 75, size: 24 },
+    { type: 'crack', x: 15, y: 60, size: 18 },
+    { type: 'crack', x: 80, y: 70, size: 16 },
   ],
 }
 
@@ -166,7 +137,9 @@ export function BattleScreen({ state, anim, onAction }) {
     : enemies.find((enemy) => enemy.id === queuedActor?.id)
   const isPlayerTurn = activeActor && activeActor.isPlayer && activeActor.alive && activeActor.hp > 0
   const needsTarget = phase === 'player_target'
+  const needsMultiTarget = phase === 'player_multi_target'
   const needsAllyTarget = phase === 'player_ally_target'
+  const selectedTargetIds = state.pendingAction?.selectedTargets?.map((t) => t.id) || []
 
   const isFirstBattle = state.currentAreaIndex === 0 && state.currentBattleIndex === 0
   const [tutorialStep, setTutorialStep] = useState(0)
@@ -204,8 +177,9 @@ export function BattleScreen({ state, anim, onAction }) {
               actor={enemy}
               isEnemy
               isActive={activeActor?.id === enemy.id}
-              isTargetable={needsTarget && enemy.alive && enemy.hp > 0}
-              onTarget={(e) => onAction('target_enemy', e)}
+              isTargetable={(needsTarget || needsMultiTarget) && enemy.alive && enemy.hp > 0}
+              isSelected={needsMultiTarget && selectedTargetIds.includes(enemy.id)}
+              onTarget={(e) => onAction(needsMultiTarget ? 'select_multi_target' : 'target_enemy', e)}
               size={36}
               compact
             />
@@ -354,6 +328,13 @@ function BattleMenu({ state, activeActor, isPlayerTurn, onAction, tutorialHighli
 
   if (phase === 'player_items') {
     const itemIds = Object.keys(state.inventory).filter((id) => state.inventory[id] > 0)
+    const isItemUsable = (item) => {
+      if (item.revive) return state.party.some((h) => !h.alive || h.hp <= 0)
+      if (item.heal) return state.party.some((h) => h.alive && h.hp > 0 && h.hp < h.maxHp)
+      if (item.mpRestore) return state.party.some((h) => h.alive && h.hp > 0 && h.mp < h.maxMp)
+      if (item.cure) return state.party.some((h) => h.alive && h.hp > 0 && (h.statusEffects || []).some((e) => e.type === item.cure))
+      return true
+    }
     return (
       <div className="pixel-panel p-1.5 space-y-1">
         <div className="font-pixel text-[8px] text-retro-gold px-1 pb-0.5">ITEMS</div>
@@ -362,17 +343,19 @@ function BattleMenu({ state, activeActor, isPlayerTurn, onAction, tutorialHighli
         )}
         {itemIds.map((itemId) => {
           const item = ITEMS[itemId]
+          const usable = isItemUsable(item)
           return (
             <button
               key={itemId}
               className="pixel-btn w-full text-left flex flex-col gap-0.5"
+              disabled={!usable}
               onClick={() => onAction('use_item', itemId)}
             >
               <div className="flex justify-between items-center w-full">
-                <span className="font-pixel text-[8px]">{item.name}</span>
+                <span className={`font-pixel text-[8px] ${usable ? '' : 'text-retro-dim'}`}>{item.name}</span>
                 <span className="font-pixel text-[8px] text-retro-dim">x{state.inventory[itemId]}</span>
               </div>
-              <span className="font-pixel text-[6px] text-retro-dim leading-tight">{item.description}</span>
+              <span className={`font-pixel text-[6px] leading-tight ${usable ? 'text-retro-dim' : 'text-retro-dim/50'}`}>{item.description}</span>
             </button>
           )
         })}
@@ -388,6 +371,22 @@ function BattleMenu({ state, activeActor, isPlayerTurn, onAction, tutorialHighli
       <div className="pixel-panel p-2 text-center">
         <div className="font-pixel text-[8px] text-retro-accent animate-pulse">
           Select target...
+        </div>
+        <button className="pixel-btn w-full text-retro-dim mt-1" onClick={() => onAction('back_to_menu')}>
+          Cancel
+        </button>
+      </div>
+    )
+  }
+
+  if (phase === 'player_multi_target') {
+    const selected = state.pendingAction?.selectedTargets || []
+    const skill = SKILLS[state.pendingAction?.skillId]
+    const hits = skill?.hits || 1
+    return (
+      <div className="pixel-panel p-2 text-center">
+        <div className="font-pixel text-[8px] text-retro-accent animate-pulse">
+          Select target {Math.min(selected.length + 1, hits)}/{hits}...
         </div>
         <button className="pixel-btn w-full text-retro-dim mt-1" onClick={() => onAction('back_to_menu')}>
           Cancel
