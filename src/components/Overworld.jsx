@@ -323,7 +323,7 @@ function ExplorationPanel({ area, party, onTreasureFound, onBattleStart }) {
   )
 }
 
-export function SettingsScreen({ onReset, onBack }) {
+export function SettingsScreen({ onReset, onBack, onSave, onLoad, saveStatus }) {
   const [confirming, setConfirming] = useState(false)
   const [updateStatus, setUpdateStatus] = useState(null)
   const [checking, setChecking] = useState(false)
@@ -391,6 +391,41 @@ export function SettingsScreen({ onReset, onBack }) {
           </div>
 
           <div className="pixel-panel p-3 w-full">
+            <div className="font-pixel text-[8px] text-retro-text mb-2">Cloud Save</div>
+            <div className="font-pixel text-[6px] text-retro-dim mb-3">
+              Progress is automatically saved while you play. You can also save or load manually.
+            </div>
+
+            {saveStatus === 'saving' && (
+              <div className="font-pixel text-[7px] text-retro-gold text-center mb-2">Saving...</div>
+            )}
+            {saveStatus === 'saved' && (
+              <div className="font-pixel text-[7px] text-retro-green text-center mb-2">Saved!</div>
+            )}
+            {saveStatus === 'loading' && (
+              <div className="font-pixel text-[7px] text-retro-gold text-center mb-2">Loading...</div>
+            )}
+            {saveStatus === 'loaded' && (
+              <div className="font-pixel text-[7px] text-retro-green text-center mb-2">Loaded!</div>
+            )}
+            {saveStatus === 'none' && (
+              <div className="font-pixel text-[7px] text-retro-accent text-center mb-2">No cloud save found.</div>
+            )}
+            {saveStatus === 'error' && (
+              <div className="font-pixel text-[7px] text-retro-accent text-center mb-2">Cloud save failed.</div>
+            )}
+
+            <div className="flex gap-2">
+              <button className="pixel-btn flex-1" onClick={onSave} disabled={saveStatus === 'saving' || saveStatus === 'loading'}>
+                Save Now
+              </button>
+              <button className="pixel-btn flex-1" onClick={onLoad} disabled={saveStatus === 'saving' || saveStatus === 'loading'}>
+                Load Save
+              </button>
+            </div>
+          </div>
+
+          <div className="pixel-panel p-3 w-full">
             <div className="font-pixel text-[8px] text-retro-text mb-2">Reset Progress</div>
             <div className="font-pixel text-[6px] text-retro-dim mb-3">
               This will erase all progress and start a new game.
@@ -425,7 +460,7 @@ export function SettingsScreen({ onReset, onBack }) {
   )
 }
 
-export function TitleScreen({ onStart }) {
+export function TitleScreen({ onStart, onContinue, hasCloudSave }) {
   return (
     <div className="flex justify-center items-center flex-1">
       <div className="pixel-panel w-full max-w-sm p-5 flex flex-col items-center gap-4">
@@ -444,9 +479,16 @@ export function TitleScreen({ onStart }) {
           <Sprite type="dragon" size={48} />
           <Sprite type="darkKnight" size={36} />
         </div>
-        <button className="pixel-btn w-48 mt-2" onClick={onStart}>
-          PRESS START
-        </button>
+        <div className="flex flex-col gap-2 w-48 mt-2">
+          {hasCloudSave && (
+            <button className="pixel-btn w-full text-retro-green" onClick={onContinue}>
+              Continue
+            </button>
+          )}
+          <button className="pixel-btn w-full" onClick={onStart}>
+            {hasCloudSave ? 'New Game' : 'PRESS START'}
+          </button>
+        </div>
       </div>
     </div>
   )
