@@ -94,7 +94,10 @@ export function loadLocalGame() {
     const raw = localStorage.getItem(LOCAL_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw)
-    return { state: parsed.state, savedAt: parsed.savedAt || null }
+    const hasWrapper = parsed && typeof parsed === 'object' && 'state' in parsed
+    const state = hasWrapper ? parsed.state : parsed
+    const savedAt = hasWrapper ? parsed.savedAt || null : null
+    return { state, savedAt }
   } catch (err) {
     console.error('Failed to load local game:', err)
     return null

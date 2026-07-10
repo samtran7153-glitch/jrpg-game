@@ -143,6 +143,23 @@ export default function App() {
     }
   }, [state])
 
+  useEffect(() => {
+    const flushSave = () => {
+      if (state.phase !== PHASES.TITLE) {
+        saveLocalGame(state)
+      }
+    }
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') flushSave()
+    }
+    window.addEventListener('beforeunload', flushSave)
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => {
+      window.removeEventListener('beforeunload', flushSave)
+      document.removeEventListener('visibilitychange', handleVisibility)
+    }
+  }, [state])
+
   const openWorldMap = () => {
     setState((s) => ({ ...s, phase: PHASES.WORLD_MAP }))
   }
