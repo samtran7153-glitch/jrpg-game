@@ -89,6 +89,7 @@ export default function App() {
     }
     setSaveStatus('saved')
     setTimeout(() => setSaveStatus('idle'), 2000)
+    return true
   }
 
   const handleLoadGame = async () => {

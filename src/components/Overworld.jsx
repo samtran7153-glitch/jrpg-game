@@ -391,7 +391,13 @@ export function SettingsScreen({ onReset, onBack, onSave, onLoad, saveStatus, la
               {checking ? 'Checking...' : 'Check for Updates'}
             </button>
 
-            <button className="pixel-btn w-full mt-2" onClick={() => window.location.reload()}>
+            <button
+              className="pixel-btn w-full mt-2"
+              onClick={async () => {
+                await onSave()
+                window.location.reload()
+              }}
+            >
               Refresh Game
             </button>
           </div>
