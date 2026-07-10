@@ -128,10 +128,12 @@ export default function App() {
 
   useEffect(() => {
     if (state.phase === PHASES.TITLE) return
+    // Save to localStorage immediately so progress isn't lost on refresh/close
+    const local = saveLocalGame(state)
+    if (local.success) setLastSavedAt(local.savedAt)
+    // Debounce cloud save to avoid excessive Firestore writes
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
     saveTimeoutRef.current = setTimeout(() => {
-      const local = saveLocalGame(state)
-      if (local.success) setLastSavedAt(local.savedAt)
       if (uidRef.current) {
         saveGame(uidRef.current, state).then((cloud) => {
           if (cloud.success) setLastSavedAt(cloud.savedAt)
