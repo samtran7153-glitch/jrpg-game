@@ -14,7 +14,10 @@ import { GoldDisplay } from './components/Shared'
 import { WorldMap } from './components/WorldMap'
 import { PathSelection } from './components/PathSelection'
 import { ExplorationMap } from './components/ExplorationMap'
-import { ensureAnonymousUser, saveGame, loadGame, deleteGame } from './firebase'
+import {
+  ensureAnonymousUser, saveGame, loadGame, deleteGame,
+  saveLocalGame, loadLocalGame, deleteLocalGame,
+} from './firebase'
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 let floatId = 0
@@ -32,12 +35,18 @@ export default function App() {
 
   useEffect(() => {
     let mounted = true
+    const local = loadLocalGame()
+    if (local) {
+      setHasCloudSave(true)
+    }
     ensureAnonymousUser().then(async (user) => {
-      if (!mounted || !user) return
-      uidRef.current = user.uid
-      const saved = await loadGame(user.uid)
-      if (saved) {
-        setHasCloudSave(true)
+      if (!mounted) return
+      if (user) {
+        uidRef.current = user.uid
+        const cloud = await loadGame(user.uid)
+        if (cloud) {
+          setHasCloudSave(true)
+        }
       }
     })
     return () => { mounted = false }
@@ -61,38 +70,55 @@ export default function App() {
 
   // ============ GAME FLOW ============
   const startGame = () => {
+    if (uidRef.current) deleteGame(uidRef.current)
+    deleteLocalGame()
+    setHasCloudSave(false)
     setState((s) => ({ ...s, phase: PHASES.AREA_MAP }))
   }
 
   const handleSaveGame = async () => {
-    if (!uidRef.current) return
     setSaveStatus('saving')
-    const ok = await saveGame(uidRef.current, state)
-    setSaveStatus(ok ? 'saved' : 'error')
+    saveLocalGame(state)
+    let ok = false
+    if (uidRef.current) {
+      ok = await saveGame(uidRef.current, state)
+    }
+    setSaveStatus('saved')
     setTimeout(() => setSaveStatus('idle'), 2000)
   }
 
   const handleLoadGame = async () => {
-    if (!uidRef.current) return
     setSaveStatus('loading')
-    const saved = await loadGame(uidRef.current)
+    const saved = uidRef.current ? await loadGame(uidRef.current) : null
     if (saved) {
       const base = createInitialState()
       setState({ ...base, ...saved, phase: PHASES.AREA_MAP })
       setHasCloudSave(true)
+      saveLocalGame(saved)
       setSaveStatus('loaded')
     } else {
-      setSaveStatus('none')
-      setHasCloudSave(false)
+      const local = loadLocalGame()
+      if (local) {
+        const base = createInitialState()
+        setState({ ...base, ...local, phase: PHASES.AREA_MAP })
+        setHasCloudSave(true)
+        setSaveStatus('loaded')
+      } else {
+        setSaveStatus('none')
+        setHasCloudSave(false)
+      }
     }
     setTimeout(() => setSaveStatus('idle'), 2000)
   }
 
   useEffect(() => {
-    if (!uidRef.current || state.phase === PHASES.TITLE) return
+    if (state.phase === PHASES.TITLE) return
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
     saveTimeoutRef.current = setTimeout(() => {
-      saveGame(uidRef.current, state).catch(() => {})
+      saveLocalGame(state)
+      if (uidRef.current) {
+        saveGame(uidRef.current, state).catch(() => {})
+      }
     }, 3000)
     return () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
@@ -347,6 +373,7 @@ export default function App() {
     if (uidRef.current) {
       await deleteGame(uidRef.current)
     }
+    deleteLocalGame()
     setHasCloudSave(false)
     setState(createInitialState())
   }

@@ -72,3 +72,35 @@ export async function deleteGame(uid) {
     return false
   }
 }
+
+const LOCAL_KEY = 'pixelQuestSave'
+
+export function saveLocalGame(gameState) {
+  try {
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(gameState))
+    return true
+  } catch (err) {
+    console.error('Failed to save local game:', err)
+    return false
+  }
+}
+
+export function loadLocalGame() {
+  try {
+    const raw = localStorage.getItem(LOCAL_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch (err) {
+    console.error('Failed to load local game:', err)
+    return null
+  }
+}
+
+export function deleteLocalGame() {
+  try {
+    localStorage.removeItem(LOCAL_KEY)
+    return true
+  } catch (err) {
+    console.error('Failed to delete local save:', err)
+    return false
+  }
+}
