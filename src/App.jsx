@@ -72,8 +72,15 @@ export default function App() {
     return { ...s, screenShake: 1 }
   }
 
+  const requestPersistentStorage = () => {
+    if (navigator.storage && navigator.storage.persist) {
+      navigator.storage.persist().catch(() => {})
+    }
+  }
+
   // ============ GAME FLOW ============
   const startGame = async () => {
+    requestPersistentStorage()
     if (uidRef.current) await deleteGame(uidRef.current)
     await deleteLocalGame()
     setHasCloudSave(false)
@@ -81,6 +88,7 @@ export default function App() {
   }
 
   const handleSaveGame = async () => {
+    requestPersistentStorage()
     setSaveStatus('saving')
     const local = await saveLocalGame(state)
     if (local.success) setLastSavedAt(local.savedAt)
@@ -94,6 +102,7 @@ export default function App() {
   }
 
   const handleLoadGame = async () => {
+    requestPersistentStorage()
     setSaveStatus('loading')
     let user = uidRef.current ? { uid: uidRef.current } : null
     if (!user) {

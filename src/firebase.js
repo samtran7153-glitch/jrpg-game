@@ -80,6 +80,8 @@ const LOCAL_KEY = 'pixelQuestSave'
 const DB_NAME = 'pixelQuestDB'
 const DB_STORE = 'saves'
 const DB_KEY = 'localSave'
+const CACHE_NAME = 'pixelQuestSaveCache'
+const CACHE_KEY = '/__save.json'
 
 function openLocalDB() {
   return new Promise((resolve, reject) => {
@@ -163,6 +165,46 @@ function deleteLocalStorage() {
   }
 }
 
+async function saveToCache(gameState, savedAt) {
+  if (typeof caches === 'undefined') return
+  try {
+    const cache = await caches.open(CACHE_NAME)
+    const payload = JSON.stringify({ state: gameState, savedAt })
+    const response = new Response(payload, { headers: { 'Content-Type': 'application/json' } })
+    await cache.put(CACHE_KEY, response)
+  } catch (err) {
+    console.error('Failed to save to cache:', err)
+  }
+}
+
+async function loadFromCache() {
+  if (typeof caches === 'undefined') return null
+  try {
+    const cache = await caches.open(CACHE_NAME)
+    const response = await cache.match(CACHE_KEY)
+    if (!response) return null
+    const payload = await response.text()
+    const parsed = JSON.parse(payload)
+    const hasWrapper = parsed && typeof parsed === 'object' && 'state' in parsed
+    const state = hasWrapper ? parsed.state : parsed
+    const savedAt = hasWrapper ? parsed.savedAt || null : null
+    return { state, savedAt }
+  } catch (err) {
+    console.error('Failed to load from cache:', err)
+    return null
+  }
+}
+
+async function deleteFromCache() {
+  if (typeof caches === 'undefined') return
+  try {
+    const cache = await caches.open(CACHE_NAME)
+    await cache.delete(CACHE_KEY)
+  } catch (err) {
+    console.error('Failed to delete from cache:', err)
+  }
+}
+
 export async function saveLocalGame(gameState) {
   const savedAt = Date.now()
   const lsSuccess = saveToLocalStorage(gameState, savedAt)
@@ -171,26 +213,35 @@ export async function saveLocalGame(gameState) {
   } catch (err) {
     console.error('Failed to save to IndexedDB:', err)
   }
+  try {
+    await saveToCache(gameState, savedAt)
+  } catch (err) {
+    console.error('Failed to save to Cache:', err)
+  }
   return { success: lsSuccess, savedAt }
 }
 
 export async function loadLocalGame() {
-  let idb = null
-  let ls = null
+  const candidates = []
   try {
-    idb = await loadFromIndexedDB()
+    const idb = await loadFromIndexedDB()
+    if (idb?.state) candidates.push(idb)
   } catch (err) {
     console.error('Failed to load from IndexedDB:', err)
   }
   try {
-    ls = loadFromLocalStorage()
+    const ls = loadFromLocalStorage()
+    if (ls?.state) candidates.push(ls)
   } catch (err) {
     console.error('Failed to load from localStorage:', err)
   }
+  try {
+    const cache = await loadFromCache()
+    if (cache?.state) candidates.push(cache)
+  } catch (err) {
+    console.error('Failed to load from Cache:', err)
+  }
 
-  const candidates = []
-  if (idb?.state) candidates.push(idb)
-  if (ls?.state) candidates.push(ls)
   if (candidates.length === 0) return null
 
   // Pick the latest save
@@ -204,6 +255,11 @@ export async function deleteLocalGame() {
     await deleteFromIndexedDB()
   } catch (err) {
     console.error('Failed to delete from IndexedDB:', err)
+  }
+  try {
+    await deleteFromCache()
+  } catch (err) {
+    console.error('Failed to delete from Cache:', err)
   }
   return true
 }
