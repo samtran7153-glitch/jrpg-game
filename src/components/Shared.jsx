@@ -16,7 +16,7 @@ export function Bar({ label, value, max, color }) {
   )
 }
 
-export function CharacterCard({ actor, isEnemy, isActive, isTargetable, isSelected, onTarget, onStatsClick, size = 48, compact = false }) {
+export function CharacterCard({ actor, isEnemy, isActive, isTargetable, isSelected, selectedCount = 0, onTarget, onStatsClick, size = 48, compact = false }) {
   const hpPercent = (actor.hp / actor.maxHp) * 100
   const hpColor = hpPercent > 50 ? 'bg-retro-green' : hpPercent > 25 ? 'bg-retro-gold' : 'bg-retro-accent'
   const mpColor = 'bg-retro-blue'
@@ -36,6 +36,11 @@ export function CharacterCard({ actor, isEnemy, isActive, isTargetable, isSelect
       {actor.isBoss && (
         <div className="absolute -top-2 left-1/2 -translate-x-1/2 font-pixel text-[7px] text-retro-accent bg-retro-bg px-1 whitespace-nowrap">
           BOSS
+        </div>
+      )}
+      {isSelected && selectedCount > 0 && (
+        <div className="absolute -top-2 -right-1 font-pixel text-[7px] text-retro-bg bg-retro-green px-1 border border-retro-border whitespace-nowrap z-10">
+          x{selectedCount}
         </div>
       )}
       <Sprite type={actor.sprite} size={size} defeated={actor.hp <= 0} />

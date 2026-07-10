@@ -139,7 +139,12 @@ export function BattleScreen({ state, anim, onAction }) {
   const needsTarget = phase === 'player_target'
   const needsMultiTarget = phase === 'player_multi_target'
   const needsAllyTarget = phase === 'player_ally_target'
-  const selectedTargetIds = state.pendingAction?.selectedTargets?.map((t) => t.id) || []
+  const selectedTargets = state.pendingAction?.selectedTargets || []
+  const selectedTargetIds = selectedTargets.map((t) => t.id)
+  const selectedArrowCounts = selectedTargets.reduce((acc, t) => {
+    acc[t.id] = (acc[t.id] || 0) + 1
+    return acc
+  }, {})
 
   const isFirstBattle = state.currentAreaIndex === 0 && state.currentBattleIndex === 0
   const [tutorialStep, setTutorialStep] = useState(0)
@@ -179,6 +184,7 @@ export function BattleScreen({ state, anim, onAction }) {
               isActive={activeActor?.id === enemy.id}
               isTargetable={(needsTarget || needsMultiTarget) && enemy.alive && enemy.hp > 0}
               isSelected={needsMultiTarget && selectedTargetIds.includes(enemy.id)}
+              selectedCount={selectedArrowCounts[enemy.id] || 0}
               onTarget={(e) => onAction(needsMultiTarget ? 'select_multi_target' : 'target_enemy', e)}
               size={36}
               compact
