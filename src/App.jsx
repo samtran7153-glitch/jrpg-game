@@ -36,22 +36,23 @@ export default function App() {
 
   useEffect(() => {
     let mounted = true
-    const local = loadLocalGame()
-    if (local) {
-      setHasCloudSave(true)
-      setLastSavedAt(local.savedAt)
-    }
-    ensureAnonymousUser().then(async (user) => {
+    ;(async () => {
+      const local = await loadLocalGame()
+      if (local && mounted) {
+        setHasCloudSave(true)
+        setLastSavedAt(local.savedAt)
+      }
+      const user = await ensureAnonymousUser()
       if (!mounted) return
       if (user) {
         uidRef.current = user.uid
         const cloud = await loadGame(user.uid)
-        if (cloud) {
+        if (cloud && mounted) {
           setHasCloudSave(true)
           setLastSavedAt(cloud.savedAt)
         }
       }
-    })
+    })()
     return () => { mounted = false }
   }, [])
 
@@ -72,16 +73,16 @@ export default function App() {
   }
 
   // ============ GAME FLOW ============
-  const startGame = () => {
-    if (uidRef.current) deleteGame(uidRef.current)
-    deleteLocalGame()
+  const startGame = async () => {
+    if (uidRef.current) await deleteGame(uidRef.current)
+    await deleteLocalGame()
     setHasCloudSave(false)
     setState((s) => ({ ...s, phase: PHASES.AREA_MAP }))
   }
 
   const handleSaveGame = async () => {
     setSaveStatus('saving')
-    const local = saveLocalGame(state)
+    const local = await saveLocalGame(state)
     if (local.success) setLastSavedAt(local.savedAt)
     if (uidRef.current) {
       const cloud = await saveGame(uidRef.current, state)
@@ -106,13 +107,13 @@ export default function App() {
         setState({ ...base, ...saved.state, phase: PHASES.AREA_MAP })
         setHasCloudSave(true)
         setLastSavedAt(saved.savedAt)
-        saveLocalGame(saved.state)
+        await saveLocalGame(saved.state)
         setSaveStatus('loaded')
         setTimeout(() => setSaveStatus('idle'), 2000)
         return
       }
     }
-    const local = loadLocalGame()
+    const local = await loadLocalGame()
     if (local) {
       const base = createInitialState()
       setState({ ...base, ...local.state, phase: PHASES.AREA_MAP })
@@ -128,9 +129,11 @@ export default function App() {
 
   useEffect(() => {
     if (state.phase === PHASES.TITLE) return
-    // Save to localStorage immediately so progress isn't lost on refresh/close
-    const local = saveLocalGame(state)
-    if (local.success) setLastSavedAt(local.savedAt)
+    // Save to localStorage/IndexedDB immediately so progress isn't lost on refresh/close
+    let cancelled = false
+    saveLocalGame(state).then((local) => {
+      if (!cancelled && local.success) setLastSavedAt(local.savedAt)
+    })
     // Debounce cloud save to avoid excessive Firestore writes
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
     saveTimeoutRef.current = setTimeout(() => {
@@ -141,6 +144,7 @@ export default function App() {
       }
     }, 3000)
     return () => {
+      cancelled = true
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
     }
   }, [state])
@@ -415,7 +419,7 @@ export default function App() {
     if (uidRef.current) {
       await deleteGame(uidRef.current)
     }
-    deleteLocalGame()
+    await deleteLocalGame()
     setHasCloudSave(false)
     setState(createInitialState())
   }

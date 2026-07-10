@@ -77,19 +77,68 @@ export async function deleteGame(uid) {
 }
 
 const LOCAL_KEY = 'pixelQuestSave'
+const DB_NAME = 'pixelQuestDB'
+const DB_STORE = 'saves'
+const DB_KEY = 'localSave'
 
-export function saveLocalGame(gameState) {
+function openLocalDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1)
+    request.onupgradeneeded = () => {
+      const db = request.result
+      if (!db.objectStoreNames.contains(DB_STORE)) {
+        db.createObjectStore(DB_STORE)
+      }
+    }
+    request.onsuccess = () => resolve(request.result)
+    request.onerror = () => reject(request.error)
+  })
+}
+
+async function saveToIndexedDB(gameState, savedAt) {
+  const db = await openLocalDB()
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(DB_STORE, 'readwrite')
+    const store = tx.objectStore(DB_STORE)
+    store.put({ state: gameState, savedAt }, DB_KEY)
+    tx.oncomplete = () => resolve()
+    tx.onerror = () => reject(tx.error)
+  })
+}
+
+async function loadFromIndexedDB() {
+  const db = await openLocalDB()
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(DB_STORE, 'readonly')
+    const store = tx.objectStore(DB_STORE)
+    const request = store.get(DB_KEY)
+    request.onsuccess = () => resolve(request.result || null)
+    request.onerror = () => reject(request.error)
+  })
+}
+
+async function deleteFromIndexedDB() {
+  const db = await openLocalDB()
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(DB_STORE, 'readwrite')
+    const store = tx.objectStore(DB_STORE)
+    store.delete(DB_KEY)
+    tx.oncomplete = () => resolve()
+    tx.onerror = () => reject(tx.error)
+  })
+}
+
+function saveToLocalStorage(gameState, savedAt) {
   try {
-    const savedAt = Date.now()
     localStorage.setItem(LOCAL_KEY, JSON.stringify({ state: gameState, savedAt }))
-    return { success: true, savedAt }
+    return true
   } catch (err) {
-    console.error('Failed to save local game:', err)
-    return { success: false, savedAt: null }
+    console.error('Failed to save local storage game:', err)
+    return false
   }
 }
 
-export function loadLocalGame() {
+function loadFromLocalStorage() {
   try {
     const raw = localStorage.getItem(LOCAL_KEY)
     if (!raw) return null
@@ -99,17 +148,62 @@ export function loadLocalGame() {
     const savedAt = hasWrapper ? parsed.savedAt || null : null
     return { state, savedAt }
   } catch (err) {
-    console.error('Failed to load local game:', err)
+    console.error('Failed to load local storage game:', err)
     return null
   }
 }
 
-export function deleteLocalGame() {
+function deleteLocalStorage() {
   try {
     localStorage.removeItem(LOCAL_KEY)
     return true
   } catch (err) {
-    console.error('Failed to delete local save:', err)
+    console.error('Failed to delete local storage save:', err)
     return false
   }
+}
+
+export async function saveLocalGame(gameState) {
+  const savedAt = Date.now()
+  const lsSuccess = saveToLocalStorage(gameState, savedAt)
+  try {
+    await saveToIndexedDB(gameState, savedAt)
+  } catch (err) {
+    console.error('Failed to save to IndexedDB:', err)
+  }
+  return { success: lsSuccess, savedAt }
+}
+
+export async function loadLocalGame() {
+  let idb = null
+  let ls = null
+  try {
+    idb = await loadFromIndexedDB()
+  } catch (err) {
+    console.error('Failed to load from IndexedDB:', err)
+  }
+  try {
+    ls = loadFromLocalStorage()
+  } catch (err) {
+    console.error('Failed to load from localStorage:', err)
+  }
+
+  const candidates = []
+  if (idb?.state) candidates.push(idb)
+  if (ls?.state) candidates.push(ls)
+  if (candidates.length === 0) return null
+
+  // Pick the latest save
+  candidates.sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0))
+  return candidates[0]
+}
+
+export async function deleteLocalGame() {
+  deleteLocalStorage()
+  try {
+    await deleteFromIndexedDB()
+  } catch (err) {
+    console.error('Failed to delete from IndexedDB:', err)
+  }
+  return true
 }
