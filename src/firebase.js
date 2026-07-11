@@ -207,14 +207,18 @@ async function deleteFromCache() {
 
 export async function saveLocalGame(gameState) {
   const savedAt = Date.now()
+  console.log('[saveLocalGame] called', { savedAt, phase: gameState?.phase })
   const lsSuccess = saveToLocalStorage(gameState, savedAt)
+  console.log('[saveLocalGame] localStorage success:', lsSuccess)
   try {
     await saveToIndexedDB(gameState, savedAt)
+    console.log('[saveLocalGame] IndexedDB saved')
   } catch (err) {
     console.error('Failed to save to IndexedDB:', err)
   }
   try {
     await saveToCache(gameState, savedAt)
+    console.log('[saveLocalGame] Cache saved')
   } catch (err) {
     console.error('Failed to save to Cache:', err)
   }
@@ -225,27 +229,34 @@ export async function loadLocalGame() {
   const candidates = []
   try {
     const idb = await loadFromIndexedDB()
+    console.log('[loadLocalGame] IndexedDB:', idb ? 'found' : 'empty')
     if (idb?.state) candidates.push(idb)
   } catch (err) {
     console.error('Failed to load from IndexedDB:', err)
   }
   try {
     const ls = loadFromLocalStorage()
+    console.log('[loadLocalGame] localStorage:', ls ? 'found' : 'empty')
     if (ls?.state) candidates.push(ls)
   } catch (err) {
     console.error('Failed to load from localStorage:', err)
   }
   try {
     const cache = await loadFromCache()
+    console.log('[loadLocalGame] Cache:', cache ? 'found' : 'empty')
     if (cache?.state) candidates.push(cache)
   } catch (err) {
     console.error('Failed to load from Cache:', err)
   }
 
-  if (candidates.length === 0) return null
+  if (candidates.length === 0) {
+    console.log('[loadLocalGame] no candidates')
+    return null
+  }
 
   // Pick the latest save
   candidates.sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0))
+  console.log('[loadLocalGame] returning', candidates[0]?.savedAt)
   return candidates[0]
 }
 
