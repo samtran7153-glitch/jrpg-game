@@ -502,7 +502,7 @@ export function TitleScreen({ onStart, onContinue, hasCloudSave }) {
             </button>
           )}
           <button className="pixel-btn w-full" onClick={onStart}>
-            {hasCloudSave ? 'New Game' : 'PRESS START'}
+            PRESS START
           </button>
         </div>
       </div>
