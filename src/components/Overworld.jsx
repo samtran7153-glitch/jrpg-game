@@ -496,14 +496,15 @@ export function TitleScreen({ onStart, onContinue, hasCloudSave }) {
           <Sprite type="darkKnight" size={36} />
         </div>
         <div className="flex flex-col gap-2 w-48 mt-2">
-          {hasCloudSave && (
+          {hasCloudSave ? (
             <button className="pixel-btn w-full text-retro-green" onClick={onContinue}>
               Continue
             </button>
+          ) : (
+            <button className="pixel-btn w-full" onClick={onStart}>
+              PRESS START
+            </button>
           )}
-          <button className="pixel-btn w-full" onClick={onStart}>
-            PRESS START
-          </button>
         </div>
       </div>
     </div>
