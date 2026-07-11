@@ -1084,7 +1084,13 @@ export default function App() {
   const renderPhase = () => {
     switch (state.phase) {
       case PHASES.TITLE:
-        return <TitleScreen onStart={startGame} />
+        return (
+          <TitleScreen
+            onStart={startGame}
+            onContinue={handleLoadGame}
+            hasCloudSave={hasCloudSave}
+          />
+        )
       case PHASES.AREA_MAP:
         return (
           <AreaMapScreen
