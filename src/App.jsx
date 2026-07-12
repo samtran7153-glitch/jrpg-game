@@ -357,7 +357,7 @@ export default function App() {
     })
   }
 
-  const finishTravel = () => {
+  const finishTravel = useCallback(() => {
     setState((s) => {
       const travel = s.travel
       if (!travel) return { ...s, phase: PHASES.WORLD_MAP }
@@ -390,7 +390,7 @@ export default function App() {
         travel: null,
       }
     })
-  }
+  }, [])
 
   const selectBattle = (battleIndex) => {
     setState((s) => {

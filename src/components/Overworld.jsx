@@ -1223,9 +1223,10 @@ export function TravelScreen({ state, onComplete }) {
   const [showEncounter, setShowEncounter] = useState(false)
 
   useEffect(() => {
+    if (!travel) return
     let cancelled = false
     const encounterTimer = setTimeout(() => {
-      if (travel?.hasEncounter && !cancelled) setShowEncounter(true)
+      if (travel.hasEncounter && !cancelled) setShowEncounter(true)
     }, 1200)
     const finishTimer = setTimeout(() => {
       if (!cancelled) onComplete()
