@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { Sprite } from '../Sprites'
 import { CharacterCard, GoldDisplay, HeroStatsModal } from './Shared'
 import { AREAS, ITEMS, xpForLevel } from '../gameState'
-import { ENEMY_TYPES } from '../gameData'
 import { WorldMap } from './WorldMap'
 
 // Side-scrolling exploration component
@@ -680,8 +679,7 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
               const isCompleted = battleIndex < state.currentBattleIndex
               const isCurrent = battleIndex === state.currentBattleIndex
               const isLocked = battleIndex > state.currentBattleIndex
-              const isBossBattle = battle.enemies.some((e) => ENEMY_TYPES[e]?.isBoss)
-              const showSprites = isCompleted || (isCurrent && isBossBattle)
+              const showSprites = isCompleted && !isCurrent
 
               return (
                 <button
