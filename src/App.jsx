@@ -136,6 +136,55 @@ export default function App() {
     setTimeout(() => setSaveStatus('idle'), 2000)
   }
 
+  // ============ TRANSFER CODE ============
+  const encodeBase64 = (str) => {
+    const bytes = new TextEncoder().encode(str)
+    let bin = ''
+    for (let i = 0; i < bytes.length; i++) {
+      bin += String.fromCharCode(bytes[i])
+    }
+    return btoa(bin)
+  }
+
+  const decodeBase64 = (str) => {
+    try {
+      const bin = atob(str.trim())
+      const bytes = new Uint8Array(bin.length)
+      for (let i = 0; i < bin.length; i++) {
+        bytes[i] = bin.charCodeAt(i)
+      }
+      return new TextDecoder().decode(bytes)
+    } catch (e) {
+      return null
+    }
+  }
+
+  const handleExportCode = () => {
+    try {
+      return encodeBase64(JSON.stringify(state))
+    } catch (e) {
+      return ''
+    }
+  }
+
+  const handleImportCode = async (code) => {
+    try {
+      const json = decodeBase64(code)
+      if (!json) return { success: false, error: 'Invalid code' }
+      const parsed = JSON.parse(json)
+      if (!parsed || !parsed.party || !parsed.phase) {
+        return { success: false, error: 'Invalid save data' }
+      }
+      const merged = { ...createInitialState(), ...parsed }
+      setState(merged)
+      setHasCloudSave(true)
+      await saveLocalGame(merged)
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: 'Invalid code' }
+    }
+  }
+
   useEffect(() => {
     if (state.phase === PHASES.TITLE) return
     // Save to localStorage/IndexedDB immediately so progress isn't lost on refresh/close
@@ -1164,6 +1213,8 @@ export default function App() {
             onBack={() => setState((s) => ({ ...s, phase: PHASES.AREA_MAP }))}
             onSave={handleSaveGame}
             onLoad={handleLoadGame}
+            onExport={handleExportCode}
+            onImport={handleImportCode}
             saveStatus={saveStatus}
             lastSavedAt={lastSavedAt}
           />

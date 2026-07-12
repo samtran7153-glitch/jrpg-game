@@ -330,10 +330,13 @@ function formatSavedAt(ts) {
   return date.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })
 }
 
-export function SettingsScreen({ onReset, onBack, onSave, onLoad, saveStatus, lastSavedAt }) {
+export function SettingsScreen({ onReset, onBack, onSave, onLoad, onExport, onImport, saveStatus, lastSavedAt }) {
   const [confirming, setConfirming] = useState(false)
   const [updateStatus, setUpdateStatus] = useState(null)
   const [checking, setChecking] = useState(false)
+  const [transferCode, setTransferCode] = useState('')
+  const [exportStatus, setExportStatus] = useState(null)
+  const [importStatus, setImportStatus] = useState(null)
 
   const checkForUpdates = async () => {
     setChecking(true)
@@ -440,6 +443,56 @@ export function SettingsScreen({ onReset, onBack, onSave, onLoad, saveStatus, la
                 Load Save
               </button>
             </div>
+          </div>
+
+          <div className="pixel-panel p-3 w-full">
+            <div className="font-pixel text-[8px] text-retro-text mb-2">Transfer Code</div>
+            <div className="font-pixel text-[6px] text-retro-dim mb-3">
+              Copy your save code to move progress to another device or browser.
+            </div>
+
+            {exportStatus && (
+              <div className="font-pixel text-[7px] text-retro-green text-center mb-2">{exportStatus}</div>
+            )}
+            <button
+              className="pixel-btn w-full"
+              onClick={() => {
+                const code = onExport()
+                if (!code) return
+                navigator.clipboard.writeText(code).then(() => {
+                  setExportStatus('Copied to clipboard!')
+                }).catch(() => {
+                  setExportStatus('Could not copy; code printed to console')
+                  console.log('Transfer code:', code)
+                })
+              }}
+            >
+              Export Save Code
+            </button>
+
+            <textarea
+              className="w-full mt-2 bg-retro-panel border border-retro-border text-retro-text font-pixel text-[7px] p-2 rounded"
+              rows={3}
+              placeholder="Paste save code here..."
+              value={transferCode}
+              onChange={(e) => setTransferCode(e.target.value)}
+            />
+
+            {importStatus && (
+              <div className={`font-pixel text-[7px] text-center mb-2 ${importStatus === 'Save loaded!' ? 'text-retro-green' : 'text-retro-accent'}`}>
+                {importStatus}
+              </div>
+            )}
+            <button
+              className="pixel-btn w-full mt-2"
+              disabled={!transferCode.trim()}
+              onClick={async () => {
+                const result = await onImport(transferCode)
+                setImportStatus(result.success ? 'Save loaded!' : result.error)
+              }}
+            >
+              Import Save Code
+            </button>
           </div>
 
           <div className="pixel-panel p-3 w-full">
