@@ -363,6 +363,7 @@ export default function App() {
         return {
           ...startBattle(s, travel.randomEnemies, null, null, null),
           currentAreaIndex: travel.targetAreaIndex,
+          currentBattleIndex: 0,
           activeBattleIndex: null,
           travel: null,
         }
