@@ -843,7 +843,8 @@ export default function App() {
       if (!currentActor) return advanceTurn({ ...s, busy: false })
       const party = s.party.map((h) => h.id === currentActor.id ? { ...h, defending: true } : h)
       const log = addLog(s.log, `${currentActor.name} raises their guard!`)
-      const newState = { ...s, party, log, busy: false }
+      const floats = addFloatText(s, 'DEF', 50, 50, '#4ea8de')
+      const newState = { ...s, party, log, floatTexts: floats, busy: false }
       return advanceTurn(newState)
     })
   }

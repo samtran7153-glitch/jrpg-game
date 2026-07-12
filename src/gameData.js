@@ -225,13 +225,17 @@ export function calculateDamage(attacker, defender, baseDamage, isCrit = false, 
   const atkBuffs = (attacker.statusEffects || []).filter((e) => e.type === 'attack_up')
   const atkMult = atkBuffs.length > 0 ? 1.5 : 1
   const defBuffs = (defender.statusEffects || []).filter((e) => e.type === 'defense_up')
-  let effectiveDef = defender.defending ? defender.defense * 2 : defender.defense
+  let effectiveDef = defender.defense
   if (defBuffs.length > 0) effectiveDef = Math.floor(effectiveDef * 1.5)
   let dmg = Math.max(1, Math.floor((baseDamage * atkMult - effectiveDef * 0.5) * variance * critMult))
   // Apply elemental weakness/resistance
   const weaknesses = defender.weaknesses || defender.typeKey && ENEMY_TYPES[defender.typeKey]?.weaknesses
   if (weaknesses && weaknesses[element]) {
     dmg = Math.max(1, Math.floor(dmg * weaknesses[element]))
+  }
+  // Defend halves incoming damage
+  if (defender.defending) {
+    dmg = Math.max(1, Math.floor(dmg * 0.5))
   }
   return dmg
 }
