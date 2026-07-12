@@ -292,7 +292,7 @@ export default function App() {
   const selectArea = (areaIndex) => {
     setState((s) => {
       if (areaIndex < 0 || areaIndex >= AREAS.length) return s
-      if (areaIndex > s.currentAreaIndex) return s // Can't jump ahead
+      if (areaIndex > s.currentAreaIndex + 1) return s // Can't jump ahead
 
       // Check for random encounter when traveling
       const distance = Math.abs(areaIndex - s.currentAreaIndex)
@@ -373,6 +373,39 @@ export default function App() {
         statusEffects: [],
       }))
 
+      // Last path battle: advance to the next area (with after-dialogue if any)
+      if (!isReplay && isLastPathBattle) {
+        const nextAreaIndex = s.currentAreaIndex + 1
+        if (nextAreaIndex >= AREAS.length) {
+          return { ...s, phase: PHASES.GAME_COMPLETE, dialogueAfter: null, activeBattleIndex: null }
+        }
+        if (afterDialogue && afterDialogue.length > 0) {
+          return {
+            ...s,
+            party: healedParty,
+            currentAreaIndex: nextAreaIndex,
+            currentBattleIndex: 0,
+            phase: PHASES.DIALOGUE,
+            dialogueLines: afterDialogue,
+            dialogueIndex: 0,
+            dialogueAfter: null,
+            battleResult: null,
+            activeBattleIndex: null,
+          }
+        }
+        return {
+          ...s,
+          party: healedParty,
+          currentAreaIndex: nextAreaIndex,
+          currentBattleIndex: 0,
+          phase: PHASES.AREA_MAP,
+          battleResult: null,
+          enemies: [],
+          dialogueAfter: null,
+          activeBattleIndex: null,
+        }
+      }
+
       if (afterDialogue && afterDialogue.length > 0) {
         return {
           ...s,
@@ -392,24 +425,6 @@ export default function App() {
           ...s,
           party: healedParty,
           currentBattleIndex: nextBattleIndex,
-          phase: PHASES.AREA_MAP,
-          battleResult: null,
-          enemies: [],
-          dialogueAfter: null,
-          activeBattleIndex: null,
-        }
-      }
-
-      if (isLastPathBattle) {
-        const nextAreaIndex = s.currentAreaIndex + 1
-        if (nextAreaIndex >= AREAS.length) {
-          return { ...s, phase: PHASES.GAME_COMPLETE, dialogueAfter: null, activeBattleIndex: null }
-        }
-        return {
-          ...s,
-          party: healedParty,
-          currentAreaIndex: nextAreaIndex,
-          currentBattleIndex: 0,
           phase: PHASES.AREA_MAP,
           battleResult: null,
           enemies: [],
