@@ -679,7 +679,7 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
               const isCompleted = battleIndex < state.currentBattleIndex
               const isCurrent = battleIndex === state.currentBattleIndex
               const isLocked = battleIndex > state.currentBattleIndex
-              const showSprites = isCompleted || isCurrent
+              const showSprites = isCompleted && !isCurrent
 
               return (
                 <button
