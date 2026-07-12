@@ -196,6 +196,10 @@ export function WorldMap({ state, onSelectArea, onBack }) {
                 <span className="font-pixel text-[3px] text-retro-dim">Current</span>
               </div>
               <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-retro-gold rounded-full opacity-50" />
+                <span className="font-pixel text-[3px] text-retro-dim">Next</span>
+              </div>
+              <div className="flex items-center gap-1">
                 <div className="w-2 h-2 bg-retro-accent rounded-full" />
                 <span className="font-pixel text-[3px] text-retro-dim">Locked</span>
               </div>
@@ -256,7 +260,7 @@ export function WorldMap({ state, onSelectArea, onBack }) {
                 isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-110 hover:z-10'
               } ${isCurrent ? 'ring-2 ring-retro-gold animate-pulse z-20' : ''} ${
                 isCompleted ? 'ring-1 ring-retro-dim' : ''
-              }`}
+              } ${isNext ? 'ring-2 ring-retro-gold ring-opacity-50 z-10' : ''}`}
               style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
               disabled={isLocked}
               onClick={() => handleAreaClick(index)}
