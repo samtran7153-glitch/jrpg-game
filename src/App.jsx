@@ -104,6 +104,19 @@ export default function App() {
   const handleLoadGame = async () => {
     requestPersistentStorage()
     setSaveStatus('loading')
+
+    // Load local save immediately so Continue feels fast
+    const local = await loadLocalGame()
+    if (local) {
+      const base = createInitialState()
+      setState({ ...base, ...local.state, phase: PHASES.AREA_MAP })
+      setHasCloudSave(true)
+      setLastSavedAt(local.savedAt)
+      setSaveStatus('loaded')
+      setTimeout(() => setSaveStatus('idle'), 2000)
+    }
+
+    // Sync with cloud in the background in case it's newer
     let user = uidRef.current ? { uid: uidRef.current } : null
     if (!user) {
       user = await ensureAnonymousUser()
@@ -112,28 +125,28 @@ export default function App() {
       uidRef.current = user.uid
       const saved = await loadGame(user.uid)
       if (saved) {
-        const base = createInitialState()
-        setState({ ...base, ...saved.state, phase: PHASES.AREA_MAP })
-        setHasCloudSave(true)
-        setLastSavedAt(saved.savedAt)
-        await saveLocalGame(saved.state)
-        setSaveStatus('loaded')
+        const localTs = local?.savedAt || 0
+        if (saved.savedAt > localTs) {
+          const base = createInitialState()
+          setState({ ...base, ...saved.state, phase: PHASES.AREA_MAP })
+          setLastSavedAt(saved.savedAt)
+          await saveLocalGame(saved.state)
+        }
+        if (!local) {
+          setHasCloudSave(true)
+          setSaveStatus('loaded')
+          setTimeout(() => setSaveStatus('idle'), 2000)
+        }
+      } else if (!local) {
+        setSaveStatus('none')
+        setHasCloudSave(false)
         setTimeout(() => setSaveStatus('idle'), 2000)
-        return
       }
-    }
-    const local = await loadLocalGame()
-    if (local) {
-      const base = createInitialState()
-      setState({ ...base, ...local.state, phase: PHASES.AREA_MAP })
-      setHasCloudSave(true)
-      setLastSavedAt(local.savedAt)
-      setSaveStatus('loaded')
-    } else {
+    } else if (!local) {
       setSaveStatus('none')
       setHasCloudSave(false)
+      setTimeout(() => setSaveStatus('idle'), 2000)
     }
-    setTimeout(() => setSaveStatus('idle'), 2000)
   }
 
   // ============ TRANSFER CODE ============
