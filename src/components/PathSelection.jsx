@@ -11,6 +11,9 @@ export function PathSelection({ area, onSelectPath, onBack }) {
           {area.name}
         </div>
         <div className="text-center font-pixel text-[7px] text-retro-dim">
+          A fork in the road lies ahead. Choose which way your party will go.
+        </div>
+        <div className="text-center font-pixel text-[7px] text-retro-dim">
           {area.description}
         </div>
         
