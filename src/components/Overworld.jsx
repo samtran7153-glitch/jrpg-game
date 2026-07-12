@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { Sprite } from '../Sprites'
 import { CharacterCard, GoldDisplay, HeroStatsModal } from './Shared'
 import { AREAS, ITEMS, xpForLevel } from '../gameState'
+import { ENEMY_TYPES } from '../gameData'
 import { WorldMap } from './WorldMap'
 
 // Side-scrolling exploration component
@@ -696,7 +697,7 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
                   <span className="flex gap-1">
                     {showSprites
                       ? battle.enemies.map((e, ei) => (
-                          <Sprite key={ei} type={e} size={16} />
+                          <Sprite key={ei} type={ENEMY_TYPES[e]?.sprite || e} size={16} />
                         ))
                       : <span className="font-pixel text-[7px] text-retro-dim">???</span>
                     }
