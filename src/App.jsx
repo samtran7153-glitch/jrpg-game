@@ -4,7 +4,7 @@ import {
   calculateDamage, rollCrit, startBattle, advanceDialogue,
   checkBattleEnd, applyXpAndLevelUps, xpForLevel, levelUp,
 } from './gameState'
-import { createHero } from './gameData'
+import { createHero, ENEMY_TYPES } from './gameData'
 import { BattleScreen } from './components/BattleScreen'
 import {
   TitleScreen, AreaMapScreen, ShopScreen, DialogueScreen,
@@ -365,6 +365,11 @@ export default function App() {
       if (travel.hasEncounter) {
         // Random encounters happen in the source area; don't advance to the destination yet.
         // If the player kills the app during the encounter, they should still be in the source area.
+        const validEncounter = Array.isArray(travel.randomEnemies) && travel.randomEnemies.length > 0 && travel.randomEnemies.every((e) => ENEMY_TYPES[e])
+        if (!validEncounter) {
+          console.error('Invalid travel encounter', travel)
+          return { ...s, phase: PHASES.WORLD_MAP, travel: null }
+        }
         return {
           ...startBattle(s, travel.randomEnemies, null, null, null),
           currentAreaIndex: s.currentAreaIndex,
