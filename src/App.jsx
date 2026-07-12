@@ -363,10 +363,12 @@ export default function App() {
       if (!travel) return { ...s, phase: PHASES.WORLD_MAP }
 
       if (travel.hasEncounter) {
+        // Random encounters happen in the source area; don't advance to the destination yet.
+        // If the player kills the app during the encounter, they should still be in the source area.
         return {
           ...startBattle(s, travel.randomEnemies, null, null, null),
-          currentAreaIndex: travel.targetAreaIndex,
-          currentBattleIndex: 0,
+          currentAreaIndex: s.currentAreaIndex,
+          currentBattleIndex: s.currentBattleIndex,
           activeBattleIndex: null,
           travel: null,
         }
