@@ -23,6 +23,7 @@ export const PHASES = {
   EXPLORATION: 'exploration',
   GAME_COMPLETE: 'game_complete',
   SETTINGS: 'settings',
+  TRAVEL: 'travel',
 }
 
 export { SKILLS, ITEMS, calculateDamage, rollCrit, levelUp, xpForLevel, AREAS }

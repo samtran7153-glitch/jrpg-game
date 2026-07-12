@@ -153,7 +153,7 @@ function DecorIcon({ type, size }) {
 }
 
 export function BattleScreen({ state, anim, onAction }) {
-  const { party, enemies, turnOrder, currentTurnIndex, phase, log, floatTexts, screenShake } = state
+  const { party, enemies, turnOrder, currentTurnIndex, phase, log, floatTexts, screenShake, gold } = state
   const area = AREAS[state.currentAreaIndex]
   const theme = AREA_THEMES[area?.id] || AREA_THEMES.forest
   const queuedActor = turnOrder[currentTurnIndex % turnOrder.length]
@@ -445,12 +445,19 @@ function BattleMenu({ state, activeActor, isPlayerTurn, onAction, tutorialHighli
     )
   }
 
+  const surrenderCost = Math.max(10, Math.ceil(gold * 0.5))
+
   return (
-    <div className="pixel-panel p-1.5 grid grid-cols-2 gap-1">
-      <button className={`pixel-btn ${tutorialHighlight === 'attack' ? 'ring-2 ring-retro-gold animate-pulse' : ''}`} onClick={() => onAction('attack')}>Attack</button>
-      <button className={`pixel-btn ${tutorialHighlight === 'skills' ? 'ring-2 ring-retro-gold animate-pulse' : ''}`} onClick={() => onAction('open_skills')}>Skills</button>
-      <button className={`pixel-btn ${tutorialHighlight === 'items' ? 'ring-2 ring-retro-gold animate-pulse' : ''}`} onClick={() => onAction('open_items')}>Items</button>
-      <button className={`pixel-btn ${tutorialHighlight === 'defend' ? 'ring-2 ring-retro-gold animate-pulse' : ''}`} onClick={() => onAction('defend')}>Defend</button>
+    <div className="space-y-1">
+      <div className="pixel-panel p-1.5 grid grid-cols-2 gap-1">
+        <button className={`pixel-btn ${tutorialHighlight === 'attack' ? 'ring-2 ring-retro-gold animate-pulse' : ''}`} onClick={() => onAction('attack')}>Attack</button>
+        <button className={`pixel-btn ${tutorialHighlight === 'skills' ? 'ring-2 ring-retro-gold animate-pulse' : ''}`} onClick={() => onAction('open_skills')}>Skills</button>
+        <button className={`pixel-btn ${tutorialHighlight === 'items' ? 'ring-2 ring-retro-gold animate-pulse' : ''}`} onClick={() => onAction('open_items')}>Items</button>
+        <button className={`pixel-btn ${tutorialHighlight === 'defend' ? 'ring-2 ring-retro-gold animate-pulse' : ''}`} onClick={() => onAction('defend')}>Defend</button>
+      </div>
+      <button className="pixel-btn w-full text-retro-accent text-[10px]" onClick={() => onAction('surrender')}>
+        Surrender (-{surrenderCost}G)
+      </button>
     </div>
   )
 }

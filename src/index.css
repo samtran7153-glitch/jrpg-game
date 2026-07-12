@@ -77,6 +77,22 @@ body {
   80% { transform: translateX(2px); }
 }
 
+@keyframes travel-walk {
+  0% { transform: translateX(-20%); }
+  100% { transform: translateX(120%); }
+}
+
+@keyframes travel-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes travel-enemy-pop {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 .animate-shake {
   animation: shake 0.3s ease-in-out;
 }

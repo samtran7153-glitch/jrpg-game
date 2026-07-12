@@ -1216,3 +1216,65 @@ export function GameCompleteScreen({ onRestart }) {
     </div>
   )
 }
+
+export function TravelScreen({ state, onComplete }) {
+  const travel = state.travel
+  const party = state.party.slice(0, 4)
+  const [showEncounter, setShowEncounter] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    const encounterTimer = setTimeout(() => {
+      if (travel?.hasEncounter && !cancelled) setShowEncounter(true)
+    }, 1200)
+    const finishTimer = setTimeout(() => {
+      if (!cancelled) onComplete()
+    }, 2600)
+    return () => {
+      cancelled = true
+      clearTimeout(encounterTimer)
+      clearTimeout(finishTimer)
+    }
+  }, [travel, onComplete])
+
+  const enemyType = travel?.randomEnemies?.[0]
+  const enemySprite = enemyType ? (ENEMY_TYPES[enemyType]?.sprite || enemyType) : null
+
+  return (
+    <div className="flex justify-center items-center flex-1">
+      <div className="pixel-panel w-full max-w-sm p-4 flex flex-col items-center">
+        <div className="font-pixel text-sm text-retro-gold mb-4">TRAVELING</div>
+        <div className="relative w-full h-32 bg-retro-bg border border-retro-border overflow-hidden rounded">
+          <div
+            className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage: 'radial-gradient(circle, #6a6a8a 1px, transparent 1px)',
+              backgroundSize: '12px 12px',
+            }}
+          />
+          <div
+            className="absolute bottom-5 flex gap-1"
+            style={{
+              animation: 'travel-walk 2.4s linear forwards, travel-bob 0.35s ease-in-out infinite',
+            }}
+          >
+            {party.map((hero) => (
+              <Sprite key={hero.id} type={hero.sprite} size={24} />
+            ))}
+          </div>
+          {showEncounter && enemySprite && (
+            <div
+              className="absolute bottom-5 right-4"
+              style={{ animation: 'travel-enemy-pop 0.4s ease-out forwards' }}
+            >
+              <Sprite type={enemySprite} size={32} />
+            </div>
+          )}
+        </div>
+        <div className="font-pixel text-[8px] text-retro-dim mt-4">
+          {travel?.hasEncounter ? 'Wild enemies ahead!' : 'On the road...'}
+        </div>
+      </div>
+    </div>
+  )
+}

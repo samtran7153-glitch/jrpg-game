@@ -9,6 +9,7 @@ import { BattleScreen } from './components/BattleScreen'
 import {
   TitleScreen, AreaMapScreen, ShopScreen, DialogueScreen,
   VictoryScreen, DefeatScreen, GameCompleteScreen, SettingsScreen,
+  TravelScreen,
 } from './components/Overworld'
 import { GoldDisplay } from './components/Shared'
 import { WorldMap } from './components/WorldMap'
@@ -310,22 +311,26 @@ export default function App() {
       // Check for random encounter when traveling
       const distance = Math.abs(areaIndex - s.currentAreaIndex)
       const encounterChance = distance * 0.3 // 30% chance per area traveled
-      const hasEncounter = Math.random() < encounterChance
 
-      if (hasEncounter && areaIndex !== s.currentAreaIndex) {
-        // Start random encounter
+      if (areaIndex !== s.currentAreaIndex) {
+        // Route travel through the travel animation phase
         const currentArea = AREAS[s.currentAreaIndex]
         const randomEnemies = currentArea.battles[Math.floor(Math.random() * currentArea.battles.length)].enemies
+        const hasEncounter = Math.random() < encounterChance
         return {
-          ...startBattle(s, randomEnemies, null, null, null),
-          currentAreaIndex: areaIndex,
-          activeBattleIndex: null,
+          ...s,
+          phase: PHASES.TRAVEL,
+          travel: {
+            targetAreaIndex: areaIndex,
+            hasEncounter,
+            randomEnemies,
+          },
         }
       }
 
       const newArea = AREAS[areaIndex]
       const hasSelectedPath = s.selectedPaths[areaIndex]
-      const needsPathSelection = newArea.paths && !hasSelectedPath && areaIndex !== s.currentAreaIndex
+      const needsPathSelection = newArea.paths && !hasSelectedPath
 
       if (needsPathSelection) {
         return {
@@ -336,17 +341,47 @@ export default function App() {
         }
       }
 
-      const isSameArea = areaIndex === s.currentAreaIndex
-
       return {
         ...s,
         currentAreaIndex: areaIndex,
-        currentBattleIndex: isSameArea ? s.currentBattleIndex : 0,
+        currentBattleIndex: s.currentBattleIndex,
         phase: PHASES.AREA_MAP,
         battleResult: null,
         enemies: [],
         dialogueAfter: null,
         activeBattleIndex: null,
+      }
+    })
+  }
+
+  const finishTravel = () => {
+    setState((s) => {
+      const travel = s.travel
+      if (!travel) return { ...s, phase: PHASES.WORLD_MAP }
+
+      if (travel.hasEncounter) {
+        return {
+          ...startBattle(s, travel.randomEnemies, null, null, null),
+          currentAreaIndex: travel.targetAreaIndex,
+          activeBattleIndex: null,
+          travel: null,
+        }
+      }
+
+      const newArea = AREAS[travel.targetAreaIndex]
+      const hasSelectedPath = s.selectedPaths[travel.targetAreaIndex]
+      const needsPathSelection = newArea.paths && !hasSelectedPath
+
+      return {
+        ...s,
+        currentAreaIndex: travel.targetAreaIndex,
+        currentBattleIndex: 0,
+        phase: needsPathSelection ? PHASES.PATH_SELECTION : PHASES.AREA_MAP,
+        battleResult: null,
+        enemies: [],
+        dialogueAfter: null,
+        activeBattleIndex: null,
+        travel: null,
       }
     })
   }
@@ -968,6 +1003,29 @@ export default function App() {
         executeDefend(actor)
         break
       }
+      case 'surrender': {
+        const actor = resolveActor(state, state.turnOrder[state.currentTurnIndex % state.turnOrder.length])
+        if (!actor || !actor.isPlayer) break
+        const surrenderCost = Math.max(10, Math.ceil(state.gold * 0.5))
+        setState((s) => {
+          const newGold = Math.max(0, s.gold - surrenderCost)
+          const log = addLog(s.log, `${actor.name} surrenders! The party escapes but loses ${surrenderCost} gold.`)
+          const floats = addFloatText(s, `-${surrenderCost}G`, 50, 50, '#f5c518')
+          return {
+            ...s,
+            gold: newGold,
+            phase: PHASES.AREA_MAP,
+            enemies: [],
+            busy: false,
+            log,
+            floatTexts: floats,
+            pendingAction: null,
+            battleResult: null,
+            activeBattleIndex: null,
+          }
+        })
+        break
+      }
       case 'back_to_menu':
         setState((s) => ({ ...s, phase: PHASES.PLAYER_MENU, pendingAction: null }))
         break
@@ -1202,6 +1260,8 @@ export default function App() {
             onBack={() => setState((s) => ({ ...s, phase: PHASES.WORLD_MAP }))}
           />
         )
+      case PHASES.TRAVEL:
+        return <TravelScreen state={state} onComplete={finishTravel} />
       case PHASES.WORLD_MAP:
         return (
           <WorldMap
