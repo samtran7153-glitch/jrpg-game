@@ -287,13 +287,16 @@ export default function App() {
 
   const selectPath = (pathKey) => {
     setState((s) => {
-      const area = AREAS[s.currentAreaIndex]
+      const areaIndex = s.selectedAreaIndex ?? s.currentAreaIndex
+      const area = AREAS[areaIndex]
       const path = area.paths[pathKey]
       if (!path) return s
-      
+
       return {
         ...s,
-        selectedPaths: { ...s.selectedPaths, [s.currentAreaIndex]: pathKey },
+        selectedPaths: { ...s.selectedPaths, [areaIndex]: pathKey },
+        selectedAreaIndex: null,
+        currentAreaIndex: areaIndex,
         phase: PHASES.AREA_MAP,
         currentBattleIndex: 0,
         // Set up battles based on selected path
@@ -373,11 +376,13 @@ export default function App() {
       const hasSelectedPath = s.selectedPaths[travel.targetAreaIndex]
       const needsPathSelection = newArea.paths && !hasSelectedPath
 
+      // Don't advance currentAreaIndex until the player actually picks a path
       return {
         ...s,
-        currentAreaIndex: travel.targetAreaIndex,
+        currentAreaIndex: needsPathSelection ? s.currentAreaIndex : travel.targetAreaIndex,
         currentBattleIndex: 0,
         phase: needsPathSelection ? PHASES.PATH_SELECTION : PHASES.AREA_MAP,
+        selectedAreaIndex: needsPathSelection ? travel.targetAreaIndex : null,
         battleResult: null,
         enemies: [],
         dialogueAfter: null,
@@ -1256,9 +1261,9 @@ export default function App() {
       case PHASES.PATH_SELECTION:
         return (
           <PathSelection
-            area={AREAS[state.currentAreaIndex]}
+            area={AREAS[state.selectedAreaIndex ?? state.currentAreaIndex]}
             onSelectPath={selectPath}
-            onBack={() => setState((s) => ({ ...s, phase: PHASES.WORLD_MAP }))}
+            onBack={() => setState((s) => ({ ...s, phase: PHASES.WORLD_MAP, selectedAreaIndex: null }))}
           />
         )
       case PHASES.TRAVEL:

@@ -56,6 +56,7 @@ export function createInitialState() {
     discoveredTreasures: {},
     completedSecretBattles: {},
     selectedPaths: {}, // Track which path (easy/hard) player chose for each area
+    selectedAreaIndex: null, // Area pending path selection before confirming arrival
     explorationMode: null, // 'path_selection' or 'exploring'
   }
 }
