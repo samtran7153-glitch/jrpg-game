@@ -77,14 +77,20 @@ const areaConfigs = {
   }
 }
 
+const TREASURE_REVEAL_START = 160
+const TREASURE_REVEAL_END = 80
+const BATTLE_REVEAL_START = 200
+const BATTLE_REVEAL_END = 120
+
 export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, party, discoveredTreasures = {}, completedSecretBattles = {} }) {
   const config = areaConfigs[area.id] || areaConfigs.forest
   const [playerPos, setPlayerPos] = useState(config.playerStart)
   const [isMoving, setIsMoving] = useState(false)
   const [facing, setFacing] = useState('right')
-  const [keys, setKeys] = useState({})
+  const keysRef = useRef({})
+  const isMovingRef = useRef(false)
+  const facingRef = useRef('right')
   const animationRef = useRef(null)
-  const lastUpdateRef = useRef(Date.now())
   const triggeredRef = useRef(new Set())
 
   // Handle keyboard input
@@ -92,14 +98,14 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
     const handleKeyDown = (e) => {
       if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'a', 'd', 'w', 's'].includes(e.key)) {
         e.preventDefault()
-        setKeys(prev => ({ ...prev, [e.key]: true }))
+        keysRef.current[e.key] = true
       }
     }
 
     const handleKeyUp = (e) => {
       if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'a', 'd', 'w', 's'].includes(e.key)) {
         e.preventDefault()
-        setKeys(prev => ({ ...prev, [e.key]: false }))
+        keysRef.current[e.key] = false
       }
     }
 
@@ -112,131 +118,144 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
     }
   }, [])
 
+  const setKey = (key, pressed) => {
+    keysRef.current[key] = pressed
+  }
+
   // Check collisions (with trigger guards to prevent firing every frame)
-  const checkCollisions = useCallback((newX, newY) => {
-    // Check treasure collisions
+  const checkCollisions = useCallback((x, y) => {
     for (const treasure of config.treasures) {
       if (triggeredRef.current.has(treasure.id)) continue
       if (
-        newX + 15 > treasure.x &&
-        newX - 15 < treasure.x + treasure.width &&
-        newY + 15 > treasure.y &&
-        newY - 15 < treasure.y + treasure.height
+        x + 15 > treasure.x &&
+        x - 15 < treasure.x + treasure.width &&
+        y + 15 > treasure.y &&
+        y - 15 < treasure.y + treasure.height
       ) {
         triggeredRef.current.add(treasure.id)
         onTreasureFound(treasure)
-        return 'treasure'
       }
     }
 
-    // Check battle collisions
     for (const battle of config.battles) {
       if (triggeredRef.current.has(battle.id)) continue
       if (
-        newX + 15 > battle.x &&
-        newX - 15 < battle.x + battle.width &&
-        newY + 15 > battle.y &&
-        newY - 15 < battle.y + battle.height
+        x + 15 > battle.x &&
+        x - 15 < battle.x + battle.width &&
+        y + 15 > battle.y &&
+        y - 15 < battle.y + battle.height
       ) {
         triggeredRef.current.add(battle.id)
         onBattleStart(battle)
-        return 'battle'
       }
     }
-
-    return null
   }, [config.treasures, config.battles, onTreasureFound, onBattleStart])
 
   // Game loop
   useEffect(() => {
-    const gameLoop = () => {
-      const now = Date.now()
-      const deltaTime = now - lastUpdateRef.current
-      
-      if (deltaTime < 16) { // Cap at ~60 FPS
-        animationRef.current = requestAnimationFrame(gameLoop)
-        return
+    let lastTime = performance.now()
+    let animationId
+
+    const gameLoop = (time) => {
+      const delta = Math.min((time - lastTime) / 16.67, 2)
+      lastTime = time
+
+      const keys = keysRef.current
+      let dx = 0
+      let dy = 0
+      let moving = false
+
+      if (keys['ArrowLeft'] || keys['a']) { dx -= 1; moving = true }
+      if (keys['ArrowRight'] || keys['d']) { dx += 1; moving = true }
+      if (keys['ArrowUp'] || keys['w']) { dy -= 1; moving = true }
+      if (keys['ArrowDown'] || keys['s']) { dy += 1; moving = true }
+
+      if (dx !== 0) {
+        const nextFacing = dx > 0 ? 'right' : 'left'
+        if (facingRef.current !== nextFacing) {
+          facingRef.current = nextFacing
+          setFacing(nextFacing)
+        }
       }
-      
-      lastUpdateRef.current = now
 
-      setPlayerPos(prevPos => {
-        let newX = prevPos.x
-        let newY = prevPos.y
-        let moving = false
-        let newFacing = facing
+      if (moving !== isMovingRef.current) {
+        isMovingRef.current = moving
+        setIsMoving(moving)
+      }
 
-        const speed = 3
+      if (moving) {
+        const speed = 6 * delta
+        const len = Math.sqrt(dx * dx + dy * dy)
+        dx = (dx / len) * speed
+        dy = (dy / len) * speed
 
-        if (keys['ArrowLeft'] || keys['a']) {
-          newX -= speed
-          moving = true
-          newFacing = 'left'
-        }
-        if (keys['ArrowRight'] || keys['d']) {
-          newX += speed
-          moving = true
-          newFacing = 'right'
-        }
-        if (keys['ArrowUp'] || keys['w']) {
-          newY -= speed
-          moving = true
-        }
-        if (keys['ArrowDown'] || keys['s']) {
-          newY += speed
-          moving = true
-        }
-
-        // Boundary checking
-        newX = Math.max(20, Math.min(config.width - 20, newX))
-        newY = Math.max(20, Math.min(config.height - 20, newY))
-
-        // Collision detection with obstacles
-        let canMove = true
-        for (const obstacle of config.obstacles) {
-          if (
-            newX + 15 > obstacle.x &&
-            newX - 15 < obstacle.x + obstacle.width &&
-            newY + 15 > obstacle.y &&
-            newY - 15 < obstacle.y + obstacle.height
-          ) {
-            canMove = false
-            break
+        const hitsObstacle = (x, y) => {
+          for (const obstacle of config.obstacles) {
+            if (
+              x + 15 > obstacle.x &&
+              x - 15 < obstacle.x + obstacle.width &&
+              y + 15 > obstacle.y &&
+              y - 15 < obstacle.y + obstacle.height
+            ) {
+              return true
+            }
           }
+          return false
         }
 
-        if (canMove && (newX !== prevPos.x || newY !== prevPos.y)) {
-          setIsMoving(moving)
-          setFacing(newFacing)
+        setPlayerPos((prev) => {
+          let newX = prev.x + dx
+          let newY = prev.y + dy
 
-          // Check collisions
-          const collision = checkCollisions(newX, newY)
-          if (collision) {
-            return prevPos // Don't move if collision occurred
+          // If diagonal move hits an obstacle, try sliding along the clear axis
+          if (hitsObstacle(newX, newY)) {
+            const horizontalClear = !hitsObstacle(newX, prev.y)
+            const verticalClear = !hitsObstacle(prev.x, newY)
+            if (horizontalClear && verticalClear) {
+              // Both axes clear independently; keep the larger movement component
+              if (Math.abs(dx) >= Math.abs(dy)) {
+                newY = prev.y
+              } else {
+                newX = prev.x
+              }
+            } else if (horizontalClear) {
+              newY = prev.y
+            } else if (verticalClear) {
+              newX = prev.x
+            } else {
+              newX = prev.x
+              newY = prev.y
+            }
           }
 
+          newX = Math.max(20, Math.min(config.width - 20, newX))
+          newY = Math.max(20, Math.min(config.height - 20, newY))
+
+          checkCollisions(newX, newY)
           return { x: newX, y: newY }
-        } else {
-          setIsMoving(false)
-          return prevPos
-        }
-      })
-
-      animationRef.current = requestAnimationFrame(gameLoop)
-    }
-
-    animationRef.current = requestAnimationFrame(gameLoop)
-
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current)
+        })
       }
+
+      animationId = requestAnimationFrame(gameLoop)
     }
-  }, [keys, facing, config, checkCollisions])
+
+    animationId = requestAnimationFrame(gameLoop)
+    return () => cancelAnimationFrame(animationId)
+  }, [config, checkCollisions])
 
   // Camera follow player
   const cameraX = Math.max(0, Math.min(config.width - 400, playerPos.x - 200))
   const cameraY = Math.max(0, Math.min(config.height - 300, playerPos.y - 150))
+
+  // Proximity reveal: objects fade in as the player approaches
+  const getVisibility = (obj, end, start) => {
+    const cx = obj.x + obj.width / 2
+    const cy = obj.y + obj.height / 2
+    const dist = Math.sqrt((cx - playerPos.x) ** 2 + (cy - playerPos.y) ** 2)
+    if (dist > start) return 0
+    if (dist < end) return 1
+    return 1 - (dist - end) / (start - end)
+  }
 
   // Use the first hero in the party
   const hero = party[0]
@@ -280,51 +299,57 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
           {/* Render treasures */}
           {config.treasures.map((treasure) => {
             const collected = discoveredTreasures[treasure.id]
+            const visibility = getVisibility(treasure, TREASURE_REVEAL_END, TREASURE_REVEAL_START)
+            if (visibility <= 0) return null
             return (
-            <div
-              key={treasure.id}
-              className={`absolute flex items-center justify-center ${collected ? '' : 'animate-pulse'}`}
-              style={{
-                left: `${treasure.x}px`,
-                top: `${treasure.y}px`,
-                width: `${treasure.width}px`,
-                height: `${treasure.height}px`
-              }}
-            >
-              <div className={`text-2xl ${collected ? 'opacity-30' : ''}`}>{collected ? '✓' : '💎'}</div>
-              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 font-pixel text-[4px] text-retro-gold whitespace-nowrap">
-                {treasure.name}
+              <div
+                key={treasure.id}
+                className="absolute flex flex-col items-center justify-center transition-opacity duration-300"
+                style={{
+                  left: `${treasure.x}px`,
+                  top: `${treasure.y}px`,
+                  width: `${treasure.width}px`,
+                  height: `${treasure.height}px`,
+                  opacity: visibility
+                }}
+              >
+                <div className={`w-4 h-4 rounded-sm transform rotate-45 transition-colors ${collected ? 'bg-retro-dim/50' : 'bg-retro-gold shadow-[0_0_8px_rgba(245,197,24,0.6)]'}`} />
+                <div className={`font-pixel text-[4px] mt-3 whitespace-nowrap ${collected ? 'text-retro-dim' : 'text-retro-gold'}`}>
+                  {collected ? 'DONE' : treasure.name}
+                </div>
               </div>
-            </div>
             )
           })}
 
           {/* Render battles */}
           {config.battles.map((battle) => {
             const completed = completedSecretBattles[battle.id]
+            const visibility = getVisibility(battle, BATTLE_REVEAL_END, BATTLE_REVEAL_START)
+            if (visibility <= 0) return null
             return (
-            <div
-              key={battle.id}
-              className={`absolute flex items-center justify-center ${completed ? '' : 'animate-pulse'}`}
-              style={{
-                left: `${battle.x}px`,
-                top: `${battle.y}px`,
-                width: `${battle.width}px`,
-                height: `${battle.height}px`
-              }}
-            >
-              <div className={`text-2xl ${completed ? 'opacity-30' : ''}`}>{completed ? '✓' : '⚔️'}</div>
-              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 font-pixel text-[4px] text-retro-accent whitespace-nowrap">
-                {battle.name}
+              <div
+                key={battle.id}
+                className="absolute flex flex-col items-center justify-center transition-opacity duration-300"
+                style={{
+                  left: `${battle.x}px`,
+                  top: `${battle.y}px`,
+                  width: `${battle.width}px`,
+                  height: `${battle.height}px`,
+                  opacity: visibility
+                }}
+              >
+                <div className={`w-4 h-4 rounded-full transition-colors ${completed ? 'bg-retro-dim/50' : 'bg-retro-accent shadow-[0_0_8px_rgba(233,69,96,0.6)]'}`} />
+                <div className={`font-pixel text-[4px] mt-3 whitespace-nowrap ${completed ? 'text-retro-dim' : 'text-retro-accent'}`}>
+                  {completed ? 'DONE' : battle.name}
+                </div>
               </div>
-            </div>
             )
           })}
 
           {/* Player */}
           {hero && (
             <div
-              className={`absolute ${isMoving ? 'duration-100' : 'duration-200'}`}
+              className="absolute"
               style={{
                 left: `${playerPos.x - 15}px`,
                 top: `${playerPos.y - 15}px`,
@@ -334,6 +359,44 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
               <Sprite type={hero.sprite} size={30} />
             </div>
           )}
+        </div>
+
+        {/* Mobile controls */}
+        <div className="absolute bottom-4 right-4 grid grid-cols-3 gap-1 select-none" style={{ touchAction: 'none' }}>
+          <div />
+          <button
+            className="pixel-btn w-12 h-12 flex items-center justify-center active:scale-95"
+            onPointerDown={(e) => { e.preventDefault(); setKey('ArrowUp', true) }}
+            onPointerUp={(e) => { e.preventDefault(); setKey('ArrowUp', false) }}
+            onPointerLeave={(e) => { e.preventDefault(); setKey('ArrowUp', false) }}
+          >
+            <span className="font-pixel text-[10px]">U</span>
+          </button>
+          <div />
+          <button
+            className="pixel-btn w-12 h-12 flex items-center justify-center active:scale-95"
+            onPointerDown={(e) => { e.preventDefault(); setKey('ArrowLeft', true) }}
+            onPointerUp={(e) => { e.preventDefault(); setKey('ArrowLeft', false) }}
+            onPointerLeave={(e) => { e.preventDefault(); setKey('ArrowLeft', false) }}
+          >
+            <span className="font-pixel text-[10px]">L</span>
+          </button>
+          <button
+            className="pixel-btn w-12 h-12 flex items-center justify-center active:scale-95"
+            onPointerDown={(e) => { e.preventDefault(); setKey('ArrowDown', true) }}
+            onPointerUp={(e) => { e.preventDefault(); setKey('ArrowDown', false) }}
+            onPointerLeave={(e) => { e.preventDefault(); setKey('ArrowDown', false) }}
+          >
+            <span className="font-pixel text-[10px]">D</span>
+          </button>
+          <button
+            className="pixel-btn w-12 h-12 flex items-center justify-center active:scale-95"
+            onPointerDown={(e) => { e.preventDefault(); setKey('ArrowRight', true) }}
+            onPointerUp={(e) => { e.preventDefault(); setKey('ArrowRight', false) }}
+            onPointerLeave={(e) => { e.preventDefault(); setKey('ArrowRight', false) }}
+          >
+            <span className="font-pixel text-[10px]">R</span>
+          </button>
         </div>
       </div>
     </div>

@@ -89,11 +89,12 @@ export default function App() {
     if (CLOUD_SYNC_ENABLED && uidRef.current) await deleteGame(uidRef.current)
     await deleteLocalGame()
     setHasCloudSave(false)
+    const fresh = createInitialState()
     const firstArea = AREAS[0]
     if (firstArea.paths) {
-      setState((s) => ({ ...s, phase: PHASES.PATH_SELECTION, selectedAreaIndex: 0 }))
+      setState({ ...fresh, phase: PHASES.PATH_SELECTION, selectedAreaIndex: 0 })
     } else {
-      setState((s) => ({ ...s, phase: PHASES.AREA_MAP }))
+      setState({ ...fresh, phase: PHASES.AREA_MAP })
     }
   }
 
@@ -323,7 +324,7 @@ export default function App() {
     setState((s) => ({ ...s, phase: PHASES.EXPLORATION }))
   }
 
-  const handleTreasureFound = (treasure) => {
+  const handleTreasureFound = useCallback((treasure) => {
     setState((s) => {
       if (s.discoveredTreasures[treasure.id]) return s
       // Find the treasure data from the current area
@@ -341,9 +342,9 @@ export default function App() {
       }
       return s
     })
-  }
+  }, [])
 
-  const handleExplorationBattle = (battle) => {
+  const handleExplorationBattle = useCallback((battle) => {
     setState((s) => {
       if (s.completedSecretBattles[battle.id]) return s
       // Find the battle data from the current area
@@ -358,7 +359,7 @@ export default function App() {
       }
       return s
     })
-  }
+  }, [])
 
   const exitExploration = () => {
     setState((s) => ({ ...s, phase: PHASES.AREA_MAP }))

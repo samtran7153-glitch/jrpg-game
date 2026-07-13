@@ -56,7 +56,7 @@ export function WorldMap({ state, onSelectArea, onBack }) {
       case 'mountain':
         return (
           <div key={index} className={baseClass} style={{ left: `${landmark.x}%`, top: `${landmark.y}%` }}>
-            <div className="text-retro-dim opacity-60" style={{ fontSize: '18px' }}>⛰️</div>
+            <div className="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[16px] border-b-retro-dim/60" />
             <div className="font-pixel text-[5px] text-retro-dim opacity-80 text-center mt-0.5">{landmark.name}</div>
           </div>
         )
@@ -70,21 +70,28 @@ export function WorldMap({ state, onSelectArea, onBack }) {
       case 'forest':
         return (
           <div key={index} className={baseClass} style={{ left: `${landmark.x}%`, top: `${landmark.y}%` }}>
-            <div className="text-retro-green opacity-60" style={{ fontSize: '14px' }}>🌲</div>
+            <div className="w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-b-[14px] border-b-retro-green/60" />
             <div className="font-pixel text-[5px] text-retro-dim opacity-80 text-center mt-0.5">{landmark.name}</div>
           </div>
         )
       case 'ruins':
         return (
           <div key={index} className={baseClass} style={{ left: `${landmark.x}%`, top: `${landmark.y}%` }}>
-            <div className="text-retro-dim opacity-60" style={{ fontSize: '12px' }}>🏛️</div>
+            <div className="flex gap-0.5 items-end opacity-60">
+              <div className="w-1.5 h-4 bg-retro-dim/60 rounded-t-sm" />
+              <div className="w-2 h-5 bg-retro-dim/60 rounded-t-sm" />
+              <div className="w-1.5 h-4 bg-retro-dim/60 rounded-t-sm" />
+            </div>
             <div className="font-pixel text-[5px] text-retro-dim opacity-80 text-center mt-0.5">{landmark.name}</div>
           </div>
         )
       case 'village':
         return (
           <div key={index} className={baseClass} style={{ left: `${landmark.x}%`, top: `${landmark.y}%` }}>
-            <div className="text-retro-accent opacity-60" style={{ fontSize: '10px' }}>🏘️</div>
+            <div className="relative opacity-60">
+              <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[8px] border-b-retro-accent/60" />
+              <div className="w-4 h-3 bg-retro-accent/60 -mt-0.5" />
+            </div>
             <div className="font-pixel text-[5px] text-retro-dim opacity-80 text-center mt-0.5">{landmark.name}</div>
           </div>
         )
@@ -225,12 +232,12 @@ export function WorldMap({ state, onSelectArea, onBack }) {
                   <Sprite type={area.sprite} size={24} />
                   {isCompleted && (
                     <div className="absolute -top-1 -right-1 w-4 h-4 bg-retro-green rounded-full flex items-center justify-center border border-retro-bg">
-                      <span className="font-pixel text-[6px] text-white">✓</span>
+                      <span className="font-pixel text-[6px] text-white">D</span>
                     </div>
                   )}
                   {isLocked && (
                     <div className="absolute -top-1 -right-1 w-4 h-4 bg-retro-accent rounded-full flex items-center justify-center border border-retro-bg">
-                      <span className="font-pixel text-[6px] text-white">🔒</span>
+                      <span className="font-pixel text-[6px] text-white">L</span>
                     </div>
                   )}
                   <span className="font-pixel text-[5px] text-retro-text leading-none mt-0.5 text-center">

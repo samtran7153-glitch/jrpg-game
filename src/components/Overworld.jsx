@@ -617,7 +617,7 @@ function StoryStage({ state, speaker, dialogueIndex, dialogueLines }) {
       </div>
 
       {allEnemies.length === 0 && (
-        <div className="absolute right-6 bottom-5 animate-story-sparkle font-pixel text-retro-gold text-xs">✦</div>
+        <div className="absolute right-6 bottom-5 w-2 h-2 bg-retro-gold rounded-full animate-pulse" />
       )}
     </div>
   )
