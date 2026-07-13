@@ -20,6 +20,8 @@ import {
   saveLocalGame, loadLocalGame, deleteLocalGame,
 } from './firebase'
 
+const CLOUD_SYNC_ENABLED = true
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 let floatId = 0
 
@@ -43,14 +45,16 @@ export default function App() {
         setHasCloudSave(true)
         setLastSavedAt(local.savedAt)
       }
-      const user = await ensureAnonymousUser()
-      if (!mounted) return
-      if (user) {
-        uidRef.current = user.uid
-        const cloud = await loadGame(user.uid)
-        if (cloud && mounted) {
-          setHasCloudSave(true)
-          setLastSavedAt(cloud.savedAt)
+      if (CLOUD_SYNC_ENABLED) {
+        const user = await ensureAnonymousUser()
+        if (!mounted) return
+        if (user) {
+          uidRef.current = user.uid
+          const cloud = await loadGame(user.uid)
+          if (cloud && mounted) {
+            setHasCloudSave(true)
+            setLastSavedAt(cloud.savedAt)
+          }
         }
       }
     })()
@@ -82,7 +86,7 @@ export default function App() {
   // ============ GAME FLOW ============
   const startGame = async () => {
     requestPersistentStorage()
-    if (uidRef.current) await deleteGame(uidRef.current)
+    if (CLOUD_SYNC_ENABLED && uidRef.current) await deleteGame(uidRef.current)
     await deleteLocalGame()
     setHasCloudSave(false)
     setState((s) => ({ ...s, phase: PHASES.AREA_MAP }))
@@ -93,7 +97,7 @@ export default function App() {
     setSaveStatus('saving')
     const local = await saveLocalGame(state)
     if (local.success) setLastSavedAt(local.savedAt)
-    if (uidRef.current) {
+    if (CLOUD_SYNC_ENABLED && uidRef.current) {
       const cloud = await saveGame(uidRef.current, state)
       if (cloud.success) setLastSavedAt(cloud.savedAt)
     }
