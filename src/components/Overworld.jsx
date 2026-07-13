@@ -1,328 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { Sprite } from '../Sprites'
 import { CharacterCard, GoldDisplay, HeroStatsModal } from './Shared'
 import { AREAS, ITEMS, xpForLevel } from '../gameState'
 import { ENEMY_TYPES } from '../gameData'
-import { WorldMap } from './WorldMap'
-
-// Side-scrolling exploration component
-function ExplorationPanel({ area, party, onTreasureFound, onBattleStart }) {
-  const [playerPos, setPlayerPos] = useState({ x: 100, y: 200 })
-  const [isMoving, setIsMoving] = useState(false)
-  const [facing, setFacing] = useState('right')
-  const [keys, setKeys] = useState({})
-  const animationRef = useRef(null)
-  const lastUpdateRef = useRef(Date.now())
-
-  // Area-specific configurations
-  const areaConfigs = {
-    forest: {
-      width: 1200,
-      height: 400,
-      playerStart: { x: 100, y: 200 },
-      treasures: [
-        { id: 'ancient_tree', x: 300, y: 150, width: 60, height: 80, name: 'Ancient Tree' },
-        { id: 'hidden_grove', x: 800, y: 250, width: 50, height: 60, name: 'Hidden Grove' },
-      ],
-      battles: [
-        { id: 'alpha_wolf', x: 600, y: 180, width: 40, height: 40, name: 'Alpha Wolf' },
-      ],
-      obstacles: [
-        { x: 200, y: 100, width: 80, height: 200 }, // Tree cluster
-        { x: 500, y: 250, width: 100, height: 100 }, // Rock formation
-      ],
-      background: 'linear-gradient(to bottom, #87CEEB 0%, #98D98E 60%, #2a4a2a 100%)'
-    },
-    cave: {
-      width: 1200,
-      height: 400,
-      playerStart: { x: 100, y: 200 },
-      treasures: [
-        { id: 'crystal_cache', x: 400, y: 180, width: 50, height: 60, name: 'Crystal Cache' },
-        { id: 'forgotten_chest', x: 900, y: 220, width: 40, height: 40, name: 'Forgotten Chest' },
-      ],
-      battles: [
-        { id: 'cave_troll', x: 650, y: 200, width: 50, height: 50, name: 'Cave Troll' },
-      ],
-      obstacles: [
-        { x: 300, y: 120, width: 120, height: 180 }, // Rock formation
-        { x: 750, y: 280, width: 80, height: 80 }, // Stalagmites
-      ],
-      background: 'linear-gradient(to bottom, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)'
-    },
-    castle: {
-      width: 1200,
-      height: 400,
-      playerStart: { x: 100, y: 200 },
-      treasures: [
-        { id: 'armory', x: 350, y: 160, width: 60, height: 70, name: 'Castle Armory' },
-        { id: 'treasury', x: 850, y: 240, width: 50, height: 50, name: 'Royal Treasury' },
-      ],
-      battles: [
-        { id: 'royal_guard', x: 600, y: 200, width: 45, height: 45, name: 'Royal Guard Captain' },
-      ],
-      obstacles: [
-        { x: 250, y: 100, width: 100, height: 200 }, // Pillar
-        { x: 700, y: 250, width: 150, height: 100 }, // Furniture
-      ],
-      background: 'linear-gradient(to bottom, #2a2a3a 0%, #3a3a4a 50%, #2a2a3a 100%)'
-    },
-    shadow: {
-      width: 1200,
-      height: 400,
-      playerStart: { x: 100, y: 200 },
-      treasures: [
-        { id: 'void_crystal', x: 450, y: 170, width: 55, height: 65, name: 'Void Crystal' },
-        { id: 'shadow_artifact', x: 820, y: 230, width: 45, height: 45, name: 'Shadow Artifact' },
-      ],
-      battles: [
-        { id: 'shadow_beast', x: 630, y: 190, width: 48, height: 48, name: 'Shadow Beast' },
-      ],
-      obstacles: [
-        { x: 350, y: 130, width: 90, height: 170 }, // Void mass
-        { x: 780, y: 270, width: 110, height: 90 }, // Dark energy
-      ],
-      background: 'linear-gradient(to bottom, #0a0a1a 0%, #1a1a2a 50%, #0a0a1a 100%)'
-    }
-  }
-
-  const config = areaConfigs[area.id] || areaConfigs.forest
-
-  // Handle keyboard input
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'a', 'd', 'w', 's'].includes(e.key)) {
-        e.preventDefault()
-        setKeys(prev => ({ ...prev, [e.key]: true }))
-      }
-    }
-
-    const handleKeyUp = (e) => {
-      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'a', 'd', 'w', 's'].includes(e.key)) {
-        e.preventDefault()
-        setKeys(prev => ({ ...prev, [e.key]: false }))
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    window.addEventListener('keyup', handleKeyUp)
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-      window.removeEventListener('keyup', handleKeyUp)
-    }
-  }, [])
-
-  // Check collisions
-  const checkCollisions = useCallback((newX, newY) => {
-    // Check treasure collisions
-    for (const treasure of config.treasures) {
-      if (
-        newX + 15 > treasure.x &&
-        newX - 15 < treasure.x + treasure.width &&
-        newY + 15 > treasure.y &&
-        newY - 15 < treasure.y + treasure.height
-      ) {
-        onTreasureFound(treasure)
-        return 'treasure'
-      }
-    }
-
-    // Check battle collisions
-    for (const battle of config.battles) {
-      if (
-        newX + 15 > battle.x &&
-        newX - 15 < battle.x + battle.width &&
-        newY + 15 > battle.y &&
-        newY - 15 < battle.y + battle.height
-      ) {
-        onBattleStart(battle)
-        return 'battle'
-      }
-    }
-
-    return null
-  }, [config.treasures, config.battles, onTreasureFound, onBattleStart])
-
-  // Game loop
-  useEffect(() => {
-    const gameLoop = () => {
-      const now = Date.now()
-      const deltaTime = now - lastUpdateRef.current
-      
-      if (deltaTime < 16) { // Cap at ~60 FPS
-        animationRef.current = requestAnimationFrame(gameLoop)
-        return
-      }
-      
-      lastUpdateRef.current = now
-
-      setPlayerPos(prevPos => {
-        let newX = prevPos.x
-        let newY = prevPos.y
-        let moving = false
-        let newFacing = facing
-
-        const speed = 3
-
-        if (keys['ArrowLeft'] || keys['a']) {
-          newX -= speed
-          moving = true
-          newFacing = 'left'
-        }
-        if (keys['ArrowRight'] || keys['d']) {
-          newX += speed
-          moving = true
-          newFacing = 'right'
-        }
-        if (keys['ArrowUp'] || keys['w']) {
-          newY -= speed
-          moving = true
-        }
-        if (keys['ArrowDown'] || keys['s']) {
-          newY += speed
-          moving = true
-        }
-
-        // Boundary checking
-        newX = Math.max(20, Math.min(config.width - 20, newX))
-        newY = Math.max(20, Math.min(config.height - 20, newY))
-
-        // Collision detection with obstacles
-        let canMove = true
-        for (const obstacle of config.obstacles) {
-          if (
-            newX + 15 > obstacle.x &&
-            newX - 15 < obstacle.x + obstacle.width &&
-            newY + 15 > obstacle.y &&
-            newY - 15 < obstacle.y + obstacle.height
-          ) {
-            canMove = false
-            break
-          }
-        }
-
-        if (canMove && (newX !== prevPos.x || newY !== prevPos.y)) {
-          setIsMoving(moving)
-          setFacing(newFacing)
-
-          // Check collisions
-          const collision = checkCollisions(newX, newY)
-          if (collision) {
-            return prevPos // Don't move if collision occurred
-          }
-
-          return { x: newX, y: newY }
-        } else {
-          setIsMoving(false)
-          return prevPos
-        }
-      })
-
-      animationRef.current = requestAnimationFrame(gameLoop)
-    }
-
-    animationRef.current = requestAnimationFrame(gameLoop)
-
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current)
-      }
-    }
-  }, [keys, facing, config, checkCollisions])
-
-  // Camera follow player
-  const cameraX = Math.max(0, Math.min(config.width - 400, playerPos.x - 200))
-  const cameraY = Math.max(0, Math.min(config.height - 300, playerPos.y - 150))
-
-  // Use the first hero in the party
-  const hero = party[0]
-
-  return (
-    <div className="pixel-panel p-2 flex-1">
-      <div className="text-center font-pixel text-[8px] text-retro-gold mb-2">EXPLORE</div>
-      <div className="text-center font-pixel text-[5px] text-retro-dim mb-2">Use arrow keys or WASD to move</div>
-      
-      <div className="relative h-48 bg-retro-bg border border-retro-border rounded overflow-hidden">
-        <div 
-          className="absolute inset-0"
-          style={{
-            width: `${config.width}px`,
-            height: `${config.height}px`,
-            background: config.background,
-            transform: `translate(${-cameraX}px, ${-cameraY}px)`
-          }}
-        >
-          {/* Render obstacles */}
-          {config.obstacles.map((obstacle, index) => (
-            <div
-              key={`obstacle-${index}`}
-              className="absolute bg-retro-dim/50 border border-retro-dim"
-              style={{
-                left: `${obstacle.x}px`,
-                top: `${obstacle.y}px`,
-                width: `${obstacle.width}px`,
-                height: `${obstacle.height}px`
-              }}
-            />
-          ))}
-
-          {/* Render treasures */}
-          {config.treasures.map((treasure) => (
-            <div
-              key={treasure.id}
-              className="absolute flex items-center justify-center animate-pulse"
-              style={{
-                left: `${treasure.x}px`,
-                top: `${treasure.y}px`,
-                width: `${treasure.width}px`,
-                height: `${treasure.height}px`
-              }}
-            >
-              <div className="text-xl">💎</div>
-              <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 font-pixel text-[3px] text-retro-gold whitespace-nowrap">
-                {treasure.name}
-              </div>
-            </div>
-          ))}
-
-          {/* Render battles */}
-          {config.battles.map((battle) => (
-            <div
-              key={battle.id}
-              className="absolute flex items-center justify-center animate-pulse"
-              style={{
-                left: `${battle.x}px`,
-                top: `${battle.y}px`,
-                width: `${battle.width}px`,
-                height: `${battle.height}px`
-              }}
-            >
-              <div className="text-xl">⚔️</div>
-              <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 font-pixel text-[3px] text-retro-accent whitespace-nowrap">
-                {battle.name}
-              </div>
-            </div>
-          ))}
-
-          {/* Player */}
-          {hero && (
-            <div
-              className={`absolute ${isMoving ? 'duration-100' : 'duration-200'}`}
-              style={{
-                left: `${playerPos.x - 15}px`,
-                top: `${playerPos.y - 15}px`,
-                transform: `scaleX(${facing === 'left' ? -1 : 1})`
-              }}
-            >
-              <Sprite type={hero.sprite} size={24} />
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
 
 function formatSavedAt(ts) {
   if (!ts) return 'Never'
@@ -565,66 +245,17 @@ export function TitleScreen({ onStart, onContinue, hasCloudSave }) {
   )
 }
 
-export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, onShop, onWorldMap, onExplore, onTreasureFound, onBattleStart, onSettings }) {
+export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onWorldMap, onExplore, onSettings }) {
   const area = AREAS[state.currentAreaIndex]
   if (!area) return null
   const selectedPath = state.selectedPaths[state.currentAreaIndex]
   const pathBattles = selectedPath ? area.paths[selectedPath].battles : area.battles.map((_, i) => i)
-  const lastPathBattle = pathBattles[pathBattles.length - 1]
-  const areaComplete = state.currentBattleIndex > lastPathBattle
 
   const [showItems, setShowItems] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
   const [statsHero, setStatsHero] = useState(null)
-  const [discoveryHint, setDiscoveryHint] = useState(null)
 
   const itemIds = Object.keys(state.inventory).filter((id) => state.inventory[id] > 0)
-
-  // Check for nearby hidden content
-  const checkForHiddenContent = (x, y) => {
-    const checkNearby = (content) => {
-      const distance = Math.sqrt(Math.pow(content.x - x, 2) + Math.pow(content.y - y, 2))
-      return distance < 15 // Within discovery radius
-    }
-
-    // Check treasures
-    for (const treasure of area.hiddenTreasures || []) {
-      if (!state.discoveredTreasures[treasure.id] && checkNearby(treasure)) {
-        setDiscoveryHint({ type: 'treasure', content: treasure })
-        return
-      }
-    }
-
-    // Check secret battles
-    for (const battle of area.secretBattles || []) {
-      if (!state.completedSecretBattles[battle.id] && checkNearby(battle)) {
-        setDiscoveryHint({ type: 'battle', content: battle })
-        return
-      }
-    }
-
-    setDiscoveryHint(null)
-  }
-
-  const handleDiscovery = () => {
-    if (!discoveryHint) return
-
-    if (discoveryHint.type === 'treasure') {
-      const treasure = discoveryHint.content
-      setState((s) => ({
-        ...s,
-        gold: s.gold + (treasure.gold || 0),
-        inventory: { ...s.inventory, [treasure.item]: (s.inventory[treasure.item] || 0) + 1 },
-        discoveredTreasures: { ...s.discoveredTreasures, [treasure.id]: true },
-        log: [...s.log, `Found ${treasure.name}! +${treasure.gold} gold, +1 ${treasure.item}`].slice(-6),
-      }))
-    } else if (discoveryHint.type === 'battle') {
-      const battle = discoveryHint.content
-      onSelectBattle(null, battle.enemies, null, null, null, battle)
-    }
-
-    setDiscoveryHint(null)
-  }
 
   const handleUseItem = (heroId) => {
     if (selectedItem) {
@@ -765,9 +396,10 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-1">
+      <div className="grid grid-cols-3 gap-1">
         <button className="pixel-btn" onClick={() => { setShowItems(!showItems); setSelectedItem(null) }}>Items</button>
         <button className="pixel-btn" onClick={onShop}>Shop</button>
+        <button className="pixel-btn" onClick={onExplore}>Explore</button>
       </div>
 
       <div className="flex gap-1 items-stretch">
@@ -780,21 +412,6 @@ export function AreaMapScreen({ state, onSelectBattle, onSelectArea, onUseItem, 
           </svg>
         </button>
       </div>
-
-      {/* Discovery popup */}
-      {discoveryHint && (
-        <div className="pixel-panel p-3 w-full space-y-2 animate-pulse">
-          <div className="font-pixel text-[8px] text-retro-gold text-center">
-            Something nearby!
-          </div>
-          <div className="font-pixel text-[6px] text-retro-dim text-center">
-            {discoveryHint.content.hint}
-          </div>
-          <button className="pixel-btn w-full" onClick={handleDiscovery}>
-            {discoveryHint.type === 'treasure' ? 'Investigate' : 'Challenge'}
-          </button>
-        </div>
-      )}
 
       {statsHero && <HeroStatsModal hero={statsHero} onClose={() => setStatsHero(null)} />}
     </div>
@@ -1047,9 +664,13 @@ export function VictoryScreen({ state, onConfirm }) {
   }
 
   const focusHero = (heroId) => {
+    const others = party.filter((h) => h.id !== heroId)
+    if (others.length === 0) {
+      setXpAlloc({ [heroId]: totalXp })
+      return
+    }
     const half = Math.floor(totalXp * 0.5)
     const rest = totalXp - half
-    const others = party.filter((h) => h.id !== heroId)
     const perOther = Math.floor(rest / others.length)
     const remainder = rest - perOther * others.length
     const alloc = {}
@@ -1188,8 +809,11 @@ export function DefeatScreen({ onRetry }) {
       <div className="font-pixel text-[9px] text-retro-dim text-center px-4">
         Your party has fallen. The darkness spreads...
       </div>
+      <div className="font-pixel text-[7px] text-retro-gold text-center px-4">
+        Your save is preserved. Use Continue on the title screen to reload.
+      </div>
       <button className="pixel-btn w-40" onClick={onRetry}>
-        Return Home
+        Return to Title
       </button>
     </div>
   )
@@ -1202,7 +826,7 @@ export function GameCompleteScreen({ onRestart }) {
         THE END
       </div>
       <div className="font-pixel text-[7px] text-retro-text text-center px-4 leading-relaxed">
-        The Ancient Dragon is vanquished.<br />Peace returns to the land.<br />Thank you for playing!
+        The Shadow Lord is vanquished.<br />Peace returns to the land.<br />Thank you for playing!
       </div>
       <div className="flex justify-center gap-2 mt-2">
         <Sprite type="knight" size={32} />

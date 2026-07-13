@@ -1,5 +1,5 @@
 import {
-  createParty, createHero, createEnemy, SKILLS, ITEMS, calculateDamage, rollCrit,
+  createParty, createEnemy, SKILLS, ITEMS, calculateDamage, rollCrit,
   levelUp, xpForLevel, AREAS,
 } from './gameData'
 
@@ -59,6 +59,7 @@ export function createInitialState() {
     selectedAreaIndex: null, // Area pending path selection before confirming arrival
     explorationMode: null, // 'path_selection' or 'exploring'
     pendingPathSelectionAfterDialogue: false, // Flag for routing to path selection after post-boss dialogue
+    explorationBattleId: null, // Track when a battle started from exploration mode
   }
 }
 
@@ -68,7 +69,11 @@ export function getAliveActors(state) {
 
 export function computeTurnOrder(party, enemies) {
   const all = [...party, ...enemies].filter((a) => a.alive && a.hp > 0)
-  return all.sort((a, b) => b.speed - a.speed)
+  return all.sort((a, b) => {
+    const aSpeed = (a.statusEffects || []).some(e => e.type === 'slow') ? Math.floor(a.speed * 0.5) : a.speed
+    const bSpeed = (b.statusEffects || []).some(e => e.type === 'slow') ? Math.floor(b.speed * 0.5) : b.speed
+    return bSpeed - aSpeed
+  })
 }
 
 export function getCurrentActor(state) {
@@ -107,6 +112,7 @@ export function startBattle(state, enemyTypes, dialogueBefore, dialogueAfter, re
     screenShake: 0,
     busy: false,
     pendingAction: null,
+    explorationBattleId: null,
   }
 }
 
@@ -129,7 +135,9 @@ export function checkBattleEnd(state) {
   if (aliveEnemies.length === 0) {
     const baseXp = state.enemies.reduce((sum, e) => sum + (e.xp || 0), 0)
     const baseGold = state.enemies.reduce((sum, e) => sum + (e.gold || 0), 0)
-    const battleKey = `${state.currentAreaIndex}-${state.activeBattleIndex ?? state.currentBattleIndex}`
+    const battleKey = state.explorationBattleId
+      ? `exploration-${state.currentAreaIndex}-${state.explorationBattleId}`
+      : `${state.currentAreaIndex}-${state.activeBattleIndex ?? state.currentBattleIndex}`
     const completions = (state.battleCompletions[battleKey] || 0) + 1
     const isReplay = completions > 1
     const penaltyMultiplier = isReplay ? 0.5 : 1
@@ -156,23 +164,3 @@ export function checkBattleEnd(state) {
   return null
 }
 
-export function applyXpAndLevelUps(state) {
-  if (!state.battleResult) return state
-  const xpPerHero = Math.floor(state.battleResult.xp / state.party.length)
-  const leveledUp = []
-  let party = state.party.map((hero) => {
-    let h = { ...hero, xp: (hero.xp || 0) + xpPerHero }
-    while (h.xp >= xpForLevel(h.level)) {
-      h.xp -= xpForLevel(h.level)
-      h = levelUp(h)
-      leveledUp.push(h.name)
-    }
-    return h
-  })
-  let recruited = null
-  if (state.pendingRecruit && !party.some((hero) => hero.classKey === state.pendingRecruit)) {
-    recruited = createHero(state.pendingRecruit)
-    party = [...party, recruited]
-  }
-  return { ...state, party, pendingRecruit: null, battleResult: { ...state.battleResult, leveledUp, xpPerHero, recruited, applied: true } }
-}

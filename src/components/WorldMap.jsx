@@ -1,58 +1,5 @@
-import { useState, useEffect, useRef } from 'react'
 import { AREAS } from '../gameState'
 import { Sprite } from '../Sprites'
-
-// Side-scrolling exploration component for World Map
-function WorldExplorationPanel({ areas, currentAreaIndex, party }) {
-  const [selectedArea, setSelectedArea] = useState(null)
-
-  const hero = party[0]
-
-  return (
-    <div className="pixel-panel p-2">
-      <div className="text-center font-pixel text-[8px] text-retro-gold mb-2">WORLD EXPLORATION</div>
-      <div className="text-center font-pixel text-[5px] text-retro-dim mb-2">Select an area to explore</div>
-      
-      <div className="grid grid-cols-2 gap-2">
-        {areas.map((area, index) => {
-          const isUnlocked = index <= currentAreaIndex
-          return (
-            <button
-              key={area.id}
-              className={`pixel-btn p-2 text-left ${
-                !isUnlocked ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
-              } ${selectedArea?.id === area.id ? 'ring-2 ring-retro-gold' : ''}`}
-              disabled={!isUnlocked}
-              onClick={() => setSelectedArea(area)}
-            >
-              <div className="flex items-center gap-2">
-                <Sprite type={area.sprite} size={20} />
-                <div>
-                  <div className="font-pixel text-[4px] text-retro-dim">
-                    {isUnlocked ? 'Unlocked' : 'Locked'}
-                  </div>
-                </div>
-              </div>
-            </button>
-          )
-        })}
-      </div>
-
-      {selectedArea && (
-        <div className="mt-4 p-2 bg-retro-bg border border-retro-border rounded">
-          {hero && (
-            <div className="flex justify-center mt-2">
-              <Sprite type={hero.sprite} size={24} />
-            </div>
-          )}
-          <div className="text-center font-pixel text-[4px] text-retro-dim mt-2">
-            Use arrow keys to explore (coming soon)
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
 
 export function WorldMap({ state, onSelectArea, onBack }) {
   const { currentAreaIndex } = state
@@ -298,12 +245,6 @@ export function WorldMap({ state, onSelectArea, onBack }) {
       <div className="text-center font-pixel text-[6px] text-retro-dim">
         Click any unlocked area to travel
       </div>
-
-      <WorldExplorationPanel
-        areas={AREAS}
-        currentAreaIndex={currentAreaIndex}
-        party={state.party}
-      />
 
       <button className="pixel-btn w-full" onClick={onBack}>
         Back

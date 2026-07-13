@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import {
   createInitialState, PHASES, SKILLS, ITEMS, AREAS,
   calculateDamage, rollCrit, startBattle, advanceDialogue,
-  checkBattleEnd, applyXpAndLevelUps, xpForLevel, levelUp,
+  checkBattleEnd, computeTurnOrder, xpForLevel, levelUp,
 } from './gameState'
 import { createHero, ENEMY_TYPES } from './gameData'
 import { BattleScreen } from './components/BattleScreen'
@@ -89,18 +89,51 @@ export default function App() {
     if (CLOUD_SYNC_ENABLED && uidRef.current) await deleteGame(uidRef.current)
     await deleteLocalGame()
     setHasCloudSave(false)
-    setState((s) => ({ ...s, phase: PHASES.AREA_MAP }))
+    const firstArea = AREAS[0]
+    if (firstArea.paths) {
+      setState((s) => ({ ...s, phase: PHASES.PATH_SELECTION, selectedAreaIndex: 0 }))
+    } else {
+      setState((s) => ({ ...s, phase: PHASES.AREA_MAP }))
+    }
   }
 
   const handleSaveGame = async () => {
     requestPersistentStorage()
     setSaveStatus('saving')
     const local = await saveLocalGame(state)
-    if (local.success) setLastSavedAt(local.savedAt)
-    if (CLOUD_SYNC_ENABLED && uidRef.current) {
-      const cloud = await saveGame(uidRef.current, state)
-      if (cloud.success) setLastSavedAt(cloud.savedAt)
+    if (local.success) {
+      setLastSavedAt(local.savedAt)
+      console.log('[handleSaveGame] local save success', { savedAt: local.savedAt })
+    } else {
+      console.error('[handleSaveGame] local save failed')
     }
+
+    if (CLOUD_SYNC_ENABLED) {
+      let uid = uidRef.current
+      if (!uid) {
+        console.log('[handleSaveGame] waiting for anonymous auth before cloud save')
+        const user = await ensureAnonymousUser()
+        if (user) {
+          uid = user.uid
+          uidRef.current = uid
+        }
+      }
+      if (uid) {
+        console.log('[handleSaveGame] attempting cloud save', { uid })
+        const cloud = await saveGame(uid, state)
+        if (cloud.success) {
+          setLastSavedAt(cloud.savedAt)
+          console.log('[handleSaveGame] cloud save success', { savedAt: cloud.savedAt })
+        } else {
+          console.error('[handleSaveGame] cloud save failed')
+        }
+      } else {
+        console.warn('[handleSaveGame] no UID available; skipping cloud save')
+      }
+    } else {
+      console.log('[handleSaveGame] cloud sync disabled')
+    }
+
     setSaveStatus('saved')
     setTimeout(() => setSaveStatus('idle'), 2000)
     return true
@@ -212,13 +245,31 @@ export default function App() {
     })
     // Debounce cloud save to avoid excessive Firestore writes
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
-    saveTimeoutRef.current = setTimeout(() => {
-      if (uidRef.current) {
-        saveGame(uidRef.current, state).then((cloud) => {
-          if (cloud.success) setLastSavedAt(cloud.savedAt)
-        }).catch(() => {})
+    saveTimeoutRef.current = setTimeout(async () => {
+      let uid = uidRef.current
+      if (!uid) {
+        const user = await ensureAnonymousUser()
+        if (user) {
+          uid = user.uid
+          uidRef.current = uid
+        }
       }
-    }, 3000)
+      if (uid) {
+        console.log('[autoSave] attempting cloud save', { uid })
+        saveGame(uid, state).then((cloud) => {
+          if (cloud.success) {
+            setLastSavedAt(cloud.savedAt)
+            console.log('[autoSave] cloud save success', { savedAt: cloud.savedAt })
+          } else {
+            console.error('[autoSave] cloud save failed')
+          }
+        }).catch((err) => {
+          console.error('[autoSave] cloud save error', err)
+        })
+      } else {
+        console.warn('[autoSave] no UID available; skipping cloud save')
+      }
+    }, 30000)
     return () => {
       cancelled = true
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
@@ -226,9 +277,31 @@ export default function App() {
   }, [state])
 
   useEffect(() => {
-    const flushSave = () => {
+    const flushSave = async () => {
       if (state.phase !== PHASES.TITLE) {
         saveLocalGame(state)
+        let uid = uidRef.current
+        if (!uid) {
+          const user = await ensureAnonymousUser()
+          if (user) {
+            uid = user.uid
+            uidRef.current = uid
+          }
+        }
+        if (uid) {
+          console.log('[flushSave] attempting cloud save', { uid })
+          saveGame(uid, state).then((cloud) => {
+            if (cloud.success) {
+              console.log('[flushSave] cloud save success')
+            } else {
+              console.error('[flushSave] cloud save failed')
+            }
+          }).catch((err) => {
+            console.error('[flushSave] cloud save error', err)
+          })
+        } else {
+          console.warn('[flushSave] no UID available; skipping cloud save')
+        }
       }
     }
     const handleVisibility = () => {
@@ -252,6 +325,7 @@ export default function App() {
 
   const handleTreasureFound = (treasure) => {
     setState((s) => {
+      if (s.discoveredTreasures[treasure.id]) return s
       // Find the treasure data from the current area
       const area = AREAS[s.currentAreaIndex]
       const treasureData = area.hiddenTreasures?.find(t => t.id === treasure.id)
@@ -271,14 +345,15 @@ export default function App() {
 
   const handleExplorationBattle = (battle) => {
     setState((s) => {
+      if (s.completedSecretBattles[battle.id]) return s
       // Find the battle data from the current area
       const area = AREAS[s.currentAreaIndex]
       const battleData = area.secretBattles?.find(b => b.id === battle.id)
       
       if (battleData) {
         return { 
-          ...startBattle(s, battleData.enemies, null, null, null, battleData), 
-          completedSecretBattles: { ...s.completedSecretBattles, [battle.id]: true },
+          ...startBattle(s, battleData.enemies),
+          explorationBattleId: battle.id,
         }
       }
       return s
@@ -445,6 +520,26 @@ export default function App() {
 
   const continueAfterVictory = () => {
     setState((s) => {
+      const healedParty = s.party.map((h) => ({
+        ...h,
+        defending: false,
+        statusEffects: [],
+      }))
+
+      if (s.explorationBattleId) {
+        return {
+          ...s,
+          party: healedParty,
+          phase: PHASES.EXPLORATION,
+          battleResult: null,
+          enemies: [],
+          dialogueAfter: null,
+          activeBattleIndex: null,
+          explorationBattleId: null,
+          completedSecretBattles: { ...s.completedSecretBattles, [s.explorationBattleId]: true },
+        }
+      }
+
       const area = AREAS[s.currentAreaIndex]
       const completedBattleIndex = s.activeBattleIndex ?? s.currentBattleIndex
       const isReplay = completedBattleIndex < s.currentBattleIndex
@@ -459,12 +554,6 @@ export default function App() {
       if (!isReplay && isLastPathBattle && selectedPath?.outro && selectedPath.outro.length > 0) {
         afterDialogue = selectedPath.outro
       }
-
-      const healedParty = s.party.map((h) => ({
-        ...h,
-        defending: false,
-        statusEffects: [],
-      }))
 
       // Last path battle: advance to the next area (with after-dialogue if any)
       if (!isReplay && isLastPathBattle) {
@@ -578,20 +667,16 @@ export default function App() {
     setTimeout(() => continueAfterVictory(), 100)
   }
 
-  const retry = () => {
-    setState((s) => {
-      const area = AREAS[s.currentAreaIndex]
-      const battle = area.battles[s.currentBattleIndex]
-      return startBattle(s, battle.enemies, battle.dialogue?.before, battle.dialogue?.after, battle.recruit)
-    })
-  }
-
   const newGame = async () => {
     if (uidRef.current) {
       await deleteGame(uidRef.current)
     }
     await deleteLocalGame()
     setHasCloudSave(false)
+    setState(createInitialState())
+  }
+
+  const returnToTitle = () => {
     setState(createInitialState())
   }
 
@@ -675,21 +760,22 @@ export default function App() {
   }
 
   const advanceTurn = (s, skipCount = 0) => {
+    // Recompute turn order to account for slow status effect changes
+    const recomputedOrder = computeTurnOrder(s.party, s.enemies)
+    const currentActor = s.turnOrder[s.currentTurnIndex % s.turnOrder.length]
+    const newIdx = recomputedOrder.findIndex(a => a.id === currentActor?.id)
+    s = { ...s, turnOrder: recomputedOrder, currentTurnIndex: newIdx >= 0 ? newIdx : 0 }
+
     const currentQueuedActor = s.turnOrder[s.currentTurnIndex % s.turnOrder.length]
     let livingOrder = getLivingTurnOrder(s)
     if (livingOrder.length === 0) return s
 
     // If we've skipped through all living actors (all stunned/dead from poison),
-    // advance to the next round by moving past the current actor
+    // advance to the next round and retry — stun durations have been decremented,
+    // so eventually someone will be able to act
     if (skipCount >= livingOrder.length) {
       const nextIdx = (s.currentTurnIndex + 1) % s.turnOrder.length
-      return {
-        ...s,
-        currentTurnIndex: nextIdx,
-        turnNonce: (s.turnNonce || 0) + 1,
-        activeActor: null,
-        phase: PHASES.PLAYER_MENU,
-      }
+      return advanceTurn({ ...s, currentTurnIndex: nextIdx }, 0)
     }
 
     const currentLivingIndex = livingOrder.findIndex((actor) => actor.id === currentQueuedActor?.id)
@@ -1061,10 +1147,11 @@ export default function App() {
           const newGold = Math.max(0, s.gold - surrenderCost)
           const log = addLog(s.log, `${actor.name} surrenders! The party escapes but loses ${surrenderCost} gold.`)
           const floats = addFloatText(s, `-${surrenderCost}G`, 50, 50, '#f5c518')
+          const isExplorationBattle = !!s.explorationBattleId
           return {
             ...s,
             gold: newGold,
-            phase: PHASES.AREA_MAP,
+            phase: isExplorationBattle ? PHASES.EXPLORATION : PHASES.AREA_MAP,
             enemies: [],
             busy: false,
             log,
@@ -1072,6 +1159,7 @@ export default function App() {
             pendingAction: null,
             battleResult: null,
             activeBattleIndex: null,
+            explorationBattleId: null,
           }
         })
         break
@@ -1282,13 +1370,10 @@ export default function App() {
           <AreaMapScreen
             state={state}
             onSelectBattle={selectBattle}
-            onSelectArea={selectArea}
             onUseItem={useOverworldItem}
             onShop={() => setState((s) => ({ ...s, phase: PHASES.SHOP }))}
             onWorldMap={openWorldMap}
             onExplore={startExploration}
-            onTreasureFound={handleTreasureFound}
-            onBattleStart={handleExplorationBattle}
             onSettings={() => setState((s) => ({ ...s, phase: PHASES.SETTINGS }))}
           />
         )
@@ -1300,6 +1385,8 @@ export default function App() {
             onTreasureFound={handleTreasureFound}
             onBattleStart={handleExplorationBattle}
             onExit={exitExploration}
+            discoveredTreasures={state.discoveredTreasures}
+            completedSecretBattles={state.completedSecretBattles}
           />
         )
       case PHASES.PATH_SELECTION:
@@ -1344,7 +1431,7 @@ export default function App() {
         return <VictoryScreen state={state} onConfirm={confirmXpAllocation} />
       case PHASES.BATTLE_DEFEAT:
         if (screenFade) return <BattleScreen state={state} anim={anim} onAction={handleAction} />
-        return <DefeatScreen onRetry={newGame} />
+        return <DefeatScreen onRetry={returnToTitle} />
       case PHASES.SETTINGS:
         return (
           <SettingsScreen

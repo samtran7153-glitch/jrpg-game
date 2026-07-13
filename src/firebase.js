@@ -33,9 +33,22 @@ export function ensureAnonymousUser() {
   })
 }
 
+async function ensureAuthUid() {
+  const user = await ensureAnonymousUser()
+  return user?.uid || null
+}
+
 export async function saveGame(uid, gameState) {
   try {
-    const saveRef = doc(db, 'saves', uid)
+    const currentUid = await ensureAuthUid()
+    if (!currentUid) {
+      console.error('[saveGame] no authenticated user available')
+      return { success: false, savedAt: null }
+    }
+    if (currentUid !== uid) {
+      console.warn('[saveGame] UID mismatch, using current auth UID', { requested: uid, current: currentUid })
+    }
+    const saveRef = doc(db, 'saves', currentUid)
     const serializable = JSON.parse(JSON.stringify(gameState))
     const savedAt = Date.now()
     await setDoc(saveRef, {
@@ -52,7 +65,15 @@ export async function saveGame(uid, gameState) {
 
 export async function loadGame(uid) {
   try {
-    const saveRef = doc(db, 'saves', uid)
+    const currentUid = await ensureAuthUid()
+    if (!currentUid) {
+      console.error('[loadGame] no authenticated user available')
+      return null
+    }
+    if (currentUid !== uid) {
+      console.warn('[loadGame] UID mismatch, using current auth UID', { requested: uid, current: currentUid })
+    }
+    const saveRef = doc(db, 'saves', currentUid)
     const snap = await getDoc(saveRef)
     if (snap.exists()) {
       const data = snap.data()
@@ -67,7 +88,15 @@ export async function loadGame(uid) {
 
 export async function deleteGame(uid) {
   try {
-    const saveRef = doc(db, 'saves', uid)
+    const currentUid = await ensureAuthUid()
+    if (!currentUid) {
+      console.error('[deleteGame] no authenticated user available')
+      return false
+    }
+    if (currentUid !== uid) {
+      console.warn('[deleteGame] UID mismatch, using current auth UID', { requested: uid, current: currentUid })
+    }
+    const saveRef = doc(db, 'saves', currentUid)
     await deleteDoc(saveRef)
     return true
   } catch (err) {
