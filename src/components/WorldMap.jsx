@@ -208,18 +208,18 @@ export function WorldMap({ state, onSelectArea, onBack }) {
         </div>
 
         {/* Connection paths */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none">
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
           {connections.map(({ from, to }, i) => {
             const fromPos = positions[from]
             const toPos = positions[to]
             const isActive = isPathUnlocked(from, to)
-            
+
             // Create curved path
             const midX = (fromPos.x + toPos.x) / 2
             const midY = (fromPos.y + toPos.y) / 2 - 10 // Curve upward
-            
-            const pathData = `M ${fromPos.x}% ${fromPos.y}% Q ${midX}% ${midY}% ${toPos.x}% ${toPos.y}%`
-            
+
+            const pathData = `M ${fromPos.x} ${fromPos.y} Q ${midX} ${midY} ${toPos.x} ${toPos.y}`
+
             return (
               <g key={i}>
                 <path
@@ -233,7 +233,7 @@ export function WorldMap({ state, onSelectArea, onBack }) {
                 {/* Arrow indicator */}
                 {isActive && (
                   <polygon
-                    points={`${toPos.x}% ${toPos.y}% ${toPos.x - 2}% ${toPos.y - 3}% ${toPos.x + 2}% ${toPos.y - 3}%`}
+                    points={`${toPos.x} ${toPos.y} ${toPos.x - 2} ${toPos.y - 3} ${toPos.x + 2} ${toPos.y - 3}`}
                     fill="#6a6a8a"
                     opacity="0.6"
                   />

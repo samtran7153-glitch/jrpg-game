@@ -412,7 +412,17 @@ export default function App() {
   }
 
   const advanceDialogueHandler = () => {
-    setState((s) => advanceDialogue(s))
+    setState((s) => {
+      const nextState = advanceDialogue(s)
+      if (nextState.phase === PHASES.AREA_MAP) {
+        const area = AREAS[nextState.currentAreaIndex]
+        const needsPathSelection = area?.paths && !nextState.selectedPaths[nextState.currentAreaIndex]
+        if (needsPathSelection) {
+          return { ...nextState, phase: PHASES.PATH_SELECTION, selectedAreaIndex: nextState.currentAreaIndex }
+        }
+      }
+      return nextState
+    })
   }
 
   const continueAfterVictory = () => {
@@ -440,6 +450,8 @@ export default function App() {
         if (nextAreaIndex >= AREAS.length) {
           return { ...s, phase: PHASES.GAME_COMPLETE, dialogueAfter: null, activeBattleIndex: null }
         }
+        const nextArea = AREAS[nextAreaIndex]
+        const needsPathSelection = nextArea.paths && !s.selectedPaths[nextAreaIndex]
         if (afterDialogue && afterDialogue.length > 0) {
           return {
             ...s,
@@ -459,7 +471,8 @@ export default function App() {
           party: healedParty,
           currentAreaIndex: nextAreaIndex,
           currentBattleIndex: 0,
-          phase: PHASES.AREA_MAP,
+          phase: needsPathSelection ? PHASES.PATH_SELECTION : PHASES.AREA_MAP,
+          selectedAreaIndex: needsPathSelection ? nextAreaIndex : null,
           battleResult: null,
           enemies: [],
           dialogueAfter: null,
