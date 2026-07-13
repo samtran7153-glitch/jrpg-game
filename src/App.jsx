@@ -298,7 +298,7 @@ export default function App() {
         selectedAreaIndex: null,
         currentAreaIndex: areaIndex,
         phase: PHASES.AREA_MAP,
-        currentBattleIndex: 0,
+        currentBattleIndex: path.battles[0],
         // Set up battles based on selected path
         pathBattles: path.battles,
         pathRewards: path.rewards,
