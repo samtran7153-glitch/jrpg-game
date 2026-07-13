@@ -425,11 +425,14 @@ export default function App() {
   const advanceDialogueHandler = () => {
     setState((s) => {
       const nextState = advanceDialogue(s)
-      if (nextState.phase === PHASES.AREA_MAP) {
+      if (nextState.pendingPathSelectionAfterDialogue && nextState.phase === PHASES.AREA_MAP) {
         const area = AREAS[nextState.currentAreaIndex]
         const needsPathSelection = area?.paths && !nextState.selectedPaths[nextState.currentAreaIndex]
-        if (needsPathSelection) {
-          return { ...nextState, phase: PHASES.PATH_SELECTION, selectedAreaIndex: nextState.currentAreaIndex }
+        return {
+          ...nextState,
+          phase: needsPathSelection ? PHASES.PATH_SELECTION : PHASES.AREA_MAP,
+          selectedAreaIndex: needsPathSelection ? nextState.currentAreaIndex : null,
+          pendingPathSelectionAfterDialogue: false,
         }
       }
       return nextState
@@ -479,6 +482,7 @@ export default function App() {
             dialogueAfter: null,
             battleResult: null,
             activeBattleIndex: null,
+            pendingPathSelectionAfterDialogue: needsPathSelection,
           }
         }
         return {
@@ -492,6 +496,7 @@ export default function App() {
           enemies: [],
           dialogueAfter: null,
           activeBattleIndex: null,
+          pendingPathSelectionAfterDialogue: false,
         }
       }
 
