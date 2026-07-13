@@ -74,12 +74,16 @@ export const AREAS = [
         name: 'Safe Path',
         description: 'Follow the cleared trail through the forest',
         battles: [0, 1, 2], // Use battles 0, 1, 2
+        intro: ['Aria: The trail ahead is clear and well-trodden. We should make good time if we stay alert.'],
+        outro: ['Kira: The forest edge is in sight. Quiet, but maybe too quiet for my taste.'],
         rewards: { xpMultiplier: 0.8, goldMultiplier: 0.8 }
       },
       hard: {
         name: 'Deep Woods',
         description: 'Venture into the dangerous parts of the forest',
         battles: [3, 4, 5], // Use battles 3, 4, 5
+        intro: ['Elwyn: The deeper woods grow dark and tangled. Eyes watch from every shadow.', 'Kira: Good. Let them watch.'],
+        outro: ['Aria: We made it through the thicket. Battered, but stronger for it.', 'Elwyn: The wild things know our names now.'],
         rewards: { xpMultiplier: 1.3, goldMultiplier: 1.3 }
       }
     },
@@ -108,12 +112,16 @@ export const AREAS = [
         name: 'Upper Tunnels',
         description: 'Stay in the safer upper levels of the cave',
         battles: [0, 1, 2, 3],
+        intro: ['Sera: The upper tunnels are narrow but stable. My light will keep the dark at bay.'],
+        outro: ['Aria: We reached a wider cavern. The safer road spared our strength, if not our purses.'],
         rewards: { xpMultiplier: 0.8, goldMultiplier: 0.8 }
       },
       hard: {
         name: 'Lower Depths',
         description: 'Descend into the dangerous lower caverns',
         battles: [4, 5, 6],
+        intro: ['Elwyn: The lower depths yawn below. I can hear the dead stirring.', 'Kira: Then we go wake them properly.'],
+        outro: ['Sera: Climbing back from the depths, I can still feel the cold.', 'Elwyn: Cold, but our pockets are heavy. Worth it.'],
         rewards: { xpMultiplier: 1.4, goldMultiplier: 1.4 }
       }
     },
@@ -141,12 +149,16 @@ export const AREAS = [
         name: 'Side Entrance',
         description: 'Sneak in through the less guarded side passages',
         battles: [0, 1, 2, 3],
+        intro: ['Kira: The side entrance is cramped and dusty. Fewer guards, more cobwebs.'],
+        outro: ['Aria: We slipped back into the courtyard unseen. The castle never noticed us slip inside.'],
         rewards: { xpMultiplier: 0.8, goldMultiplier: 0.8 }
       },
       hard: {
         name: 'Main Hall',
         description: 'Charge directly through the main castle halls',
         battles: [4, 5],
+        intro: ['Aria: The main hall looms ahead. Banners of darkness hang from every vault.', 'Elwyn: Then let us tear them down.'],
+        outro: ['Sera: The hall falls silent. Our bold assault broke through the castle\'s heart.', 'Kira: They will remember the noise we made.'],
         rewards: { xpMultiplier: 1.5, goldMultiplier: 1.5 }
       }
     },
@@ -173,12 +185,16 @@ export const AREAS = [
         name: 'Shadow Path',
         description: 'Follow the stable shadow pathways',
         battles: [0, 1, 2, 3],
+        intro: ['Elwyn: The shadow path feels almost solid, clinging to our boots with every step.', 'Sera: Stay close. I can still shield you from the worst of it.'],
+        outro: ['Aria: The rift shudders. We have stayed the course of the shadows.', 'Kira: For now.'],
         rewards: { xpMultiplier: 0.8, goldMultiplier: 0.8 }
       },
       hard: {
         name: 'Void Core',
         description: 'Venture directly into the heart of darkness',
         battles: [4],
+        intro: ['Aria: The void core tears at the edges of reality. I can barely see my own hand.', 'Elwyn: Then raise your shield and march. We end this here.'],
+        outro: ['Sera: From the brink of oblivion, we return.', 'Kira: Victorious, if forever changed.'],
         rewards: { xpMultiplier: 2.0, goldMultiplier: 2.0 }
       }
     },

@@ -292,17 +292,28 @@ export default function App() {
       const path = area.paths[pathKey]
       if (!path) return s
 
-      return {
+      const baseState = {
         ...s,
         selectedPaths: { ...s.selectedPaths, [areaIndex]: pathKey },
         selectedAreaIndex: null,
         currentAreaIndex: areaIndex,
-        phase: PHASES.AREA_MAP,
         currentBattleIndex: path.battles[0],
         // Set up battles based on selected path
         pathBattles: path.battles,
         pathRewards: path.rewards,
       }
+
+      if (path.intro && path.intro.length > 0) {
+        return {
+          ...baseState,
+          phase: PHASES.DIALOGUE,
+          dialogueLines: path.intro,
+          dialogueIndex: 0,
+          dialogueAfter: null,
+        }
+      }
+
+      return { ...baseState, phase: PHASES.AREA_MAP }
     })
   }
 
@@ -431,12 +442,16 @@ export default function App() {
       const completedBattleIndex = s.activeBattleIndex ?? s.currentBattleIndex
       const isReplay = completedBattleIndex < s.currentBattleIndex
       const nextBattleIndex = isReplay ? s.currentBattleIndex : completedBattleIndex + 1
-      const afterDialogue = isReplay ? null : s.dialogueAfter
 
       const selectedPathKey = s.selectedPaths[s.currentAreaIndex]
       const selectedPath = selectedPathKey ? area.paths[selectedPathKey] : null
       const pathBattles = selectedPath ? selectedPath.battles : area.battles.map((_, i) => i)
       const isLastPathBattle = pathBattles.indexOf(completedBattleIndex) === pathBattles.length - 1
+
+      let afterDialogue = isReplay ? null : s.dialogueAfter
+      if (!isReplay && isLastPathBattle && selectedPath?.outro && selectedPath.outro.length > 0) {
+        afterDialogue = selectedPath.outro
+      }
 
       const healedParty = s.party.map((h) => ({
         ...h,
