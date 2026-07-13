@@ -153,7 +153,7 @@ function DecorIcon({ type, size }) {
 }
 
 export function BattleScreen({ state, anim, onAction }) {
-  const { party, enemies, turnOrder, currentTurnIndex, phase, log, floatTexts, screenShake, gold } = state
+  const { party, enemies, turnOrder, currentTurnIndex, phase, log, floatTexts, screenShake } = state
   const area = AREAS[state.currentAreaIndex]
   const theme = AREA_THEMES[area?.id] || AREA_THEMES.forest
   const queuedActor = turnOrder[currentTurnIndex % turnOrder.length]
@@ -445,7 +445,7 @@ function BattleMenu({ state, activeActor, isPlayerTurn, onAction, tutorialHighli
     )
   }
 
-  const surrenderCost = Math.max(10, Math.ceil(gold * 0.5))
+  const surrenderCost = Math.max(10, Math.ceil(state.gold * 0.5))
 
   return (
     <div className="space-y-1">
