@@ -3,12 +3,12 @@ import { Sprite } from '../Sprites'
 
 export function WorldMap({ state, onSelectArea, onBack }) {
   const { currentAreaIndex } = state
+  const maxReached = state.maxAreaReached ?? currentAreaIndex
 
   const getAreaStatus = (index) => {
-    if (index < currentAreaIndex) return 'completed'
     if (index === currentAreaIndex) return 'current'
-    if (index === currentAreaIndex + 1) return 'next' // Next unlockable area
-    return 'locked'
+    if (index <= maxReached) return 'completed' // reachable: cleared or previously unlocked
+    return 'locked' // must clear the current area to unlock the next
   }
 
   const handleAreaClick = (index) => {
@@ -205,7 +205,7 @@ export function WorldMap({ state, onSelectArea, onBack }) {
           const isCurrent = status === 'current'
           const isCompleted = status === 'completed'
           const isNext = status === 'next'
-          const isUnknown = isLocked && index > currentAreaIndex + 1
+          const isUnknown = isLocked && index > maxReached + 1
 
           return (
             <button
@@ -237,7 +237,9 @@ export function WorldMap({ state, onSelectArea, onBack }) {
                   )}
                   {isLocked && (
                     <div className="absolute -top-1 -right-1 w-4 h-4 bg-retro-accent rounded-full flex items-center justify-center border border-retro-bg">
-                      <span className="font-pixel text-[6px] text-white">L</span>
+                      <svg className="w-2.5 h-2.5 fill-white" viewBox="0 0 24 24" aria-label="Locked">
+                        <path d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5zm-3 8V6a3 3 0 0 1 6 0v3H9z" />
+                      </svg>
                     </div>
                   )}
                   <span className="font-pixel text-[5px] text-retro-text leading-none mt-0.5 text-center">

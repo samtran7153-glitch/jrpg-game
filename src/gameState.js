@@ -38,6 +38,7 @@ export function createInitialState() {
     gold: 100,
     inventory: { potion: 5, ether: 2, phoenixDown: 1 },
     currentAreaIndex: 0,
+    maxAreaReached: 0, // Furthest area unlocked by clearing; gates world-map travel
     currentBattleIndex: 0,
     turnOrder: [],
     currentTurnIndex: 0,

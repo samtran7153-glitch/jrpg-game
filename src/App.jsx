@@ -90,12 +90,9 @@ export default function App() {
     await deleteLocalGame()
     setHasCloudSave(false)
     const fresh = createInitialState()
-    const firstArea = AREAS[0]
-    if (firstArea.paths) {
-      setState({ ...fresh, phase: PHASES.PATH_SELECTION, selectedAreaIndex: 0 })
-    } else {
-      setState({ ...fresh, phase: PHASES.AREA_MAP })
-    }
+    // Start on the area map. Path selection only happens when traveling into a
+    // branching area (see finishTravel / continueAfterVictory) — never here.
+    setState({ ...fresh, phase: PHASES.AREA_MAP })
   }
 
   const handleSaveGame = async () => {
@@ -400,7 +397,8 @@ export default function App() {
   const selectArea = (areaIndex) => {
     setState((s) => {
       if (areaIndex < 0 || areaIndex >= AREAS.length) return s
-      if (areaIndex > s.currentAreaIndex + 1) return s // Can't jump ahead
+      const maxReached = s.maxAreaReached ?? s.currentAreaIndex
+      if (areaIndex > maxReached) return s // Can't travel to areas not yet unlocked by clearing
 
       // Check for random encounter when traveling
       const distance = Math.abs(areaIndex - s.currentAreaIndex)
@@ -564,11 +562,13 @@ export default function App() {
         }
         const nextArea = AREAS[nextAreaIndex]
         const needsPathSelection = nextArea.paths && !s.selectedPaths[nextAreaIndex]
+        const nextMaxReached = Math.max(s.maxAreaReached ?? s.currentAreaIndex, nextAreaIndex)
         if (afterDialogue && afterDialogue.length > 0) {
           return {
             ...s,
             party: healedParty,
             currentAreaIndex: nextAreaIndex,
+            maxAreaReached: nextMaxReached,
             currentBattleIndex: 0,
             phase: PHASES.DIALOGUE,
             dialogueLines: afterDialogue,
@@ -583,6 +583,7 @@ export default function App() {
           ...s,
           party: healedParty,
           currentAreaIndex: nextAreaIndex,
+          maxAreaReached: nextMaxReached,
           currentBattleIndex: 0,
           phase: needsPathSelection ? PHASES.PATH_SELECTION : PHASES.AREA_MAP,
           selectedAreaIndex: needsPathSelection ? nextAreaIndex : null,
