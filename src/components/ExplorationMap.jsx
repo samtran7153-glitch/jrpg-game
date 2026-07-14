@@ -506,16 +506,14 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
               stand on real ground instead of a bare gradient. */}
           {config.ground && (
             <>
-              <div className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ top: '20%', background: config.ground }} />
+              <div className="absolute inset-0 pointer-events-none" style={{ background: config.ground }} />
               <div
-                className="absolute inset-x-0 bottom-0 pointer-events-none"
+                className="absolute inset-0 pointer-events-none"
                 style={{
-                  top: '20%',
                   backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.10) 1px, transparent 1px)',
                   backgroundSize: '9px 9px',
                 }}
               />
-              <div className="absolute inset-x-0 pointer-events-none" style={{ top: '20%', height: 2, background: 'rgba(255,255,255,0.08)' }} />
             </>
           )}
 
