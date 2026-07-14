@@ -586,7 +586,7 @@ function StoryStage({ state, speaker, dialogueIndex, dialogueLines }) {
             key={hero.id}
             className={`story-actor ${speakerSprite === hero.sprite ? 'story-speaker' : ''}`}
           >
-            <Sprite type={hero.sprite} size={speakerSprite === hero.sprite ? 46 : 34} />
+            <Sprite type={hero.sprite} size={speakerSprite === hero.sprite ? 46 : 34} defeated={!hero.alive || hero.hp <= 0} />
           </div>
         ))}
       </div>

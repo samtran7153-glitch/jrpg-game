@@ -519,11 +519,14 @@ export default function App() {
 
   const continueAfterVictory = () => {
     setState((s) => {
-      const healedParty = s.party.map((h) => ({
-        ...h,
-        defending: false,
-        statusEffects: [],
-      }))
+      // Winning the battle gets KO'd party members back on their feet with a
+      // little HP, so the victory scene and the next fight stay consistent.
+      const healedParty = s.party.map((h) => {
+        const revived = (!h.alive || h.hp <= 0)
+          ? { ...h, alive: true, hp: Math.max(1, Math.round(h.maxHp * 0.25)) }
+          : h
+        return { ...revived, defending: false, statusEffects: [] }
+      })
 
       if (s.explorationBattleId) {
         return {
