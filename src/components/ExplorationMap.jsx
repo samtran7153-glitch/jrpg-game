@@ -17,9 +17,16 @@ const areaConfigs = {
       { id: 'alpha_wolf', x: 600, y: 180, width: 40, height: 40, name: 'Alpha Wolf' },
     ],
     obstacles: [
-      { x: 200, y: 100, width: 80, height: 200 }, // Tree cluster
-      { x: 500, y: 250, width: 100, height: 100 }, // Rock formation
+      { x: 200, y: 100, width: 80, height: 200, type: 'tree' }, // Tree cluster
+      { x: 500, y: 250, width: 100, height: 100, type: 'rock' }, // Rock formation
+      // Trees the player must weave between to reach the Alpha Wolf's lair
+      { x: 560, y: 150, width: 30, height: 30, type: 'tree' },
+      { x: 656, y: 146, width: 30, height: 30, type: 'tree' },
+      { x: 702, y: 198, width: 30, height: 30, type: 'tree' },
+      { x: 640, y: 246, width: 30, height: 30, type: 'tree' },
+      { x: 556, y: 234, width: 30, height: 30, type: 'tree' },
     ],
+    ground: 'linear-gradient(to bottom, #4a7a3a 0%, #3a5a2a 60%, #24331a 100%)',
     decor: [
       { type: 'tree', x: 150, y: 320 }, { type: 'tree', x: 430, y: 90 },
       { type: 'tree', x: 950, y: 110 }, { type: 'tree', x: 1080, y: 330 },
@@ -27,13 +34,16 @@ const areaConfigs = {
       { type: 'bush', x: 1000, y: 300 }, { type: 'flower', x: 250, y: 300 },
       { type: 'flower', x: 560, y: 120 }, { type: 'flower', x: 880, y: 340 },
       { type: 'flower', x: 680, y: 320 },
-      // Dense grove ringing the Alpha Wolf's lair (battle marker ~620,200)
-      { type: 'tree', x: 520, y: 195 }, { type: 'tree', x: 546, y: 158 },
-      { type: 'tree', x: 578, y: 138 }, { type: 'tree', x: 615, y: 130 },
-      { type: 'tree', x: 655, y: 138 }, { type: 'tree', x: 692, y: 160 },
-      { type: 'tree', x: 710, y: 205 }, { type: 'tree', x: 690, y: 244 },
-      { type: 'tree', x: 600, y: 262 }, { type: 'tree', x: 552, y: 242 },
+      // Dense, dark grove ringing the Alpha Wolf's lair (battle marker ~620,200)
+      { type: 'darkTree', x: 520, y: 195 }, { type: 'darkTree', x: 546, y: 158 },
+      { type: 'darkTree', x: 578, y: 138 }, { type: 'darkTree', x: 615, y: 130 },
+      { type: 'darkTree', x: 655, y: 138 }, { type: 'darkTree', x: 692, y: 160 },
+      { type: 'darkTree', x: 710, y: 205 }, { type: 'darkTree', x: 690, y: 244 },
+      { type: 'darkTree', x: 600, y: 262 }, { type: 'darkTree', x: 552, y: 242 },
+      { type: 'darkTree', x: 505, y: 232 }, { type: 'darkTree', x: 728, y: 172 },
+      { type: 'darkTree', x: 640, y: 116 }, { type: 'darkTree', x: 578, y: 252 },
       { type: 'bush', x: 588, y: 224 }, { type: 'bush', x: 664, y: 224 },
+      { type: 'bush', x: 620, y: 242 },
     ],
     background: 'linear-gradient(to bottom, #87CEEB 0%, #98D98E 60%, #2a4a2a 100%)'
   },
@@ -50,9 +60,10 @@ const areaConfigs = {
       { id: 'cave_troll', x: 650, y: 200, width: 50, height: 50, name: 'Cave Troll' },
     ],
     obstacles: [
-      { x: 300, y: 120, width: 120, height: 180 }, // Rock formation
-      { x: 750, y: 280, width: 80, height: 80 }, // Stalagmites
+      { x: 300, y: 120, width: 120, height: 180, type: 'rock' }, // Rock formation
+      { x: 750, y: 280, width: 80, height: 80, type: 'rock' }, // Stalagmites
     ],
+    ground: 'linear-gradient(to bottom, #3a3a3a 0%, #2a2a2a 70%, #1c1c1c 100%)',
     decor: [
       { type: 'stalagmite', x: 180, y: 330 }, { type: 'stalagmite', x: 520, y: 110 },
       { type: 'stalagmite', x: 1050, y: 320 }, { type: 'crystal', x: 250, y: 300 },
@@ -75,9 +86,10 @@ const areaConfigs = {
       { id: 'royal_guard', x: 600, y: 200, width: 45, height: 45, name: 'Royal Guard Captain' },
     ],
     obstacles: [
-      { x: 250, y: 100, width: 100, height: 200 }, // Pillar
-      { x: 700, y: 250, width: 150, height: 100 }, // Furniture
+      { x: 250, y: 100, width: 100, height: 200, type: 'rock' }, // Pillar
+      { x: 700, y: 250, width: 150, height: 100, type: 'rock' }, // Furniture
     ],
+    ground: 'linear-gradient(to bottom, #4a4a58 0%, #3a3a46 70%, #2a2a34 100%)',
     decor: [
       { type: 'pillar', x: 160, y: 300 }, { type: 'pillar', x: 480, y: 300 },
       { type: 'pillar', x: 1050, y: 300 }, { type: 'torch', x: 400, y: 130 },
@@ -99,9 +111,10 @@ const areaConfigs = {
       { id: 'shadow_beast', x: 630, y: 190, width: 48, height: 48, name: 'Shadow Beast' },
     ],
     obstacles: [
-      { x: 350, y: 130, width: 90, height: 170 }, // Void mass
-      { x: 780, y: 270, width: 110, height: 90 }, // Dark energy
+      { x: 350, y: 130, width: 90, height: 170, type: 'rock' }, // Void mass
+      { x: 780, y: 270, width: 110, height: 90, type: 'rock' }, // Dark energy
     ],
+    ground: 'linear-gradient(to bottom, #1e1e2e 0%, #141420 70%, #0c0c16 100%)',
     decor: [
       { type: 'wisp', x: 200, y: 300 }, { type: 'wisp', x: 560, y: 120 },
       { type: 'wisp', x: 700, y: 320 }, { type: 'wisp', x: 1050, y: 200 },
@@ -122,6 +135,14 @@ function DecorItem({ type }) {
           <div className="w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-b-[22px] border-b-green-700/80 -mb-1" />
           <div className="w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-b-[24px] border-b-green-800/80 -mb-1" />
           <div className="w-2 h-3 bg-yellow-900/80 rounded-sm" />
+        </div>
+      )
+    case 'darkTree':
+      return (
+        <div className="flex flex-col items-center">
+          <div className="w-0 h-0 border-l-[13px] border-l-transparent border-r-[13px] border-r-transparent border-b-[24px] border-b-green-900/90 -mb-1" />
+          <div className="w-0 h-0 border-l-[16px] border-l-transparent border-r-[16px] border-r-transparent border-b-[27px] border-b-green-950/90 -mb-1" />
+          <div className="w-2 h-4 bg-yellow-950/90 rounded-sm" />
         </div>
       )
     case 'bush':
@@ -333,7 +354,7 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
       // permanently anywhere on the map.
       const len = Math.sqrt(dx * dx + dy * dy)
       if (moving && len > 0) {
-        const speed = 6 * delta
+        const speed = 5 * delta
         dx = (dx / len) * speed
         dy = (dy / len) * speed
 
@@ -467,6 +488,23 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
             transform: `translate(${-cameraX}px, ${-cameraY}px)`
           }}
         >
+          {/* Ground plane: a textured surface below the horizon so objects
+              stand on real ground instead of a bare gradient. */}
+          {config.ground && (
+            <>
+              <div className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ top: '26%', background: config.ground }} />
+              <div
+                className="absolute inset-x-0 bottom-0 pointer-events-none"
+                style={{
+                  top: '26%',
+                  backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.10) 1px, transparent 1px)',
+                  backgroundSize: '9px 9px',
+                }}
+              />
+              <div className="absolute inset-x-0 pointer-events-none" style={{ top: '26%', height: 2, background: 'rgba(255,255,255,0.08)' }} />
+            </>
+          )}
+
           {/* Render decorative scenery (non-colliding) */}
           {(config.decor || []).map((item, index) => (
             <div
@@ -478,11 +516,15 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
             </div>
           ))}
 
-          {/* Render obstacles */}
+          {/* Render obstacles (trees show foliage; everything else is solid) */}
           {config.obstacles.map((obstacle, index) => (
             <div
               key={`obstacle-${index}`}
-              className="absolute bg-retro-dim/50 border border-retro-dim"
+              className={`absolute ${
+                obstacle.type === 'tree'
+                  ? 'bg-green-900/85 border border-green-950/60 rounded-[45%] shadow-[inset_0_-4px_6px_rgba(0,0,0,0.35)]'
+                  : 'bg-retro-dim/50 border border-retro-dim'
+              }`}
               style={{
                 left: `${obstacle.x}px`,
                 top: `${obstacle.y}px`,
