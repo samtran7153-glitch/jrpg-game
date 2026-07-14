@@ -209,12 +209,26 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
       }
     }
 
+    // Release every held key if the window loses focus or is hidden. Without
+    // this, a keyup that fires off-window never arrives and the hero keeps
+    // walking on its own (looks "stuck" against a wall).
+    const releaseAllKeys = () => {
+      keysRef.current = {}
+      isMovingRef.current = false
+      setIsMoving(false)
+    }
+    const handleVisibility = () => { if (document.hidden) releaseAllKeys() }
+
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('keyup', handleKeyUp)
+    window.addEventListener('blur', releaseAllKeys)
+    document.addEventListener('visibilitychange', handleVisibility)
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
+      window.removeEventListener('blur', releaseAllKeys)
+      document.removeEventListener('visibilitychange', handleVisibility)
     }
   }, [])
 
@@ -481,43 +495,48 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
           )}
         </div>
 
-        {/* Mobile controls */}
-        <div className="absolute bottom-4 right-4 grid grid-cols-3 gap-1 select-none" style={{ touchAction: 'none' }}>
-          <div />
-          <button
-            className="pixel-btn w-12 h-12 flex items-center justify-center active:scale-95"
-            onPointerDown={(e) => { e.preventDefault(); setKey('ArrowUp', true) }}
-            onPointerUp={(e) => { e.preventDefault(); setKey('ArrowUp', false) }}
-            onPointerLeave={(e) => { e.preventDefault(); setKey('ArrowUp', false) }}
-          >
-            <span className="font-pixel text-[10px]">U</span>
-          </button>
-          <div />
-          <button
-            className="pixel-btn w-12 h-12 flex items-center justify-center active:scale-95"
-            onPointerDown={(e) => { e.preventDefault(); setKey('ArrowLeft', true) }}
-            onPointerUp={(e) => { e.preventDefault(); setKey('ArrowLeft', false) }}
-            onPointerLeave={(e) => { e.preventDefault(); setKey('ArrowLeft', false) }}
-          >
-            <span className="font-pixel text-[10px]">L</span>
-          </button>
-          <button
-            className="pixel-btn w-12 h-12 flex items-center justify-center active:scale-95"
-            onPointerDown={(e) => { e.preventDefault(); setKey('ArrowDown', true) }}
-            onPointerUp={(e) => { e.preventDefault(); setKey('ArrowDown', false) }}
-            onPointerLeave={(e) => { e.preventDefault(); setKey('ArrowDown', false) }}
-          >
-            <span className="font-pixel text-[10px]">D</span>
-          </button>
-          <button
-            className="pixel-btn w-12 h-12 flex items-center justify-center active:scale-95"
-            onPointerDown={(e) => { e.preventDefault(); setKey('ArrowRight', true) }}
-            onPointerUp={(e) => { e.preventDefault(); setKey('ArrowRight', false) }}
-            onPointerLeave={(e) => { e.preventDefault(); setKey('ArrowRight', false) }}
-          >
-            <span className="font-pixel text-[10px]">R</span>
-          </button>
-        </div>
+      </div>
+
+      {/* Mobile D-pad — placed below the map so it never covers the play area */}
+      <div className="mt-2 grid grid-cols-3 gap-1 w-max mx-auto select-none opacity-80" style={{ touchAction: 'none' }}>
+        <div />
+        <button
+          className="pixel-btn w-11 h-11 flex items-center justify-center active:scale-95"
+          onPointerDown={(e) => { e.preventDefault(); setKey('ArrowUp', true) }}
+          onPointerUp={(e) => { e.preventDefault(); setKey('ArrowUp', false) }}
+          onPointerLeave={(e) => { e.preventDefault(); setKey('ArrowUp', false) }}
+          onPointerCancel={(e) => { e.preventDefault(); setKey('ArrowUp', false) }}
+        >
+          <span className="font-pixel text-[10px]">U</span>
+        </button>
+        <div />
+        <button
+          className="pixel-btn w-11 h-11 flex items-center justify-center active:scale-95"
+          onPointerDown={(e) => { e.preventDefault(); setKey('ArrowLeft', true) }}
+          onPointerUp={(e) => { e.preventDefault(); setKey('ArrowLeft', false) }}
+          onPointerLeave={(e) => { e.preventDefault(); setKey('ArrowLeft', false) }}
+          onPointerCancel={(e) => { e.preventDefault(); setKey('ArrowLeft', false) }}
+        >
+          <span className="font-pixel text-[10px]">L</span>
+        </button>
+        <button
+          className="pixel-btn w-11 h-11 flex items-center justify-center active:scale-95"
+          onPointerDown={(e) => { e.preventDefault(); setKey('ArrowDown', true) }}
+          onPointerUp={(e) => { e.preventDefault(); setKey('ArrowDown', false) }}
+          onPointerLeave={(e) => { e.preventDefault(); setKey('ArrowDown', false) }}
+          onPointerCancel={(e) => { e.preventDefault(); setKey('ArrowDown', false) }}
+        >
+          <span className="font-pixel text-[10px]">D</span>
+        </button>
+        <button
+          className="pixel-btn w-11 h-11 flex items-center justify-center active:scale-95"
+          onPointerDown={(e) => { e.preventDefault(); setKey('ArrowRight', true) }}
+          onPointerUp={(e) => { e.preventDefault(); setKey('ArrowRight', false) }}
+          onPointerLeave={(e) => { e.preventDefault(); setKey('ArrowRight', false) }}
+          onPointerCancel={(e) => { e.preventDefault(); setKey('ArrowRight', false) }}
+        >
+          <span className="font-pixel text-[10px]">R</span>
+        </button>
       </div>
     </div>
   )
