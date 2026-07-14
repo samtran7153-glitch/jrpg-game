@@ -112,7 +112,7 @@ export const AREAS = [
       easy: {
         name: 'Upper Tunnels',
         description: 'Stay in the safer upper levels of the cave',
-        battles: [0, 1, 2, 3],
+        battles: [0, 2],
         intro: ['Sera: The upper tunnels are narrow but stable. My light will keep the dark at bay.'],
         outro: ['Aria: We reached a wider cavern. The safer road spared our strength, if not our purses.'],
         rewards: { xpMultiplier: 0.8, goldMultiplier: 0.8 }
@@ -120,12 +120,14 @@ export const AREAS = [
       hard: {
         name: 'Lower Depths',
         description: 'Descend into the dangerous lower caverns',
-        battles: [4, 5, 6],
+        battles: [4, 5],
         intro: ['Elwyn: The lower depths yawn below. I can hear the dead stirring.', 'Kira: Then we go wake them properly.'],
         outro: ['Sera: Climbing back from the depths, I can still feel the cold.', 'Elwyn: Cold, but our pockets are heavy. Worth it.'],
         rewards: { xpMultiplier: 1.4, goldMultiplier: 1.4 }
       }
     },
+    // Shared core both approaches converge on: Sera's rescue, then the Dark Knight.
+    core: [1, 3, 6],
     hiddenTreasures: [
       { id: 'crystal_cache', name: 'Crystal Cache', x: 30, y: 40, gold: 120, item: 'ether', hint: 'Crystals shimmer faintly in the darkness...' },
       { id: 'forgotten_chest', name: 'Forgotten Chest', x: 70, y: 60, gold: 90, item: 'phoenixDown', hint: 'An old chest half-buried in rubble...' },
@@ -149,7 +151,7 @@ export const AREAS = [
       easy: {
         name: 'Side Entrance',
         description: 'Sneak in through the less guarded side passages',
-        battles: [0, 1, 2, 3],
+        battles: [0, 1],
         intro: ['Kira: The side entrance is cramped and dusty. Fewer guards, more cobwebs.'],
         outro: ['Aria: We slipped back into the courtyard unseen. The castle never noticed us slip inside.'],
         rewards: { xpMultiplier: 0.8, goldMultiplier: 0.8 }
@@ -157,12 +159,14 @@ export const AREAS = [
       hard: {
         name: 'Main Hall',
         description: 'Charge directly through the main castle halls',
-        battles: [4, 5],
+        battles: [2, 3],
         intro: ['Aria: The main hall looms ahead. Banners of darkness hang from every vault.', 'Elwyn: Then let us tear them down.'],
         outro: ['Sera: The hall falls silent. Our bold assault broke through the castle\'s heart.', 'Kira: They will remember the noise we made.'],
         rewards: { xpMultiplier: 1.5, goldMultiplier: 1.5 }
       }
     },
+    // Shared core: the final approach hall, then the Dragon.
+    core: [4, 5],
     hiddenTreasures: [
       { id: 'armory', name: 'Castle Armory', x: 25, y: 50, gold: 200, item: 'potion', hint: 'Weapons and armor glint in the torchlight...' },
       { id: 'treasury', name: 'Royal Treasury', x: 75, y: 35, gold: 300, item: 'phoenixDown', hint: 'Gold coins spill from an unlocked vault...' },
@@ -185,7 +189,7 @@ export const AREAS = [
       easy: {
         name: 'Shadow Path',
         description: 'Follow the stable shadow pathways',
-        battles: [0, 1, 2, 3],
+        battles: [0, 1],
         intro: ['Elwyn: The shadow path feels almost solid, clinging to our boots with every step.', 'Sera: Stay close. I can still shield you from the worst of it.'],
         outro: ['Aria: The rift shudders. We have stayed the course of the shadows.', 'Kira: For now.'],
         rewards: { xpMultiplier: 0.8, goldMultiplier: 0.8 }
@@ -193,12 +197,14 @@ export const AREAS = [
       hard: {
         name: 'Void Core',
         description: 'Venture directly into the heart of darkness',
-        battles: [4],
+        battles: [2, 3],
         intro: ['Aria: The void core tears at the edges of reality. I can barely see my own hand.', 'Elwyn: Then raise your shield and march. We end this here.'],
         outro: ['Sera: From the brink of oblivion, we return.', 'Kira: Victorious, if forever changed.'],
         rewards: { xpMultiplier: 2.0, goldMultiplier: 2.0 }
       }
     },
+    // Shared core: the Shadow Lord himself.
+    core: [4],
     hiddenTreasures: [
       { id: 'void_crystal', name: 'Void Crystal', x: 30, y: 45, gold: 400, item: 'ether', hint: 'A crystal pulses with otherworldly energy...' },
       { id: 'shadow_artifact', name: 'Shadow Artifact', x: 70, y: 55, gold: 500, item: 'phoenixDown', hint: 'Dark power radiates from an ancient artifact...' },

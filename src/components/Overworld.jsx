@@ -249,7 +249,10 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onWorl
   const area = AREAS[state.currentAreaIndex]
   if (!area) return null
   const selectedPath = state.selectedPaths[state.currentAreaIndex]
-  const pathBattles = selectedPath ? area.paths[selectedPath].battles : area.battles.map((_, i) => i)
+  // A chosen path = its approach battles, then the area's shared core (recruits + boss).
+  const pathBattles = selectedPath
+    ? [...area.paths[selectedPath].battles, ...(area.core || [])]
+    : area.battles.map((_, i) => i)
 
   const [showItems, setShowItems] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)

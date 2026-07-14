@@ -536,13 +536,12 @@ export default function App() {
 
       const selectedPathKey = s.selectedPaths[s.currentAreaIndex]
       const selectedPath = selectedPathKey ? area.paths[selectedPathKey] : null
-      const pathBattles = selectedPath ? selectedPath.battles : area.battles.map((_, i) => i)
+      // Effective run = chosen approach battles + the area's shared core (ends on the boss).
+      const pathBattles = selectedPath ? [...selectedPath.battles, ...(area.core || [])] : area.battles.map((_, i) => i)
       const isLastPathBattle = pathBattles.indexOf(completedBattleIndex) === pathBattles.length - 1
 
-      let afterDialogue = isReplay ? null : s.dialogueAfter
-      if (!isReplay && isLastPathBattle && selectedPath?.outro && selectedPath.outro.length > 0) {
-        afterDialogue = selectedPath.outro
-      }
+      // The area's climax (last core battle) owns the concluding dialogue.
+      const afterDialogue = isReplay ? null : s.dialogueAfter
 
       // Last path battle: the area is cleared. Unlock the next area but stay on
       // this area's hub — the player travels onward from the World Map, which is

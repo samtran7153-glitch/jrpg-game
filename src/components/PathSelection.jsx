@@ -32,14 +32,18 @@ export function PathSelection({ area, onSelectPath, onBack }) {
               </div>
               <div className="flex justify-between font-pixel text-[6px]">
                 <span className="text-retro-text">
-                  Battles: {path.battles.length}
+                  Approach: {path.battles.length} {path.battles.length === 1 ? 'battle' : 'battles'}
                 </span>
-                <span className="text-retro-green">
-                  XP: ×{path.rewards.xpMultiplier} Gold: ×{path.rewards.goldMultiplier}
+                <span className={pathKey === 'hard' ? 'text-retro-accent' : 'text-retro-green'}>
+                  {pathKey === 'hard' ? 'Tougher foes' : 'Safer route'}
                 </span>
               </div>
             </button>
           ))}
+        </div>
+
+        <div className="text-center font-pixel text-[6px] text-retro-dim pt-1">
+          Both roads rejoin for the heart of {area.name}{area.core?.length ? ' — and its boss' : ''}.
         </div>
       </div>
       
