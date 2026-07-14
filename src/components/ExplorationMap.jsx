@@ -684,9 +684,9 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
               </div>
             ) : (
               <div className="space-y-2 pt-1">
-                <div className="font-pixel text-[7px] text-retro-gold text-center leading-relaxed">
-                  You're not ready for this. Return once {reqName} has joined you.
-                </div>
+                {(encounter.lockedStory || [`You're not ready for this. Return once ${reqName} has joined you.`]).map((line, i) => (
+                  <div key={i} className="font-pixel text-[7px] text-retro-gold leading-relaxed">{line}</div>
+                ))}
                 <button className="pixel-btn w-full text-retro-dim" onClick={declineEncounter}>Back</button>
               </div>
             )}
