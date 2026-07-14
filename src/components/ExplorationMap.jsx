@@ -672,11 +672,13 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
                 ))}
               </div>
             )}
-            <div className="space-y-1">
-              {(encounter.story || [encounter.hint]).filter(Boolean).map((line, i) => (
-                <div key={i} className="font-pixel text-[7px] text-retro-text leading-relaxed">{line}</div>
-              ))}
-            </div>
+            {canFight && (
+              <div className="space-y-1">
+                {(encounter.story || [encounter.hint]).filter(Boolean).map((line, i) => (
+                  <div key={i} className="font-pixel text-[7px] text-retro-text leading-relaxed">{line}</div>
+                ))}
+              </div>
+            )}
             {canFight ? (
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <button className="pixel-btn text-retro-accent" onClick={acceptEncounter}>Fight</button>
