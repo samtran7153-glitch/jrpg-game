@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Sprite } from '../Sprites'
+import { ENEMY_TYPES } from '../gameData'
 
 // Area-specific configurations (module-level to avoid re-creation on every render)
 const areaConfigs = {
@@ -178,6 +179,10 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
   const facingRef = useRef('right')
   const animationRef = useRef(null)
   const triggeredRef = useRef(new Set())
+  // A secret battle the player has walked into and must choose to fight or leave.
+  const [encounter, setEncounter] = useState(null)
+  const encounterRef = useRef(false)   // pauses movement while the choice is open
+  const declinedRef = useRef(new Set()) // battles left alone; re-arm once we walk away
   // Measure the actual map viewport so the camera math matches it (avoids empty
   // background bands sliding in/out at the edges, which look like the map resizing).
   const viewportRef = useRef(null)
@@ -264,10 +269,16 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
         y - 15 < battle.y + battle.height
       ) {
         triggeredRef.current.add(battle.id)
-        onBattleStart(battle)
+        // Present the story + fight/leave choice instead of fighting immediately.
+        const data = (area.secretBattles || []).find((b) => b.id === battle.id)
+        setEncounter(data || { id: battle.id, name: battle.name, enemies: [], story: [] })
+        encounterRef.current = true
+        keysRef.current = {}
+        isMovingRef.current = false
+        setIsMoving(false)
       }
     }
-  }, [config.treasures, config.battles, onTreasureFound, onBattleStart])
+  }, [config.treasures, config.battles, area, onTreasureFound])
 
   // Game loop
   useEffect(() => {
@@ -277,6 +288,12 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
     const gameLoop = (time) => {
       const delta = Math.min((time - lastTime) / 16.67, 2)
       lastTime = time
+
+      // Freeze the world while the fight/leave choice is open.
+      if (encounterRef.current) {
+        animationId = requestAnimationFrame(gameLoop)
+        return
+      }
 
       const keys = keysRef.current
       let dx = 0
@@ -352,6 +369,20 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
           newX = Math.max(20, Math.min(config.width - 20, newX))
           newY = Math.max(20, Math.min(config.height - 20, newY))
 
+          // Re-arm any battle the player left alone once they've stepped away,
+          // so they can return and reconsider it later.
+          if (declinedRef.current.size) {
+            for (const b of config.battles) {
+              if (!declinedRef.current.has(b.id)) continue
+              const bx = b.x + b.width / 2
+              const by = b.y + b.height / 2
+              if (Math.hypot(newX - bx, newY - by) > 70) {
+                declinedRef.current.delete(b.id)
+                triggeredRef.current.delete(b.id)
+              }
+            }
+          }
+
           checkCollisions(newX, newY)
           return { x: newX, y: newY }
         })
@@ -386,8 +417,21 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
   // Use the first hero in the party
   const hero = party[0]
 
+  const acceptEncounter = () => {
+    const e = encounter
+    encounterRef.current = false
+    setEncounter(null)
+    if (e) onBattleStart({ id: e.id })
+  }
+
+  const declineEncounter = () => {
+    if (encounter) declinedRef.current.add(encounter.id)
+    encounterRef.current = false
+    setEncounter(null)
+  }
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
       <div className="pixel-panel p-2">
         <div className="flex justify-between items-center">
           <div className="font-pixel text-[10px] text-retro-gold">{area.name}</div>
@@ -541,6 +585,31 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
           <span className="font-pixel text-[10px]">R</span>
         </button>
       </div>
+
+      {/* Secret battle encounter: story + choose to fight or leave */}
+      {encounter && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/75 p-4">
+          <div className="pixel-panel p-4 w-full max-w-xs space-y-3 bg-retro-bg">
+            <div className="font-pixel text-[10px] text-retro-accent text-center">{encounter.name}</div>
+            {encounter.enemies?.length > 0 && (
+              <div className="flex justify-center gap-2">
+                {encounter.enemies.map((e, i) => (
+                  <Sprite key={i} type={ENEMY_TYPES[e]?.sprite || e} size={28} />
+                ))}
+              </div>
+            )}
+            <div className="space-y-1">
+              {(encounter.story || [encounter.hint]).filter(Boolean).map((line, i) => (
+                <div key={i} className="font-pixel text-[7px] text-retro-text leading-relaxed">{line}</div>
+              ))}
+            </div>
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <button className="pixel-btn text-retro-accent" onClick={acceptEncounter}>Fight</button>
+              <button className="pixel-btn text-retro-dim" onClick={declineEncounter}>Leave</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
