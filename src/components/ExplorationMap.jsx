@@ -524,7 +524,7 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
             <div
               key={`decor-${index}`}
               className="absolute -translate-x-1/2 -translate-y-full pointer-events-none"
-              style={{ left: `${item.x}px`, top: `${item.y}px` }}
+              style={{ left: `${item.x}px`, top: `${item.y}px`, zIndex: Math.round(item.y) }}
             >
               <DecorItem type={item.type} />
             </div>
@@ -562,7 +562,8 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
                   top: `${treasure.y}px`,
                   width: `${treasure.width}px`,
                   height: `${treasure.height}px`,
-                  opacity: visibility
+                  opacity: visibility,
+                  zIndex: Math.round(treasure.y + treasure.height)
                 }}
               >
                 <div className={`w-4 h-4 rounded-sm transform rotate-45 transition-colors ${collected ? 'bg-retro-dim/50' : 'bg-retro-gold shadow-[0_0_8px_rgba(245,197,24,0.6)]'}`} />
@@ -587,7 +588,8 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
                   top: `${battle.y}px`,
                   width: `${battle.width}px`,
                   height: `${battle.height}px`,
-                  opacity: visibility
+                  opacity: visibility,
+                  zIndex: Math.round(battle.y + battle.height)
                 }}
               >
                 <div className={`w-4 h-4 rounded-full transition-colors ${completed ? 'bg-retro-dim/50' : 'bg-retro-accent shadow-[0_0_8px_rgba(233,69,96,0.6)]'}`} />
@@ -605,7 +607,8 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
               style={{
                 left: `${playerPos.x - 15}px`,
                 top: `${playerPos.y - 15}px`,
-                transform: `scaleX(${facing === 'left' ? -1 : 1})`
+                transform: `scaleX(${facing === 'left' ? -1 : 1})`,
+                zIndex: Math.round(playerPos.y + 15)
               }}
             >
               <Sprite type={hero.sprite} size={30} />
