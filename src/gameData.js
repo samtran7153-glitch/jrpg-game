@@ -92,7 +92,7 @@ export const AREAS = [
       { id: 'hidden_grove', name: 'Hidden Grove', x: 80, y: 30, gold: 80, item: 'ether', hint: 'Sunlight filters through a hidden grove...' },
     ],
     secretBattles: [
-      { id: 'alpha_wolf', name: 'Alpha Wolf', x: 60, y: 70, enemies: ['wolf'], gold: 100, xp: 60, hint: 'Powerful howls echo from the deep woods...', story: ['A monstrous wolf pads out from the treeline, hackles raised.', 'Kira: That is no ordinary beast — it has been stalking us for miles.', 'Aria: Break it here and the whole forest is ours. But the choice is yours.'] },
+      { id: 'alpha_wolf', name: 'Alpha Wolf', x: 60, y: 70, enemies: ['wolf', 'wolf'], gold: 100, xp: 60, hint: 'Powerful howls echo from the deep woods...', story: ['A monstrous wolf pads out from the treeline, a packmate at its flank.', 'Kira: That is no ordinary beast — it has been stalking us for miles.', 'Aria: Break it here and the whole forest is ours. But the choice is yours.'] },
     ]
   },
   {
