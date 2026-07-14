@@ -247,6 +247,52 @@ export function GoblinSprite({ size = 64, defeated = false }) {
   )
 }
 
+// ============ WOLF ============
+export function WolfSprite({ size = 64, defeated = false }) {
+  const c = defeated ? 'opacity-20 grayscale' : ''
+  return (
+    <svg {...svgProps(size, c)}>
+      {/* Ears */}
+      <rect x="3" y="2" width="1" height="1" fill="#5a5a6a" />
+      <rect x="3" y="3" width="2" height="1" fill="#7a7a8a" />
+      <rect x="6" y="2" width="1" height="1" fill="#5a5a6a" />
+      <rect x="5" y="3" width="2" height="1" fill="#7a7a8a" />
+      <rect x="3" y="3" width="1" height="1" fill="#3a3a4a" />
+      <rect x="6" y="3" width="1" height="1" fill="#3a3a4a" />
+      {/* Head */}
+      <rect x="2" y="4" width="5" height="1" fill="#5a5a6a" />
+      <rect x="2" y="5" width="5" height="3" fill="#7a7a8a" />
+      {/* Muzzle / snout (facing left) */}
+      <rect x="0" y="6" width="3" height="1" fill="#7a7a8a" />
+      <rect x="0" y="7" width="3" height="1" fill="#9a9aaa" />
+      <rect x="0" y="8" width="3" height="1" fill="#5a5a6a" />
+      <rect x="0" y="6" width="1" height="1" fill="#1a1a1a" />
+      {/* Eye */}
+      <rect x="4" y="6" width="1" height="1" fill="#f5c518" />
+      {/* Chest linking head to body */}
+      <rect x="4" y="8" width="2" height="2" fill="#7a7a8a" />
+      {/* Body */}
+      <rect x="6" y="5" width="8" height="1" fill="#5a5a6a" />
+      <rect x="5" y="6" width="9" height="4" fill="#7a7a8a" />
+      <rect x="6" y="10" width="7" height="1" fill="#9a9aaa" />
+      {/* Tail */}
+      <rect x="14" y="4" width="1" height="1" fill="#5a5a6a" />
+      <rect x="14" y="5" width="1" height="2" fill="#7a7a8a" />
+      <rect x="13" y="6" width="1" height="1" fill="#7a7a8a" />
+      {/* Legs */}
+      <rect x="5" y="11" width="1" height="4" fill="#7a7a8a" />
+      <rect x="7" y="11" width="1" height="4" fill="#7a7a8a" />
+      <rect x="11" y="11" width="1" height="4" fill="#7a7a8a" />
+      <rect x="13" y="11" width="1" height="4" fill="#7a7a8a" />
+      {/* Paws */}
+      <rect x="5" y="14" width="1" height="1" fill="#4a4a5a" />
+      <rect x="7" y="14" width="1" height="1" fill="#4a4a5a" />
+      <rect x="11" y="14" width="1" height="1" fill="#4a4a5a" />
+      <rect x="13" y="14" width="1" height="1" fill="#4a4a5a" />
+    </svg>
+  )
+}
+
 // ============ SKELETON ============
 export function SkeletonSprite({ size = 64, defeated = false }) {
   const c = defeated ? 'opacity-20 grayscale' : ''
@@ -527,6 +573,7 @@ const SPRITE_MAP = {
   slime: SlimeSprite,
   bat: BatSprite,
   goblin: GoblinSprite,
+  wolf: WolfSprite,
   skeleton: SkeletonSprite,
   darkKnight: DarkKnightSprite,
   goblinKing: GoblinKingSprite,
