@@ -250,8 +250,10 @@ export function GoblinSprite({ size = 64, defeated = false }) {
 // ============ WOLF ============
 export function WolfSprite({ size = 64, defeated = false }) {
   const c = defeated ? 'opacity-20 grayscale' : ''
+  const props = svgProps(size, c)
+  // Drawn facing left; mirror so it faces right like the rest of the cast.
   return (
-    <svg {...svgProps(size, c)}>
+    <svg {...props} style={{ ...props.style, transform: 'scaleX(-1)' }}>
       {/* Ears */}
       <rect x="3" y="2" width="1" height="1" fill="#5a5a6a" />
       <rect x="3" y="3" width="2" height="1" fill="#7a7a8a" />
