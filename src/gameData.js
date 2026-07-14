@@ -36,7 +36,7 @@ export const ITEMS = {
 // ============ HERO CLASSES ============
 export const HERO_CLASSES = {
   knight: { name: 'Aria', title: 'Knight', sprite: 'knight', level: 1, maxHp: 50, maxMp: 15, attack: 14, defense: 8, speed: 10, skills: ['powerSlash', 'shieldBash', 'taunt'] },
-  mage: { name: 'Elwyn', title: 'Mage', sprite: 'mage', level: 1, maxHp: 30, maxMp: 30, attack: 8, defense: 4, speed: 12, skills: ['fireball', 'iceLance', 'lightning'] },
+  mage: { name: 'Elwyn', title: 'Mage', sprite: 'mage', level: 1, maxHp: 34, maxMp: 30, attack: 8, defense: 4, speed: 12, skills: ['fireball', 'iceLance', 'lightning'] },
   archer: { name: 'Kira', title: 'Archer', sprite: 'archer', level: 1, maxHp: 38, maxMp: 18, attack: 12, defense: 5, speed: 16, skills: ['preciseShot', 'poisonArrow', 'rapidFire'] },
   healer: { name: 'Sera', title: 'Cleric', sprite: 'healer', level: 1, maxHp: 35, maxMp: 25, attack: 6, defense: 5, speed: 11, skills: ['heal', 'greaterHeal', 'bless'] },
 }
