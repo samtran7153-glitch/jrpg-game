@@ -17,33 +17,31 @@ const areaConfigs = {
       { id: 'alpha_wolf', x: 600, y: 180, width: 40, height: 40, name: 'Alpha Wolf' },
     ],
     obstacles: [
-      { x: 200, y: 100, width: 80, height: 200, type: 'tree' }, // Tree cluster
       { x: 500, y: 250, width: 100, height: 100, type: 'rock' }, // Rock formation
-      // Trees the player must weave between to reach the Alpha Wolf's lair
-      { x: 560, y: 150, width: 30, height: 30, type: 'tree' },
-      { x: 656, y: 146, width: 30, height: 30, type: 'tree' },
-      { x: 702, y: 198, width: 30, height: 30, type: 'tree' },
-      { x: 640, y: 246, width: 30, height: 30, type: 'tree' },
-      { x: 556, y: 234, width: 30, height: 30, type: 'tree' },
     ],
     ground: 'linear-gradient(to bottom, #4a7a3a 0%, #3a5a2a 60%, #24331a 100%)',
     decor: [
-      { type: 'tree', x: 150, y: 320 }, { type: 'tree', x: 430, y: 90 },
-      { type: 'tree', x: 950, y: 110 }, { type: 'tree', x: 1080, y: 330 },
-      { type: 'bush', x: 380, y: 340 }, { type: 'bush', x: 720, y: 130 },
-      { type: 'bush', x: 1000, y: 300 }, { type: 'flower', x: 250, y: 300 },
-      { type: 'flower', x: 560, y: 120 }, { type: 'flower', x: 880, y: 340 },
-      { type: 'flower', x: 680, y: 320 },
-      // Dense, dark grove ringing the Alpha Wolf's lair (battle marker ~620,200)
-      { type: 'darkTree', x: 520, y: 195 }, { type: 'darkTree', x: 546, y: 158 },
-      { type: 'darkTree', x: 578, y: 138 }, { type: 'darkTree', x: 615, y: 130 },
-      { type: 'darkTree', x: 655, y: 138 }, { type: 'darkTree', x: 692, y: 160 },
-      { type: 'darkTree', x: 710, y: 205 }, { type: 'darkTree', x: 690, y: 244 },
-      { type: 'darkTree', x: 600, y: 262 }, { type: 'darkTree', x: 552, y: 242 },
-      { type: 'darkTree', x: 505, y: 232 }, { type: 'darkTree', x: 728, y: 172 },
-      { type: 'darkTree', x: 640, y: 116 }, { type: 'darkTree', x: 578, y: 252 },
-      { type: 'bush', x: 588, y: 224 }, { type: 'bush', x: 664, y: 224 },
-      { type: 'bush', x: 620, y: 242 },
+      // Distant treeline along the horizon (spaced, but still solid trunks)
+      { type: 'tree', x: 90, y: 150 }, { type: 'tree', x: 250, y: 138 },
+      { type: 'tree', x: 400, y: 148 }, { type: 'tree', x: 920, y: 140 },
+      { type: 'tree', x: 1040, y: 150 }, { type: 'tree', x: 1150, y: 136 },
+      // Scattered mid-ground trees filling the open field (left + far right)
+      { type: 'tree', x: 140, y: 300 }, { type: 'tree', x: 300, y: 250 },
+      { type: 'tree', x: 250, y: 372 }, { type: 'tree', x: 410, y: 330 },
+      { type: 'tree', x: 120, y: 392 }, { type: 'tree', x: 860, y: 300 },
+      { type: 'tree', x: 1000, y: 360 }, { type: 'tree', x: 1100, y: 300 },
+      { type: 'tree', x: 1150, y: 388 },
+      // Spaced grove you weave through to reach the Alpha Wolf's lair (~620,200)
+      { type: 'darkTree', x: 620, y: 122 }, { type: 'darkTree', x: 690, y: 142 },
+      { type: 'darkTree', x: 714, y: 206 }, { type: 'darkTree', x: 684, y: 264 },
+      { type: 'darkTree', x: 612, y: 274 }, { type: 'darkTree', x: 548, y: 250 },
+      { type: 'darkTree', x: 544, y: 150 }, { type: 'darkTree', x: 728, y: 178 },
+      // Non-colliding filler (bushes/flowers are walkable)
+      { type: 'bush', x: 588, y: 224 }, { type: 'bush', x: 656, y: 224 },
+      { type: 'bush', x: 380, y: 300 }, { type: 'bush', x: 200, y: 340 },
+      { type: 'bush', x: 1000, y: 300 }, { type: 'bush', x: 900, y: 350 },
+      { type: 'flower', x: 250, y: 300 }, { type: 'flower', x: 880, y: 340 },
+      { type: 'flower', x: 120, y: 360 }, { type: 'flower', x: 700, y: 318 },
     ],
     background: 'linear-gradient(to bottom, #87CEEB 0%, #98D98E 60%, #2a4a2a 100%)'
   },
@@ -191,8 +189,12 @@ function DecorItem({ type }) {
 
 const TREASURE_REVEAL_START = 160
 const TREASURE_REVEAL_END = 80
-const BATTLE_REVEAL_START = 200
-const BATTLE_REVEAL_END = 120
+const BATTLE_REVEAL_START = 130
+const BATTLE_REVEAL_END = 60
+// Trees collide only on a small trunk box (centered at the tree's base), so
+// canopies can overlap freely while the player still can't walk through a trunk.
+const TREE_TRUNK_HALF = 6
+const TREE_TRUNK_H = 10
 // Half-size of a treasure's visible marker; collection requires touching this,
 // not merely entering the treasure's (much larger) bounding box.
 const MARKER_HALF = 10
@@ -369,6 +371,18 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
               return true
             }
           }
+          // Every tree blocks at its trunk.
+          for (const d of config.decor || []) {
+            if (d.type !== 'tree' && d.type !== 'darkTree') continue
+            if (
+              x + 15 > d.x - TREE_TRUNK_HALF &&
+              x - 15 < d.x + TREE_TRUNK_HALF &&
+              y + 15 > d.y - TREE_TRUNK_H &&
+              y - 15 < d.y
+            ) {
+              return true
+            }
+          }
           return false
         }
 
@@ -492,16 +506,16 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
               stand on real ground instead of a bare gradient. */}
           {config.ground && (
             <>
-              <div className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ top: '26%', background: config.ground }} />
+              <div className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ top: '20%', background: config.ground }} />
               <div
                 className="absolute inset-x-0 bottom-0 pointer-events-none"
                 style={{
-                  top: '26%',
+                  top: '20%',
                   backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.10) 1px, transparent 1px)',
                   backgroundSize: '9px 9px',
                 }}
               />
-              <div className="absolute inset-x-0 pointer-events-none" style={{ top: '26%', height: 2, background: 'rgba(255,255,255,0.08)' }} />
+              <div className="absolute inset-x-0 pointer-events-none" style={{ top: '20%', height: 2, background: 'rgba(255,255,255,0.08)' }} />
             </>
           )}
 
