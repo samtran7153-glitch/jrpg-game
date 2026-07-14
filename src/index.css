@@ -287,6 +287,29 @@ body {
   93%, 96% { opacity: 0; }
 }
 
+/* Area-themed ambush cover (bush is the forest default) */
+.story-bush.cover-cave {
+  background: radial-gradient(ellipse at 50% 100%, #4a4a4a 60%, #262626 100%);
+  border-radius: 46% 54% 40% 40% / 55% 55% 40% 40%;
+}
+.story-bush.cover-cave::before,
+.story-bush.cover-cave::after { background: #5c5c5c; }
+
+.story-bush.cover-castle {
+  background: radial-gradient(ellipse at 50% 100%, #5a5560 60%, #33303a 100%);
+  border-radius: 28% 28% 18% 18% / 40% 40% 18% 18%;
+}
+.story-bush.cover-castle::before,
+.story-bush.cover-castle::after { background: #6b6676; }
+
+.story-bush.cover-shadow {
+  background: radial-gradient(ellipse at 50% 100%, #2c2440 60%, #140f22 100%);
+  border-radius: 50% 50% 35% 35% / 60% 60% 35% 35%;
+  filter: drop-shadow(0 0 6px rgba(120, 80, 200, 0.4));
+}
+.story-bush.cover-shadow::before,
+.story-bush.cover-shadow::after { background: #3a2f55; }
+
 @keyframes story-rustle {
   0%, 100% { transform: translateX(0) rotate(0deg); opacity: 0.4; }
   25% { transform: translateX(-2px) rotate(-5deg); opacity: 0.8; }

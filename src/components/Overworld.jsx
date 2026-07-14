@@ -554,6 +554,9 @@ function StoryStage({ state, speaker, dialogueIndex, dialogueLines }) {
 
   const visibleParty = state.party.slice(0, 4)
   const allEnemies = state.enemies.length > 0 ? state.enemies.slice(0, 3) : []
+  // Enemies lurk behind area-appropriate cover before they spring out.
+  const areaId = AREAS[state.currentAreaIndex]?.id
+  const coverClass = { cave: 'cover-cave', castle: 'cover-castle', shadow: 'cover-shadow' }[areaId] || ''
   const enemiesDefeated = allEnemies.length > 0 && allEnemies.every((e) => !e.alive || e.hp <= 0)
 
   const isLastLine = dialogueIndex >= dialogueLines.length - 1
@@ -598,7 +601,7 @@ function StoryStage({ state, speaker, dialogueIndex, dialogueLines }) {
           const isHidden = !enemiesRevealed && !enemy.isBoss
           if (isHidden) {
             return (
-              <div key={enemy.id} className="story-bush">
+              <div key={enemy.id} className={`story-bush ${coverClass}`}>
                 <div className="story-bush-eyes" />
               </div>
             )
