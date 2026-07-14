@@ -301,9 +301,12 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
         setIsMoving(moving)
       }
 
-      if (moving) {
+      // Opposite keys (e.g. Left+Right) cancel out to a zero vector. Without this
+      // guard, normalizing it divides by zero -> NaN position -> hero frozen
+      // permanently anywhere on the map.
+      const len = Math.sqrt(dx * dx + dy * dy)
+      if (moving && len > 0) {
         const speed = 6 * delta
-        const len = Math.sqrt(dx * dx + dy * dy)
         dx = (dx / len) * speed
         dy = (dy / len) * speed
 
