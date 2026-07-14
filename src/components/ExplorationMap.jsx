@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Sprite } from '../Sprites'
-import { ENEMY_TYPES } from '../gameData'
+import { ENEMY_TYPES, HERO_CLASSES } from '../gameData'
 
 // Area-specific configurations (module-level to avoid re-creation on every render)
 const areaConfigs = {
@@ -168,6 +168,9 @@ const BATTLE_REVEAL_END = 120
 // Half-size of a treasure's visible marker; collection requires touching this,
 // not merely entering the treasure's (much larger) bounding box.
 const MARKER_HALF = 10
+// Secret battles are locked until the party includes this hero class (Kira).
+// A secret battle may override it with its own `requires` classKey.
+const SECRET_BATTLE_REQUIRES = 'archer'
 
 export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, party, discoveredTreasures = {}, completedSecretBattles = {} }) {
   const config = areaConfigs[area.id] || areaConfigs.forest
@@ -417,11 +420,16 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
   // Use the first hero in the party
   const hero = party[0]
 
+  const reqClass = encounter?.requires || SECRET_BATTLE_REQUIRES
+  const canFight = !encounter || party.some((h) => h.classKey === reqClass)
+  const reqName = HERO_CLASSES[reqClass]?.name || 'a stronger ally'
+
   const acceptEncounter = () => {
     const e = encounter
+    if (!e || !party.some((h) => h.classKey === (e.requires || SECRET_BATTLE_REQUIRES))) return
     encounterRef.current = false
     setEncounter(null)
-    if (e) onBattleStart({ id: e.id })
+    onBattleStart({ id: e.id })
   }
 
   const declineEncounter = () => {
@@ -603,10 +611,19 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
                 <div key={i} className="font-pixel text-[7px] text-retro-text leading-relaxed">{line}</div>
               ))}
             </div>
-            <div className="grid grid-cols-2 gap-2 pt-1">
-              <button className="pixel-btn text-retro-accent" onClick={acceptEncounter}>Fight</button>
-              <button className="pixel-btn text-retro-dim" onClick={declineEncounter}>Leave</button>
-            </div>
+            {canFight ? (
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <button className="pixel-btn text-retro-accent" onClick={acceptEncounter}>Fight</button>
+                <button className="pixel-btn text-retro-dim" onClick={declineEncounter}>Leave</button>
+              </div>
+            ) : (
+              <div className="space-y-2 pt-1">
+                <div className="font-pixel text-[7px] text-retro-gold text-center leading-relaxed">
+                  You're not ready for this. Return once {reqName} has joined you.
+                </div>
+                <button className="pixel-btn w-full text-retro-dim" onClick={declineEncounter}>Back</button>
+              </div>
+            )}
           </div>
         </div>
       )}
