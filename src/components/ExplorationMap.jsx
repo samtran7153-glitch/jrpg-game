@@ -347,12 +347,12 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
     return () => cancelAnimationFrame(animationId)
   }, [config, checkCollisions])
 
-  // The rendered world always covers the viewport, so the frame is fully filled
-  // no matter where the player stands.
-  const worldW = Math.max(config.width, viewport.w)
-  const worldH = Math.max(config.height, viewport.h)
+  // World renders at its natural size (no stretching). The fixed-size frame is
+  // always smaller than the world, so it stays fully covered as the player moves.
+  const worldW = config.width
+  const worldH = config.height
 
-  // Camera follows the player, clamped to the world using the real viewport size.
+  // Camera follows the player, clamped to the world using the real frame size.
   const cameraX = Math.max(0, Math.min(worldW - viewport.w, playerPos.x - viewport.w / 2))
   const cameraY = Math.max(0, Math.min(worldH - viewport.h, playerPos.y - viewport.h / 2))
 
@@ -381,7 +381,7 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
         <div className="font-pixel text-[6px] text-retro-dim">Use arrow keys or WASD to move</div>
       </div>
 
-      <div ref={viewportRef} className="flex-1 relative overflow-hidden bg-retro-bg">
+      <div ref={viewportRef} className="relative overflow-hidden bg-retro-bg shrink-0" style={{ height: 300 }}>
         <div
           className="absolute inset-0"
           style={{
