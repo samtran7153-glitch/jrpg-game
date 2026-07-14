@@ -420,23 +420,10 @@ export default function App() {
         }
       }
 
-      const newArea = AREAS[areaIndex]
-      const hasSelectedPath = s.selectedPaths[areaIndex]
-      const needsPathSelection = newArea.paths && !hasSelectedPath
-
-      if (needsPathSelection) {
-        return {
-          ...s,
-          currentAreaIndex: areaIndex,
-          currentBattleIndex: 0,
-          phase: PHASES.PATH_SELECTION,
-        }
-      }
-
+      // Clicking the area you're already in just returns to its hub — never
+      // resets progress or re-opens path selection.
       return {
         ...s,
-        currentAreaIndex: areaIndex,
-        currentBattleIndex: s.currentBattleIndex,
         phase: PHASES.AREA_MAP,
         battleResult: null,
         enemies: [],
@@ -557,39 +544,39 @@ export default function App() {
         afterDialogue = selectedPath.outro
       }
 
-      // Last path battle: advance to the next area (with after-dialogue if any)
+      // Last path battle: the area is cleared. Unlock the next area but stay on
+      // this area's hub — the player travels onward from the World Map, which is
+      // what triggers the next area's path selection. (No forced jump ahead.)
       if (!isReplay && isLastPathBattle) {
         const nextAreaIndex = s.currentAreaIndex + 1
         if (nextAreaIndex >= AREAS.length) {
           return { ...s, phase: PHASES.GAME_COMPLETE, dialogueAfter: null, activeBattleIndex: null }
         }
-        const nextArea = AREAS[nextAreaIndex]
-        const needsPathSelection = nextArea.paths && !s.selectedPaths[nextAreaIndex]
         const nextMaxReached = Math.max(s.maxAreaReached ?? s.currentAreaIndex, nextAreaIndex)
         if (afterDialogue && afterDialogue.length > 0) {
           return {
             ...s,
             party: healedParty,
-            currentAreaIndex: nextAreaIndex,
             maxAreaReached: nextMaxReached,
-            currentBattleIndex: 0,
+            currentBattleIndex: nextBattleIndex,
             phase: PHASES.DIALOGUE,
             dialogueLines: afterDialogue,
             dialogueIndex: 0,
             dialogueAfter: null,
             battleResult: null,
+            enemies: [],
             activeBattleIndex: null,
-            pendingPathSelectionAfterDialogue: needsPathSelection,
+            selectedAreaIndex: null,
+            pendingPathSelectionAfterDialogue: false,
           }
         }
         return {
           ...s,
           party: healedParty,
-          currentAreaIndex: nextAreaIndex,
           maxAreaReached: nextMaxReached,
-          currentBattleIndex: 0,
-          phase: needsPathSelection ? PHASES.PATH_SELECTION : PHASES.AREA_MAP,
-          selectedAreaIndex: needsPathSelection ? nextAreaIndex : null,
+          currentBattleIndex: nextBattleIndex,
+          phase: PHASES.AREA_MAP,
+          selectedAreaIndex: null,
           battleResult: null,
           enemies: [],
           dialogueAfter: null,
@@ -1399,7 +1386,7 @@ export default function App() {
           <PathSelection
             area={AREAS[state.selectedAreaIndex ?? state.currentAreaIndex]}
             onSelectPath={selectPath}
-            onBack={() => setState((s) => ({ ...s, phase: PHASES.WORLD_MAP, selectedAreaIndex: null }))}
+            onBack={() => setState((s) => ({ ...s, phase: PHASES.AREA_MAP, selectedAreaIndex: null }))}
           />
         )
       case PHASES.TRAVEL:

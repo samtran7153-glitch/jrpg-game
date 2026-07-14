@@ -7,7 +7,8 @@ export function WorldMap({ state, onSelectArea, onBack }) {
 
   const getAreaStatus = (index) => {
     if (index === currentAreaIndex) return 'current'
-    if (index <= maxReached) return 'completed' // reachable: cleared or previously unlocked
+    if (index < currentAreaIndex) return 'completed' // areas behind you are cleared
+    if (index <= maxReached) return 'unlocked' // reachable but not yet cleared
     return 'locked' // must clear the current area to unlock the next
   }
 
@@ -204,7 +205,7 @@ export function WorldMap({ state, onSelectArea, onBack }) {
           const isLocked = status === 'locked'
           const isCurrent = status === 'current'
           const isCompleted = status === 'completed'
-          const isNext = status === 'next'
+          const isNext = status === 'unlocked'
           const isUnknown = isLocked && index > maxReached + 1
 
           return (
