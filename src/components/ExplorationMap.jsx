@@ -27,6 +27,13 @@ const areaConfigs = {
       { type: 'bush', x: 1000, y: 300 }, { type: 'flower', x: 250, y: 300 },
       { type: 'flower', x: 560, y: 120 }, { type: 'flower', x: 880, y: 340 },
       { type: 'flower', x: 680, y: 320 },
+      // Dense grove ringing the Alpha Wolf's lair (battle marker ~620,200)
+      { type: 'tree', x: 520, y: 195 }, { type: 'tree', x: 546, y: 158 },
+      { type: 'tree', x: 578, y: 138 }, { type: 'tree', x: 615, y: 130 },
+      { type: 'tree', x: 655, y: 138 }, { type: 'tree', x: 692, y: 160 },
+      { type: 'tree', x: 710, y: 205 }, { type: 'tree', x: 690, y: 244 },
+      { type: 'tree', x: 600, y: 262 }, { type: 'tree', x: 552, y: 242 },
+      { type: 'bush', x: 588, y: 224 }, { type: 'bush', x: 664, y: 224 },
     ],
     background: 'linear-gradient(to bottom, #87CEEB 0%, #98D98E 60%, #2a4a2a 100%)'
   },
