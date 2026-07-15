@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import { Sprite } from '../Sprites'
 import { CharacterCard, GoldDisplay, HeroStatsModal } from './Shared'
 import { AREAS, ITEMS, xpForLevel } from '../gameState'
@@ -256,6 +256,9 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onWorl
   // Progress by position in the path (indices aren't contiguous); -1 => area cleared.
   const currentPos = pathBattles.indexOf(state.currentBattleIndex)
   const clearedThrough = currentPos === -1 ? pathBattles.length : currentPos
+  // Approach = your chosen route; Core = the shared battles both routes converge on.
+  const approachCount = selectedPath ? area.paths[selectedPath].battles.length : 0
+  const showSections = selectedPath && (area.core?.length > 0)
 
   const [showItems, setShowItems] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
@@ -371,31 +374,46 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onWorl
               const isCurrent = position === clearedThrough
               const isLocked = position > clearedThrough
               const showSprites = isCompleted && !isCurrent
+              const isCore = showSections && position >= approachCount
+              const isClimax = position === pathBattles.length - 1
 
               return (
-                <button
-                  key={battleIndex}
-                  className={`pixel-btn w-full text-left flex items-center gap-2 ${
-                    isLocked ? 'opacity-40' : ''
-                  } ${isCurrent ? 'ring-2 ring-retro-gold animate-pulse' : ''}`}
-                  disabled={isLocked}
-                  onClick={() => onSelectBattle(battleIndex)}
-                >
-                  <span className="text-[7px]">
-                    {isCompleted ? '[DONE]' : isCurrent ? '[!]' : '[ ]'}
-                  </span>
-                  <span className="flex gap-1">
-                    {showSprites
-                      ? battle.enemies.map((e, ei) => (
-                          <Sprite key={ei} type={ENEMY_TYPES[e]?.sprite || e} size={16} />
-                        ))
-                      : <span className="font-pixel text-[7px] text-retro-dim">???</span>
-                    }
-                  </span>
-                  <span className="text-[7px] ml-auto">
-                    Battle {position + 1}
-                  </span>
-                </button>
+                <Fragment key={battleIndex}>
+                  {showSections && position === 0 && (
+                    <div className="font-pixel text-[6px] text-retro-blue tracking-wider pt-1">
+                      ─ APPROACH · {area.paths[selectedPath].name} ─
+                    </div>
+                  )}
+                  {showSections && position === approachCount && (
+                    <div className="font-pixel text-[6px] text-retro-gold tracking-wider pt-1">
+                      ─ CORE · shared ─
+                    </div>
+                  )}
+                  <button
+                    className={`pixel-btn w-full text-left flex items-center gap-2 ${
+                      isLocked ? 'opacity-40' : ''
+                    } ${isCurrent ? 'ring-2 ring-retro-gold animate-pulse' : ''}`}
+                    disabled={isLocked}
+                    onClick={() => onSelectBattle(battleIndex)}
+                  >
+                    <span className="text-[7px]">
+                      {isCompleted ? '[DONE]' : isCurrent ? '[!]' : '[ ]'}
+                    </span>
+                    <span className="flex gap-1">
+                      {showSprites
+                        ? battle.enemies.map((e, ei) => (
+                            <Sprite key={ei} type={ENEMY_TYPES[e]?.sprite || e} size={16} />
+                          ))
+                        : <span className="font-pixel text-[7px] text-retro-dim">???</span>
+                      }
+                    </span>
+                    <span className="text-[7px] ml-auto flex items-center gap-1.5">
+                      {isClimax && showSections && <span className="text-retro-accent">Climax</span>}
+                      {isCore && !isClimax && <span className="text-retro-dim">Core</span>}
+                      <span>Battle {position + 1}</span>
+                    </span>
+                  </button>
+                </Fragment>
               )
             })}
           </div>
