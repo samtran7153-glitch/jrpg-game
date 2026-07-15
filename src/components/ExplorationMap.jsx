@@ -10,8 +10,8 @@ const areaConfigs = {
     bgColor: '#2a4a2a',
     playerStart: { x: 100, y: 200 },
     treasures: [
-      { id: 'ancient_tree', x: 300, y: 150, width: 60, height: 80, name: 'Ancient Tree' },
-      { id: 'hidden_grove', x: 800, y: 250, width: 50, height: 60, name: 'Hidden Grove' },
+      { id: 'ancient_tree', x: 60, y: 330, width: 60, height: 60, name: 'Ancient Tree' },
+      { id: 'hidden_grove', x: 1120, y: 70, width: 50, height: 60, name: 'Hidden Grove' },
     ],
     battles: [
       { id: 'alpha_wolf', x: 600, y: 180, width: 40, height: 40, name: 'Alpha Wolf' },
@@ -51,8 +51,8 @@ const areaConfigs = {
     bgColor: '#2d2d2d',
     playerStart: { x: 100, y: 200 },
     treasures: [
-      { id: 'crystal_cache', x: 400, y: 180, width: 50, height: 60, name: 'Crystal Cache' },
-      { id: 'forgotten_chest', x: 900, y: 220, width: 40, height: 40, name: 'Forgotten Chest' },
+      { id: 'crystal_cache', x: 60, y: 70, width: 50, height: 60, name: 'Crystal Cache' },
+      { id: 'forgotten_chest', x: 1120, y: 330, width: 40, height: 40, name: 'Forgotten Chest' },
     ],
     battles: [
       { id: 'cave_troll', x: 650, y: 200, width: 50, height: 50, name: 'Cave Troll' },
@@ -77,8 +77,8 @@ const areaConfigs = {
     bgColor: '#3a3a4a',
     playerStart: { x: 100, y: 200 },
     treasures: [
-      { id: 'armory', x: 350, y: 160, width: 60, height: 70, name: 'Castle Armory' },
-      { id: 'treasury', x: 850, y: 240, width: 50, height: 50, name: 'Royal Treasury' },
+      { id: 'armory', x: 60, y: 330, width: 60, height: 60, name: 'Castle Armory' },
+      { id: 'treasury', x: 1120, y: 70, width: 50, height: 50, name: 'Royal Treasury' },
     ],
     battles: [
       { id: 'royal_guard', x: 600, y: 200, width: 45, height: 45, name: 'Royal Guard Captain' },
@@ -102,8 +102,8 @@ const areaConfigs = {
     bgColor: '#1a1a2a',
     playerStart: { x: 100, y: 200 },
     treasures: [
-      { id: 'void_crystal', x: 450, y: 170, width: 55, height: 65, name: 'Void Crystal' },
-      { id: 'shadow_artifact', x: 820, y: 230, width: 45, height: 45, name: 'Shadow Artifact' },
+      { id: 'void_crystal', x: 60, y: 70, width: 55, height: 65, name: 'Void Crystal' },
+      { id: 'shadow_artifact', x: 1120, y: 330, width: 45, height: 45, name: 'Shadow Artifact' },
     ],
     battles: [
       { id: 'shadow_beast', x: 630, y: 190, width: 48, height: 48, name: 'Shadow Beast' },
@@ -187,8 +187,8 @@ function DecorItem({ type }) {
   }
 }
 
-const TREASURE_REVEAL_START = 160
-const TREASURE_REVEAL_END = 80
+const TREASURE_REVEAL_START = 55
+const TREASURE_REVEAL_END = 30
 const BATTLE_REVEAL_START = 130
 const BATTLE_REVEAL_END = 60
 // Trees collide only on a small trunk box (centered at the tree's base), so
@@ -202,7 +202,7 @@ const MARKER_HALF = 10
 // A secret battle may override it with its own `requires` classKey.
 const SECRET_BATTLE_REQUIRES = 'archer'
 
-export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, party, discoveredTreasures = {}, completedSecretBattles = {} }) {
+export function ExplorationMap({ area, onTreasureFound, onGuardTreasure, onBattleStart, onExit, party, discoveredTreasures = {}, completedSecretBattles = {} }) {
   const config = areaConfigs[area.id] || areaConfigs.forest
   const [playerPos, setPlayerPos] = useState(config.playerStart)
   const [isMoving, setIsMoving] = useState(false)
@@ -277,7 +277,7 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
   // Check collisions (with trigger guards to prevent firing every frame)
   const checkCollisions = useCallback((x, y) => {
     for (const treasure of config.treasures) {
-      if (triggeredRef.current.has(treasure.id)) continue
+      if (triggeredRef.current.has(treasure.id) || discoveredTreasures[treasure.id]) continue
       // Require the player to actually touch the visible marker (a small diamond
       // centered in the treasure's bounding box), not just enter the large box.
       const cx = treasure.x + treasure.width / 2
@@ -289,7 +289,23 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
         y - 15 < cy + MARKER_HALF
       ) {
         triggeredRef.current.add(treasure.id)
-        onTreasureFound(treasure)
+        const tData = (area.hiddenTreasures || []).find((t) => t.id === treasure.id)
+        if (tData?.guard?.length) {
+          // Guarded chest: fight the guardian to claim it (loot granted on victory).
+          setEncounter({
+            id: treasure.id,
+            treasureId: treasure.id,
+            name: tData.name,
+            enemies: tData.guard,
+            story: [`A guardian looms over the ${tData.name}. Defeat it to claim the cache.`],
+          })
+          encounterRef.current = true
+          keysRef.current = {}
+          isMovingRef.current = false
+          setIsMoving(false)
+        } else {
+          onTreasureFound(treasure)
+        }
       }
     }
 
@@ -311,7 +327,7 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
         setIsMoving(false)
       }
     }
-  }, [config.treasures, config.battles, area, onTreasureFound])
+  }, [config.treasures, config.battles, area, onTreasureFound, discoveredTreasures])
 
   // Game loop
   useEffect(() => {
@@ -414,10 +430,10 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
           newX = Math.max(20, Math.min(config.width - 20, newX))
           newY = Math.max(20, Math.min(config.height - 20, newY))
 
-          // Re-arm any battle the player left alone once they've stepped away,
-          // so they can return and reconsider it later.
+          // Re-arm any battle or guarded chest the player left alone once they've
+          // stepped away, so they can return and reconsider it later.
           if (declinedRef.current.size) {
-            for (const b of config.battles) {
+            for (const b of [...config.battles, ...config.treasures]) {
               if (!declinedRef.current.has(b.id)) continue
               const bx = b.x + b.width / 2
               const by = b.y + b.height / 2
@@ -463,15 +479,18 @@ export function ExplorationMap({ area, onTreasureFound, onBattleStart, onExit, p
   const hero = party[0]
 
   const reqClass = encounter?.requires || SECRET_BATTLE_REQUIRES
-  const canFight = !encounter || party.some((h) => h.classKey === reqClass)
+  // Guarded treasures aren't gated behind a required hero; secret battles are.
+  const canFight = !encounter || !!encounter.treasureId || party.some((h) => h.classKey === reqClass)
   const reqName = HERO_CLASSES[reqClass]?.name || 'a stronger ally'
 
   const acceptEncounter = () => {
     const e = encounter
-    if (!e || !party.some((h) => h.classKey === (e.requires || SECRET_BATTLE_REQUIRES))) return
+    if (!e) return
+    if (!e.treasureId && !party.some((h) => h.classKey === (e.requires || SECRET_BATTLE_REQUIRES))) return
     encounterRef.current = false
     setEncounter(null)
-    onBattleStart({ id: e.id })
+    if (e.treasureId) onGuardTreasure({ id: e.treasureId })
+    else onBattleStart({ id: e.id })
   }
 
   const declineEncounter = () => {

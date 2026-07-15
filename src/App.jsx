@@ -349,12 +349,26 @@ export default function App() {
       const battleData = area.secretBattles?.find(b => b.id === battle.id)
       
       if (battleData) {
-        return { 
+        return {
           ...startBattle(s, battleData.enemies),
           explorationBattleId: battle.id,
         }
       }
       return s
+    })
+  }, [])
+
+  // A guarded treasure: fight its guardian; the chest's loot is granted on victory.
+  const handleGuardTreasure = useCallback((treasure) => {
+    setState((s) => {
+      if (s.discoveredTreasures[treasure.id]) return s
+      const area = AREAS[s.currentAreaIndex]
+      const tData = area.hiddenTreasures?.find((t) => t.id === treasure.id)
+      if (!tData || !tData.guard || tData.guard.length === 0) return s
+      return {
+        ...startBattle(s, tData.guard),
+        explorationTreasureId: treasure.id,
+      }
     })
   }, [])
 
@@ -531,6 +545,26 @@ export default function App() {
           activeBattleIndex: null,
           explorationBattleId: null,
           completedSecretBattles: { ...s.completedSecretBattles, [s.explorationBattleId]: true },
+        }
+      }
+
+      // Cleared a treasure's guardian: grant the chest's loot and return to exploring.
+      if (s.explorationTreasureId) {
+        const treasureArea = AREAS[s.currentAreaIndex]
+        const t = treasureArea.hiddenTreasures?.find((x) => x.id === s.explorationTreasureId)
+        return {
+          ...s,
+          party: healedParty,
+          phase: PHASES.EXPLORATION,
+          gold: s.gold + (t?.gold || 0),
+          inventory: t?.item ? { ...s.inventory, [t.item]: (s.inventory[t.item] || 0) + 1 } : s.inventory,
+          discoveredTreasures: { ...s.discoveredTreasures, [s.explorationTreasureId]: true },
+          log: [...s.log, `Claimed ${t?.name || 'the treasure'}! +${t?.gold || 0} gold${t?.item ? `, +1 ${t.item}` : ''}`].slice(-6),
+          battleResult: null,
+          enemies: [],
+          dialogueAfter: null,
+          activeBattleIndex: null,
+          explorationTreasureId: null,
         }
       }
 
@@ -1150,7 +1184,7 @@ export default function App() {
           const newGold = Math.max(0, s.gold - surrenderCost)
           const log = addLog(s.log, `${actor.name} surrenders! The party escapes but loses ${surrenderCost} gold.`)
           const floats = addFloatText(s, `-${surrenderCost}G`, 50, 50, '#f5c518')
-          const isExplorationBattle = !!s.explorationBattleId
+          const isExplorationBattle = !!s.explorationBattleId || !!s.explorationTreasureId
           return {
             ...s,
             gold: newGold,
@@ -1163,6 +1197,7 @@ export default function App() {
             battleResult: null,
             activeBattleIndex: null,
             explorationBattleId: null,
+            explorationTreasureId: null,
           }
         })
         break
@@ -1386,6 +1421,7 @@ export default function App() {
             area={AREAS[state.currentAreaIndex]}
             party={state.party}
             onTreasureFound={handleTreasureFound}
+            onGuardTreasure={handleGuardTreasure}
             onBattleStart={handleExplorationBattle}
             onExit={exitExploration}
             discoveredTreasures={state.discoveredTreasures}

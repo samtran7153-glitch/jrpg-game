@@ -61,6 +61,7 @@ export function createInitialState() {
     explorationMode: null, // 'path_selection' or 'exploring'
     pendingPathSelectionAfterDialogue: false, // Flag for routing to path selection after post-boss dialogue
     explorationBattleId: null, // Track when a battle started from exploration mode
+    explorationTreasureId: null, // Set when a battle guards a treasure chest (loot on victory)
   }
 }
 
@@ -114,6 +115,7 @@ export function startBattle(state, enemyTypes, dialogueBefore, dialogueAfter, re
     busy: false,
     pendingAction: null,
     explorationBattleId: null,
+    explorationTreasureId: null,
   }
 }
 
