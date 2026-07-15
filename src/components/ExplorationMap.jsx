@@ -372,7 +372,7 @@ export function ExplorationMap({ area, onTreasureFound, onGuardTreasure, onBattl
       // permanently anywhere on the map.
       const len = Math.sqrt(dx * dx + dy * dy)
       if (moving && len > 0) {
-        const speed = 5 * delta
+        const speed = 3.5 * delta
         dx = (dx / len) * speed
         dy = (dy / len) * speed
 
