@@ -479,7 +479,12 @@ export default function App() {
     setState((s) => {
       const area = AREAS[s.currentAreaIndex]
       const battle = area.battles[battleIndex]
-      const isReplay = battleIndex < s.currentBattleIndex
+      const selectedPathKey = s.selectedPaths[s.currentAreaIndex]
+      const selectedPath = selectedPathKey ? area.paths[selectedPathKey] : null
+      const pathBattles = selectedPath ? [...selectedPath.battles, ...(area.core || [])] : area.battles.map((_, i) => i)
+      const currentPos = pathBattles.indexOf(s.currentBattleIndex)
+      const clearedThrough = currentPos === -1 ? pathBattles.length : currentPos
+      const isReplay = pathBattles.indexOf(battleIndex) < clearedThrough
       const recruit = isReplay ? null : battle.recruit
       const dialogueBefore = isReplay ? null : battle.dialogue?.before
       const dialogueAfter = isReplay ? null : battle.dialogue?.after
@@ -531,14 +536,21 @@ export default function App() {
 
       const area = AREAS[s.currentAreaIndex]
       const completedBattleIndex = s.activeBattleIndex ?? s.currentBattleIndex
-      const isReplay = completedBattleIndex < s.currentBattleIndex
-      const nextBattleIndex = isReplay ? s.currentBattleIndex : completedBattleIndex + 1
 
       const selectedPathKey = s.selectedPaths[s.currentAreaIndex]
       const selectedPath = selectedPathKey ? area.paths[selectedPathKey] : null
       // Effective run = chosen approach battles + the area's shared core (ends on the boss).
       const pathBattles = selectedPath ? [...selectedPath.battles, ...(area.core || [])] : area.battles.map((_, i) => i)
-      const isLastPathBattle = pathBattles.indexOf(completedBattleIndex) === pathBattles.length - 1
+      // Progress is tracked by POSITION in the path — path indices aren't contiguous.
+      const currentPos = pathBattles.indexOf(s.currentBattleIndex)
+      const clearedThrough = currentPos === -1 ? pathBattles.length : currentPos
+      const completedPos = pathBattles.indexOf(completedBattleIndex)
+      const isReplay = completedPos < clearedThrough
+      const isLastPathBattle = completedPos === pathBattles.length - 1
+      // Advance to the next battle in path order; a value past the list marks "cleared".
+      const nextBattleIndex = isReplay
+        ? s.currentBattleIndex
+        : (completedPos >= 0 && completedPos < pathBattles.length - 1 ? pathBattles[completedPos + 1] : completedBattleIndex + 1)
 
       // The area's climax (last core battle) owns the concluding dialogue.
       const afterDialogue = isReplay ? null : s.dialogueAfter

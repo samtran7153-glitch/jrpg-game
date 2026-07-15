@@ -253,6 +253,9 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onWorl
   const pathBattles = selectedPath
     ? [...area.paths[selectedPath].battles, ...(area.core || [])]
     : area.battles.map((_, i) => i)
+  // Progress by position in the path (indices aren't contiguous); -1 => area cleared.
+  const currentPos = pathBattles.indexOf(state.currentBattleIndex)
+  const clearedThrough = currentPos === -1 ? pathBattles.length : currentPos
 
   const [showItems, setShowItems] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
@@ -361,12 +364,12 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onWorl
           {/* Battles */}
           <div className="font-pixel text-[8px] text-retro-gold mb-2">BATTLES</div>
           <div className="space-y-2">
-            {pathBattles.map((battleIndex) => {
+            {pathBattles.map((battleIndex, position) => {
               const battle = area.battles[battleIndex]
               if (!battle) return null
-              const isCompleted = battleIndex < state.currentBattleIndex
-              const isCurrent = battleIndex === state.currentBattleIndex
-              const isLocked = battleIndex > state.currentBattleIndex
+              const isCompleted = position < clearedThrough
+              const isCurrent = position === clearedThrough
+              const isLocked = position > clearedThrough
               const showSprites = isCompleted && !isCurrent
 
               return (
@@ -390,7 +393,7 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onWorl
                     }
                   </span>
                   <span className="text-[7px] ml-auto">
-                    Battle {battleIndex + 1}
+                    Battle {position + 1}
                   </span>
                 </button>
               )
