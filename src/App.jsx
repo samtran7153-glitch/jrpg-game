@@ -22,6 +22,24 @@ import {
 
 const CLOUD_SYNC_ENABLED = true
 
+// Combat phases where the party can be dead/hurt mid-fight — never persist these,
+// so a defeat or mid-battle state can't overwrite a good overworld save.
+const COMBAT_PHASES = new Set([
+  PHASES.BATTLE_INTRO, PHASES.PLAYER_MENU, PHASES.PLAYER_SKILLS, PHASES.PLAYER_ITEMS,
+  PHASES.PLAYER_TARGET, PHASES.PLAYER_MULTI_TARGET, PHASES.PLAYER_ALLY_TARGET,
+  PHASES.ENEMY_TURN, PHASES.BATTLE_VICTORY, PHASES.BATTLE_DEFEAT,
+])
+const isSaveablePhase = (phase) => phase !== PHASES.TITLE && !COMBAT_PHASES.has(phase)
+
+// Safety net for resuming: never restore an all-fallen party (e.g. from an older
+// save written mid-defeat) — revive downed heroes so Continue is always playable.
+const reviveLoadedParty = (party) => {
+  if (!Array.isArray(party) || party.length === 0) return party
+  const anyAlive = party.some((h) => h.alive && h.hp > 0)
+  if (anyAlive) return party
+  return party.map((h) => ({ ...h, alive: true, hp: h.maxHp, mp: h.mp ?? h.maxMp, statusEffects: [] }))
+}
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 let floatId = 0
 
@@ -145,7 +163,7 @@ export default function App() {
     const local = await loadLocalGame()
     if (local) {
       const base = createInitialState()
-      setState({ ...base, ...local.state, phase: PHASES.AREA_MAP })
+      setState({ ...base, ...local.state, party: reviveLoadedParty(local.state.party ?? base.party), phase: PHASES.AREA_MAP })
       setHasCloudSave(true)
       setLastSavedAt(local.savedAt)
       setSaveStatus('loaded')
@@ -164,7 +182,7 @@ export default function App() {
         const localTs = local?.savedAt || 0
         if (saved.savedAt > localTs) {
           const base = createInitialState()
-          setState({ ...base, ...saved.state, phase: PHASES.AREA_MAP })
+          setState({ ...base, ...saved.state, party: reviveLoadedParty(saved.state.party ?? base.party), phase: PHASES.AREA_MAP })
           setLastSavedAt(saved.savedAt)
           await saveLocalGame(saved.state)
         }
@@ -235,7 +253,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    if (state.phase === PHASES.TITLE) return
+    if (!isSaveablePhase(state.phase)) return
     // Save to localStorage/IndexedDB immediately so progress isn't lost on refresh/close
     let cancelled = false
     saveLocalGame(state).then((local) => {
@@ -276,7 +294,7 @@ export default function App() {
 
   useEffect(() => {
     const flushSave = async () => {
-      if (state.phase !== PHASES.TITLE) {
+      if (isSaveablePhase(state.phase)) {
         saveLocalGame(state)
         let uid = uidRef.current
         if (!uid) {
