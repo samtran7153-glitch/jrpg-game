@@ -6,7 +6,7 @@ export const SKILLS = {
   taunt: { name: 'Taunt', mpCost: 3, type: 'buff', target: 'self', effect: 'defense_up', duration: 3, description: 'Raise defense for 3 turns' },
   // Mage skills
   fireball: { name: 'Fireball', mpCost: 8, damage: 30, type: 'magic', element: 'fire', target: 'enemy', description: 'A blazing sphere of fire' },
-  iceLance: { name: 'Ice Lance', mpCost: 7, damage: 25, type: 'magic', element: 'ice', target: 'enemy', effect: 'slow', effectChance: 0.6, duration: 2, description: 'Ice spike + slow' },
+  iceLance: { name: 'Ice Lance', mpCost: 7, damage: 25, type: 'magic', element: 'ice', target: 'enemy', effect: 'slow', effectChance: 1, duration: 2, description: 'Ice spike + slow' },
   lightning: { name: 'Lightning', mpCost: 12, damage: 40, type: 'magic', element: 'lightning', target: 'enemy', description: 'Bolt from the heavens' },
   // Archer skills
   preciseShot: { name: 'Precise Shot', mpCost: 3, damage: 18, type: 'physical', element: 'physical', target: 'enemy', critBonus: 0.3, description: 'High crit chance arrow' },
