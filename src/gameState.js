@@ -72,8 +72,8 @@ export function getAliveActors(state) {
 export function computeTurnOrder(party, enemies) {
   const all = [...party, ...enemies].filter((a) => a.alive && a.hp > 0)
   return all.sort((a, b) => {
-    const aSpeed = (a.statusEffects || []).some(e => e.type === 'slow') ? Math.floor(a.speed * 0.5) : a.speed
-    const bSpeed = (b.statusEffects || []).some(e => e.type === 'slow') ? Math.floor(b.speed * 0.5) : b.speed
+    const aSpeed = (a.statusEffects || []).some(e => e.type === 'slow') ? Math.floor(a.speed * 0.4) : a.speed
+    const bSpeed = (b.statusEffects || []).some(e => e.type === 'slow') ? Math.floor(b.speed * 0.4) : b.speed
     return bSpeed - aSpeed
   })
 }

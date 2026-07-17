@@ -6,7 +6,7 @@ export const SKILLS = {
   taunt: { name: 'Taunt', mpCost: 3, type: 'buff', target: 'self', effect: 'defense_up', duration: 3, description: 'Raise defense for 3 turns' },
   // Mage skills
   fireball: { name: 'Fireball', mpCost: 8, damage: 30, type: 'magic', element: 'fire', target: 'enemy', description: 'A blazing sphere of fire' },
-  iceLance: { name: 'Ice Lance', mpCost: 7, damage: 25, type: 'magic', element: 'ice', target: 'enemy', effect: 'slow', effectChance: 1, duration: 2, description: 'Ice spike + slow' },
+  iceLance: { name: 'Ice Lance', mpCost: 7, damage: 25, type: 'magic', element: 'ice', target: 'enemy', effect: 'slow', effectChance: 1, duration: 2, description: 'Ice spike + slow (weakens & delays)' },
   lightning: { name: 'Lightning', mpCost: 12, damage: 40, type: 'magic', element: 'lightning', target: 'enemy', description: 'Bolt from the heavens' },
   // Archer skills
   preciseShot: { name: 'Precise Shot', mpCost: 3, damage: 18, type: 'physical', element: 'physical', target: 'enemy', critBonus: 0.3, description: 'High crit chance arrow' },
@@ -249,10 +249,12 @@ export function calculateDamage(attacker, defender, baseDamage, isCrit = false, 
   // Apply status effect buffs
   const atkBuffs = (attacker.statusEffects || []).filter((e) => e.type === 'attack_up')
   const atkMult = atkBuffs.length > 0 ? 1.5 : 1
+  // A slowed attacker also hits weaker.
+  const slowMult = (attacker.statusEffects || []).some((e) => e.type === 'slow') ? 0.7 : 1
   const defBuffs = (defender.statusEffects || []).filter((e) => e.type === 'defense_up')
   let effectiveDef = defender.defense
   if (defBuffs.length > 0) effectiveDef = Math.floor(effectiveDef * 1.5)
-  let dmg = Math.max(1, Math.floor((baseDamage * atkMult - effectiveDef * 0.5) * variance * critMult))
+  let dmg = Math.max(1, Math.floor((baseDamage * atkMult - effectiveDef * 0.5) * variance * critMult * slowMult))
   // Apply elemental weakness/resistance
   const weaknesses = defender.weaknesses || defender.typeKey && ENEMY_TYPES[defender.typeKey]?.weaknesses
   if (weaknesses && weaknesses[element]) {
