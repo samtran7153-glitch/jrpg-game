@@ -243,6 +243,7 @@ export default function App() {
         return { success: false, error: 'Invalid save data' }
       }
       const merged = { ...createInitialState(), ...parsed }
+      merged.party = reviveLoadedParty(merged.party)
       setState(merged)
       setHasCloudSave(true)
       await saveLocalGame(merged)
@@ -484,6 +485,7 @@ export default function App() {
           currentBattleIndex: s.currentBattleIndex,
           activeBattleIndex: null,
           travel: null,
+          randomEncounter: true,
         }
       }
 
@@ -563,6 +565,21 @@ export default function App() {
           activeBattleIndex: null,
           explorationBattleId: null,
           completedSecretBattles: { ...s.completedSecretBattles, [s.explorationBattleId]: true },
+        }
+      }
+
+      // A random travel encounter isn't a story battle — just return to the hub,
+      // no progression, no area clear.
+      if (s.randomEncounter) {
+        return {
+          ...s,
+          party: healedParty,
+          phase: PHASES.AREA_MAP,
+          randomEncounter: false,
+          battleResult: null,
+          enemies: [],
+          dialogueAfter: null,
+          activeBattleIndex: null,
         }
       }
 
@@ -1216,6 +1233,7 @@ export default function App() {
             activeBattleIndex: null,
             explorationBattleId: null,
             explorationTreasureId: null,
+            randomEncounter: false,
           }
         })
         break

@@ -62,6 +62,7 @@ export function createInitialState() {
     pendingPathSelectionAfterDialogue: false, // Flag for routing to path selection after post-boss dialogue
     explorationBattleId: null, // Track when a battle started from exploration mode
     explorationTreasureId: null, // Set when a battle guards a treasure chest (loot on victory)
+    randomEncounter: false, // Set for a random battle while traveling (no story progress on win)
   }
 }
 
@@ -116,6 +117,7 @@ export function startBattle(state, enemyTypes, dialogueBefore, dialogueAfter, re
     pendingAction: null,
     explorationBattleId: null,
     explorationTreasureId: null,
+    randomEncounter: false,
   }
 }
 
@@ -142,6 +144,8 @@ export function checkBattleEnd(state) {
       ? `exploration-${state.currentAreaIndex}-${state.explorationBattleId}`
       : state.explorationTreasureId
       ? `treasure-${state.currentAreaIndex}-${state.explorationTreasureId}`
+      : state.randomEncounter
+      ? `random-${state.currentAreaIndex}`
       : `${state.currentAreaIndex}-${state.activeBattleIndex ?? state.currentBattleIndex}`
     const completions = (state.battleCompletions[battleKey] || 0) + 1
     const isReplay = completions > 1
