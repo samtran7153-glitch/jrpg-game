@@ -140,6 +140,8 @@ export function checkBattleEnd(state) {
     const baseGold = state.enemies.reduce((sum, e) => sum + (e.gold || 0), 0)
     const battleKey = state.explorationBattleId
       ? `exploration-${state.currentAreaIndex}-${state.explorationBattleId}`
+      : state.explorationTreasureId
+      ? `treasure-${state.currentAreaIndex}-${state.explorationTreasureId}`
       : `${state.currentAreaIndex}-${state.activeBattleIndex ?? state.currentBattleIndex}`
     const completions = (state.battleCompletions[battleKey] || 0) + 1
     const isReplay = completions > 1

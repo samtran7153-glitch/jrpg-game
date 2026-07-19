@@ -310,7 +310,7 @@ export function ExplorationMap({ area, onTreasureFound, onGuardTreasure, onBattl
     }
 
     for (const battle of config.battles) {
-      if (triggeredRef.current.has(battle.id)) continue
+      if (triggeredRef.current.has(battle.id) || completedSecretBattles[battle.id]) continue
       if (
         x + 15 > battle.x &&
         x - 15 < battle.x + battle.width &&
@@ -327,7 +327,7 @@ export function ExplorationMap({ area, onTreasureFound, onGuardTreasure, onBattl
         setIsMoving(false)
       }
     }
-  }, [config.treasures, config.battles, area, onTreasureFound, discoveredTreasures])
+  }, [config.treasures, config.battles, area, onTreasureFound, discoveredTreasures, completedSecretBattles])
 
   // Game loop
   useEffect(() => {
