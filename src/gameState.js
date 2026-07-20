@@ -40,6 +40,7 @@ export function createInitialState() {
     currentAreaIndex: 0,
     maxAreaReached: 0, // Furthest area unlocked by clearing; gates world-map travel
     currentBattleIndex: 0,
+    areaProgress: {}, // Per-area currentBattleIndex, so revisiting an area restores its progress
     turnOrder: [],
     currentTurnIndex: 0,
     turnNonce: 0,

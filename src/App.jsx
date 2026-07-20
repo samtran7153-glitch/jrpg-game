@@ -444,6 +444,8 @@ export default function App() {
         const hasEncounter = Math.random() < encounterChance
         return {
           ...s,
+          // Remember where we are in the area we're leaving, to restore on return.
+          areaProgress: { ...s.areaProgress, [s.currentAreaIndex]: s.currentBattleIndex },
           phase: PHASES.TRAVEL,
           travel: {
             targetAreaIndex: areaIndex,
@@ -493,11 +495,19 @@ export default function App() {
       const hasSelectedPath = s.selectedPaths[travel.targetAreaIndex]
       const needsPathSelection = newArea.paths && !hasSelectedPath
 
+      // Restore this area's own saved progress (path indices aren't contiguous, so a
+      // reset-to-0 would misread a Hard-path area as fully cleared). Falls back to the
+      // first battle of its chosen path (or 0 for a linear area).
+      const targetFirst = hasSelectedPath && newArea.paths?.[hasSelectedPath]
+        ? newArea.paths[hasSelectedPath].battles[0]
+        : 0
+      const restoredIndex = s.areaProgress?.[travel.targetAreaIndex] ?? targetFirst
+
       // Don't advance currentAreaIndex until the player actually picks a path
       return {
         ...s,
         currentAreaIndex: needsPathSelection ? s.currentAreaIndex : travel.targetAreaIndex,
-        currentBattleIndex: 0,
+        currentBattleIndex: needsPathSelection ? 0 : restoredIndex,
         phase: needsPathSelection ? PHASES.PATH_SELECTION : PHASES.AREA_MAP,
         selectedAreaIndex: needsPathSelection ? travel.targetAreaIndex : null,
         battleResult: null,
