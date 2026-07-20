@@ -5,11 +5,13 @@ export function WorldMap({ state, onSelectArea, onBack }) {
   const { currentAreaIndex } = state
   const maxReached = state.maxAreaReached ?? currentAreaIndex
 
+  // Completion tracks maxReached (only rises when an area is cleared), NOT
+  // currentAreaIndex — so traveling back to a cleared area doesn't un-complete
+  // the ones ahead of it. "You are here" is a separate highlight below.
   const getAreaStatus = (index) => {
-    if (index === currentAreaIndex) return 'current'
-    if (index < currentAreaIndex) return 'completed' // areas behind you are cleared
-    if (index <= maxReached) return 'unlocked' // reachable but not yet cleared
-    return 'locked' // must clear the current area to unlock the next
+    if (index < maxReached) return 'completed' // cleared
+    if (index === maxReached) return 'unlocked' // frontier: reachable, not yet cleared
+    return 'locked'
   }
 
   const handleAreaClick = (index) => {
@@ -203,9 +205,9 @@ export function WorldMap({ state, onSelectArea, onBack }) {
           const status = getAreaStatus(index)
           const pos = positions[index]
           const isLocked = status === 'locked'
-          const isCurrent = status === 'current'
           const isCompleted = status === 'completed'
           const isNext = status === 'unlocked'
+          const isCurrent = index === currentAreaIndex // you-are-here; overlays completed/unlocked
           const isUnknown = isLocked && index > maxReached + 1
 
           return (
@@ -213,9 +215,11 @@ export function WorldMap({ state, onSelectArea, onBack }) {
               key={index}
               className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-14 h-14 pixel-panel p-1.5 flex flex-col items-center justify-center transition-all ${
                 isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-110 hover:z-10'
-              } ${isCurrent ? 'ring-2 ring-retro-gold animate-pulse z-20' : ''} ${
-                isCompleted ? 'ring-1 ring-retro-dim' : ''
-              } ${isNext ? 'ring-2 ring-retro-gold ring-opacity-50 z-10' : ''}`}
+              } ${
+                isCurrent ? 'ring-2 ring-retro-gold animate-pulse z-20'
+                  : isNext ? 'ring-2 ring-retro-gold ring-opacity-50 z-10'
+                  : isCompleted ? 'ring-1 ring-retro-dim' : ''
+              }`}
               style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
               disabled={isLocked}
               onClick={() => handleAreaClick(index)}
