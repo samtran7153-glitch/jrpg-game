@@ -455,11 +455,14 @@ export default function App() {
         }
       }
 
-      // Clicking the area you're already in just returns to its hub — never
-      // resets progress or re-opens path selection.
+      // Clicking the area you're already in: a cleared branching area re-opens its
+      // picker (run the other approach); otherwise just return to its hub.
+      const sameArea = AREAS[areaIndex]
+      const reopenPicker = sameArea.paths && areaIndex < (s.maxAreaReached ?? 0)
       return {
         ...s,
-        phase: PHASES.AREA_MAP,
+        phase: reopenPicker ? PHASES.PATH_SELECTION : PHASES.AREA_MAP,
+        selectedAreaIndex: reopenPicker ? areaIndex : null,
         battleResult: null,
         enemies: [],
         dialogueAfter: null,
@@ -494,6 +497,9 @@ export default function App() {
       const newArea = AREAS[travel.targetAreaIndex]
       const hasSelectedPath = s.selectedPaths[travel.targetAreaIndex]
       const needsPathSelection = newArea.paths && !hasSelectedPath
+      // A cleared branching area re-opens the picker so you can run the other approach.
+      const isClearedBranching = newArea.paths && travel.targetAreaIndex < (s.maxAreaReached ?? 0)
+      const showPicker = needsPathSelection || isClearedBranching
 
       // Restore this area's own saved progress (path indices aren't contiguous, so a
       // reset-to-0 would misread a Hard-path area as fully cleared). Falls back to the
@@ -503,13 +509,14 @@ export default function App() {
         : 0
       const restoredIndex = s.areaProgress?.[travel.targetAreaIndex] ?? targetFirst
 
-      // Don't advance currentAreaIndex until the player actually picks a path
+      // For a brand-new area, hold currentAreaIndex at the source until a path is picked.
+      // For a cleared revisit, we're actually there — enter it and re-open the picker.
       return {
         ...s,
         currentAreaIndex: needsPathSelection ? s.currentAreaIndex : travel.targetAreaIndex,
         currentBattleIndex: needsPathSelection ? 0 : restoredIndex,
-        phase: needsPathSelection ? PHASES.PATH_SELECTION : PHASES.AREA_MAP,
-        selectedAreaIndex: needsPathSelection ? travel.targetAreaIndex : null,
+        phase: showPicker ? PHASES.PATH_SELECTION : PHASES.AREA_MAP,
+        selectedAreaIndex: showPicker ? travel.targetAreaIndex : null,
         battleResult: null,
         enemies: [],
         dialogueAfter: null,
@@ -643,11 +650,16 @@ export default function App() {
           return { ...s, phase: PHASES.GAME_COMPLETE, dialogueAfter: null, activeBattleIndex: null }
         }
         const nextMaxReached = Math.max(s.maxAreaReached ?? s.currentAreaIndex, nextAreaIndex)
+        // Record which approach was completed (for the ✓ + play-the-other-path feature).
+        const newCompletedPaths = selectedPathKey
+          ? { ...s.completedPaths, [s.currentAreaIndex]: { ...(s.completedPaths[s.currentAreaIndex] || {}), [selectedPathKey]: true } }
+          : s.completedPaths
         if (afterDialogue && afterDialogue.length > 0) {
           return {
             ...s,
             party: healedParty,
             maxAreaReached: nextMaxReached,
+            completedPaths: newCompletedPaths,
             currentBattleIndex: nextBattleIndex,
             phase: PHASES.DIALOGUE,
             dialogueLines: afterDialogue,
@@ -664,6 +676,7 @@ export default function App() {
           ...s,
           party: healedParty,
           maxAreaReached: nextMaxReached,
+          completedPaths: newCompletedPaths,
           currentBattleIndex: nextBattleIndex,
           phase: PHASES.AREA_MAP,
           selectedAreaIndex: null,
@@ -1480,6 +1493,7 @@ export default function App() {
         return (
           <PathSelection
             area={AREAS[state.selectedAreaIndex ?? state.currentAreaIndex]}
+            completedPaths={state.completedPaths[state.selectedAreaIndex ?? state.currentAreaIndex] || {}}
             onSelectPath={selectPath}
             onBack={() => setState((s) => ({ ...s, phase: PHASES.AREA_MAP, selectedAreaIndex: null }))}
           />

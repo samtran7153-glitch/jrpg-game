@@ -1,4 +1,4 @@
-export function PathSelection({ area, onSelectPath, onBack }) {
+export function PathSelection({ area, onSelectPath, onBack, completedPaths = {} }) {
   if (!area.paths) return null
 
   const core = area.core || []
@@ -24,7 +24,10 @@ export function PathSelection({ area, onSelectPath, onBack }) {
                 className="pixel-btn p-2 text-left flex flex-col gap-1 h-full hover:border-retro-gold"
                 onClick={() => onSelectPath(pathKey)}
               >
-                <div className="font-pixel text-[8px] text-retro-gold leading-tight">{path.name}</div>
+                <div className="font-pixel text-[8px] text-retro-gold leading-tight flex items-center justify-between gap-1">
+                  <span>{path.name}</span>
+                  {completedPaths[pathKey] && <span className="text-retro-green text-[7px]">✓ done</span>}
+                </div>
                 <div className={`font-pixel text-[6px] ${hard ? 'text-retro-accent' : 'text-retro-green'}`}>
                   {hard ? '⚔ Tougher foes' : '✦ Safer route'}
                 </div>

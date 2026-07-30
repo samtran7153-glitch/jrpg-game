@@ -367,7 +367,8 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onWorl
           {/* Battles */}
           <div className="font-pixel text-[8px] text-retro-gold mb-2">BATTLES</div>
           <div className="space-y-2">
-            {pathBattles.map((battleIndex, position) => {
+            {/* Path battles — the boss is pulled out to its own section below */}
+            {pathBattles.slice(0, -1).map((battleIndex, position) => {
               const battle = area.battles[battleIndex]
               if (!battle) return null
               const isCompleted = position < clearedThrough
@@ -375,7 +376,6 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onWorl
               const isLocked = position > clearedThrough
               const showSprites = isCompleted && !isCurrent
               const isCore = showSections && position >= approachCount
-              const isClimax = position === pathBattles.length - 1
 
               return (
                 <Fragment key={battleIndex}>
@@ -408,8 +408,7 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onWorl
                       }
                     </span>
                     <span className="text-[7px] ml-auto flex items-center gap-1.5">
-                      {isClimax && showSections && <span className="text-retro-accent">Climax</span>}
-                      {isCore && !isClimax && <span className="text-retro-dim">Core</span>}
+                      {isCore && <span className="text-retro-dim">Core</span>}
                       <span>Battle {position + 1}</span>
                     </span>
                   </button>
@@ -417,6 +416,42 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onWorl
               )
             })}
           </div>
+
+          {/* Boss — the area's climax, its own challenge (not part of the path) */}
+          {(() => {
+            const bossPos = pathBattles.length - 1
+            const bossIndex = pathBattles[bossPos]
+            const bossBattle = area.battles[bossIndex]
+            if (!bossBattle) return null
+            const bossLocked = clearedThrough < bossPos
+            const bossCurrent = clearedThrough === bossPos
+            const bossDone = clearedThrough > bossPos
+            return (
+              <div className="mt-3">
+                <div className="font-pixel text-[6px] text-retro-accent tracking-widest mb-1">⚔ AREA BOSS</div>
+                <button
+                  className={`pixel-btn w-full text-left flex items-center gap-2 border-retro-accent ${
+                    bossLocked ? 'opacity-40' : ''
+                  } ${bossCurrent ? 'ring-2 ring-retro-accent animate-pulse' : ''}`}
+                  disabled={bossLocked}
+                  onClick={() => onSelectBattle(bossIndex)}
+                >
+                  <span className="text-[7px] text-retro-accent">
+                    {bossDone ? '[DONE]' : bossCurrent ? '[!]' : '[ ]'}
+                  </span>
+                  <span className="flex gap-1">
+                    {bossDone
+                      ? bossBattle.enemies.map((e, ei) => (
+                          <Sprite key={ei} type={ENEMY_TYPES[e]?.sprite || e} size={16} />
+                        ))
+                      : <span className="font-pixel text-[7px] text-retro-dim">{bossLocked ? 'Clear the path first' : '???'}</span>
+                    }
+                  </span>
+                  <span className="text-[7px] ml-auto text-retro-accent">BOSS</span>
+                </button>
+              </div>
+            )
+          })()}
         </div>
       )}
 
