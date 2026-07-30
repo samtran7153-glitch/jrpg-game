@@ -59,6 +59,7 @@ export function createInitialState() {
     completedSecretBattles: {},
     selectedPaths: {}, // Track which path (easy/hard) player chose for each area
     completedPaths: {}, // Track which approaches have been fully cleared per area: { [areaIndex]: { easy, hard } }
+    seenTutorials: {}, // One-time tutorial banners already shown: { [screenKey]: true }
     selectedAreaIndex: null, // Area pending path selection before confirming arrival
     explorationMode: null, // 'path_selection' or 'exploring'
     pendingPathSelectionAfterDialogue: false, // Flag for routing to path selection after post-boss dialogue

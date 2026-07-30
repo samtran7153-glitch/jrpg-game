@@ -1,4 +1,12 @@
-export function PathSelection({ area, onSelectPath, onBack, completedPaths = {} }) {
+import { TutorialBanner } from './Shared'
+
+const PATH_TIPS = [
+  'A fork in the road! Pick an approach — Safer or Tougher — then both roads rejoin for the core fights.',
+  'Your choice sticks for this visit, but nothing is missed: recruits and the AREA BOSS are beyond the fork either way.',
+  'After beating the boss, revisit this area to try the other approach (finished ones show a ✓).',
+]
+
+export function PathSelection({ area, onSelectPath, onBack, completedPaths = {}, seenTutorials = {}, onTutorialSeen }) {
   if (!area.paths) return null
 
   // The last core entry is the area boss — shown as its own challenge, not a core fight.
@@ -64,6 +72,12 @@ export function PathSelection({ area, onSelectPath, onBack, completedPaths = {} 
           </>
         )}
       </div>
+
+      {!seenTutorials.path_selection && onTutorialSeen && (
+        <div className="w-full max-w-md">
+          <TutorialBanner tips={PATH_TIPS} onDone={() => onTutorialSeen('path_selection')} />
+        </div>
+      )}
 
       <button className="pixel-btn w-40" onClick={onBack}>
         Back

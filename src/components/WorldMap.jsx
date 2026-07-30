@@ -1,7 +1,14 @@
 import { AREAS } from '../gameState'
 import { Sprite } from '../Sprites'
+import { TutorialBanner } from './Shared'
 
-export function WorldMap({ state, onSelectArea, onBack }) {
+const WORLD_MAP_TIPS = [
+  'The World Map connects every region. Beat an area\'s boss to unlock the next one.',
+  'Careful — traveling between areas can spring a random ambush on the road.',
+  'Cleared a branching area? Revisit it to take the approach you skipped.',
+]
+
+export function WorldMap({ state, onSelectArea, onBack, onTutorialSeen }) {
   const { currentAreaIndex } = state
   const maxReached = state.maxAreaReached ?? currentAreaIndex
 
@@ -259,6 +266,10 @@ export function WorldMap({ state, onSelectArea, onBack }) {
       <div className="text-center font-pixel text-[6px] text-retro-dim">
         Click any unlocked area to travel
       </div>
+
+      {!state.seenTutorials?.world_map && onTutorialSeen && (
+        <TutorialBanner tips={WORLD_MAP_TIPS} onDone={() => onTutorialSeen('world_map')} />
+      )}
 
       <button className="pixel-btn w-full" onClick={onBack}>
         Back

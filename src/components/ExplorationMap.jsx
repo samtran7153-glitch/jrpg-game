@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Sprite } from '../Sprites'
 import { ENEMY_TYPES, HERO_CLASSES } from '../gameData'
+import { TutorialBanner } from './Shared'
+
+const EXPLORATION_TIPS = [
+  'Explore freely! Move with WASD, the arrow keys, or the D-pad below.',
+  'Treasures hide in far corners and only appear up close — but each has a guardian you must defeat to claim it.',
+  'Powerful secret battles lurk here too. You can always LEAVE a fight you are not ready for and come back later.',
+]
 
 // Area-specific configurations (module-level to avoid re-creation on every render)
 const areaConfigs = {
@@ -202,7 +209,7 @@ const MARKER_HALF = 10
 // A secret battle may override it with its own `requires` classKey.
 const SECRET_BATTLE_REQUIRES = 'archer'
 
-export function ExplorationMap({ area, onTreasureFound, onGuardTreasure, onBattleStart, onExit, party, discoveredTreasures = {}, completedSecretBattles = {} }) {
+export function ExplorationMap({ area, onTreasureFound, onGuardTreasure, onBattleStart, onExit, party, discoveredTreasures = {}, completedSecretBattles = {}, seenTutorials = {}, onTutorialSeen }) {
   const config = areaConfigs[area.id] || areaConfigs.forest
   const [playerPos, setPlayerPos] = useState(config.playerStart)
   const [isMoving, setIsMoving] = useState(false)
@@ -676,6 +683,12 @@ export function ExplorationMap({ area, onTreasureFound, onGuardTreasure, onBattl
           <span className="font-pixel text-[10px]">R</span>
         </button>
       </div>
+
+      {!seenTutorials.exploration && onTutorialSeen && (
+        <div className="mt-2">
+          <TutorialBanner tips={EXPLORATION_TIPS} onDone={() => onTutorialSeen('exploration')} />
+        </div>
+      )}
 
       {/* Secret battle encounter: story + choose to fight or leave */}
       {encounter && (

@@ -1,5 +1,42 @@
+import { useState } from 'react'
 import { Sprite } from '../Sprites'
 import { SKILLS, xpForLevel } from '../gameState'
+
+// One-time step-through tutorial banner (same look as the battle tutorial).
+// Render it only while its screen's seenTutorials flag is unset; onDone marks it seen.
+export function TutorialBanner({ tips, onDone }) {
+  const [step, setStep] = useState(0)
+  if (!tips || tips.length === 0) return null
+  return (
+    <div className="pixel-panel p-2 z-40 border-2 border-retro-gold">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex-1">
+          <div className="font-pixel text-[8px] text-retro-gold mb-0.5">TUTORIAL {step + 1}/{tips.length}</div>
+          <div className="font-pixel text-[8px] text-retro-text leading-relaxed">{tips[step]}</div>
+        </div>
+        <div className="flex gap-1 shrink-0">
+          {step > 0 && (
+            <button className="pixel-btn text-[7px] px-1 py-0.5" onClick={() => setStep(step - 1)}>
+              Back
+            </button>
+          )}
+          {step < tips.length - 1 ? (
+            <button className="pixel-btn text-[7px] px-1 py-0.5" onClick={() => setStep(step + 1)}>
+              Next
+            </button>
+          ) : (
+            <button className="pixel-btn text-[7px] px-1 py-0.5" onClick={onDone}>
+              Got it!
+            </button>
+          )}
+          <button className="pixel-btn text-[7px] px-1 py-0.5 text-retro-dim" onClick={onDone}>
+            Skip
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export function Bar({ label, value, max, color }) {
   const percent = (value / max) * 100

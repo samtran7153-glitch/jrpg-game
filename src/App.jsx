@@ -332,6 +332,10 @@ export default function App() {
     }
   }, [state])
 
+  const markTutorialSeen = useCallback((key) => {
+    setState((s) => ({ ...s, seenTutorials: { ...s.seenTutorials, [key]: true } }))
+  }, [])
+
   const openWorldMap = () => {
     setState((s) => ({ ...s, phase: PHASES.WORLD_MAP }))
   }
@@ -1474,6 +1478,8 @@ export default function App() {
             onWorldMap={openWorldMap}
             onExplore={startExploration}
             onSettings={() => setState((s) => ({ ...s, phase: PHASES.SETTINGS }))}
+            seenTutorials={state.seenTutorials}
+            onTutorialSeen={markTutorialSeen}
           />
         )
       case PHASES.EXPLORATION:
@@ -1487,6 +1493,8 @@ export default function App() {
             onExit={exitExploration}
             discoveredTreasures={state.discoveredTreasures}
             completedSecretBattles={state.completedSecretBattles}
+            seenTutorials={state.seenTutorials}
+            onTutorialSeen={markTutorialSeen}
           />
         )
       case PHASES.PATH_SELECTION:
@@ -1496,6 +1504,8 @@ export default function App() {
             completedPaths={state.completedPaths[state.selectedAreaIndex ?? state.currentAreaIndex] || {}}
             onSelectPath={selectPath}
             onBack={() => setState((s) => ({ ...s, phase: PHASES.AREA_MAP, selectedAreaIndex: null }))}
+            seenTutorials={state.seenTutorials}
+            onTutorialSeen={markTutorialSeen}
           />
         )
       case PHASES.TRAVEL:
@@ -1506,6 +1516,7 @@ export default function App() {
             state={state}
             onSelectArea={selectArea}
             onBack={() => setState((s) => ({ ...s, phase: PHASES.AREA_MAP }))}
+            onTutorialSeen={markTutorialSeen}
           />
         )
       case PHASES.SHOP:
@@ -1529,7 +1540,7 @@ export default function App() {
         return <BattleScreen state={state} anim={anim} onAction={handleAction} />
       case PHASES.BATTLE_VICTORY:
         if (screenFade) return <BattleScreen state={state} anim={anim} onAction={handleAction} />
-        return <VictoryScreen state={state} onConfirm={confirmXpAllocation} />
+        return <VictoryScreen state={state} onConfirm={confirmXpAllocation} onTutorialSeen={markTutorialSeen} />
       case PHASES.BATTLE_DEFEAT:
         if (screenFade) return <BattleScreen state={state} anim={anim} onAction={handleAction} />
         return <DefeatScreen onRetry={returnToTitle} />

@@ -1,6 +1,17 @@
 import { useState, useEffect, Fragment } from 'react'
 import { Sprite } from '../Sprites'
-import { CharacterCard, GoldDisplay, HeroStatsModal } from './Shared'
+import { CharacterCard, GoldDisplay, HeroStatsModal, TutorialBanner } from './Shared'
+
+const AREA_MAP_TIPS = [
+  'This is your area hub. Fight the battles in order — the current one glows gold.',
+  'ITEMS heals your party between fights, the SHOP sells supplies, and EXPLORE lets you roam the area freely.',
+  'The AREA BOSS waits at the bottom — clear the path battles first, then challenge it to finish the area.',
+  'Done here? Open the WORLD MAP to travel onward.',
+]
+
+const VICTORY_TIPS = [
+  'Victory! Use + and − to decide who gets the XP — favor one hero to level them faster, or keep the even split.',
+]
 import { AREAS, ITEMS, xpForLevel } from '../gameState'
 import { ENEMY_TYPES } from '../gameData'
 
@@ -245,7 +256,7 @@ export function TitleScreen({ onStart, onContinue, hasCloudSave }) {
   )
 }
 
-export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onWorldMap, onExplore, onSettings }) {
+export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onWorldMap, onExplore, onSettings, seenTutorials = {}, onTutorialSeen }) {
   const area = AREAS[state.currentAreaIndex]
   if (!area) return null
   const selectedPath = state.selectedPaths[state.currentAreaIndex]
@@ -472,6 +483,10 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onWorl
         </button>
       </div>
 
+      {!seenTutorials.area_map && onTutorialSeen && (
+        <TutorialBanner tips={AREA_MAP_TIPS} onDone={() => onTutorialSeen('area_map')} />
+      )}
+
       {statsHero && <HeroStatsModal hero={statsHero} onClose={() => setStatsHero(null)} />}
     </div>
   )
@@ -685,7 +700,7 @@ function StoryStage({ state, speaker, dialogueIndex, dialogueLines }) {
   )
 }
 
-export function VictoryScreen({ state, onConfirm }) {
+export function VictoryScreen({ state, onConfirm, onTutorialSeen }) {
   const { battleResult, party } = state
   const [xpAlloc, setXpAlloc] = useState(() => {
     if (!battleResult) return {}
@@ -756,6 +771,11 @@ export function VictoryScreen({ state, onConfirm }) {
   return (
     <div className="flex flex-col items-center justify-center flex-1 gap-3 overflow-y-auto">
       <div className="font-pixel text-lg text-retro-green">VICTORY!</div>
+      {!state.seenTutorials?.victory && onTutorialSeen && (
+        <div className="w-full">
+          <TutorialBanner tips={VICTORY_TIPS} onDone={() => onTutorialSeen('victory')} />
+        </div>
+      )}
       <div className="pixel-panel p-3 w-full space-y-2">
         <div className="text-center font-pixel text-[9px] text-retro-text">Battle Rewards</div>
         {battleResult.isReplay && (
