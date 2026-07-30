@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Sprite } from '../Sprites'
 import { ENEMY_TYPES, HERO_CLASSES } from '../gameData'
-import { TutorialBanner } from './Shared'
+import { TutorialBanner, TUTORIAL_HIGHLIGHT_CLASS } from './Shared'
 
 const EXPLORATION_TIPS = [
-  'Explore freely! Move with WASD, the arrow keys, or the D-pad below.',
-  'Treasures hide in far corners and only appear up close — but each has a guardian you must defeat to claim it.',
-  'Powerful secret battles lurk here too. You can always LEAVE a fight you are not ready for and come back later.',
+  { text: 'Explore freely! Move with WASD, the arrow keys, or the D-pad below.', highlight: 'dpad' },
+  { text: 'Hidden treasures lie somewhere in every area, revealing themselves only up close — and each has a guardian you must defeat to claim it.', highlight: 'map' },
+  { text: 'Powerful secret battles lurk here too. You can always LEAVE a fight you are not ready for and come back later.', highlight: 'map' },
 ]
 
 // Area-specific configurations (module-level to avoid re-creation on every render)
@@ -221,6 +221,9 @@ export function ExplorationMap({ area, onTreasureFound, onGuardTreasure, onBattl
   const triggeredRef = useRef(new Set())
   // A secret battle the player has walked into and must choose to fight or leave.
   const [encounter, setEncounter] = useState(null)
+  const [tutHighlight, setTutHighlight] = useState(null)
+  const tutActive = !seenTutorials.exploration && onTutorialSeen
+  const hl = (key) => (tutActive && tutHighlight === key ? ` ${TUTORIAL_HIGHLIGHT_CLASS}` : '')
   const encounterRef = useRef(false)   // pauses movement while the choice is open
   const declinedRef = useRef(new Set()) // battles left alone; re-arm once we walk away
   // Measure the actual map viewport so the camera math matches it (avoids empty
@@ -518,7 +521,7 @@ export function ExplorationMap({ area, onTreasureFound, onGuardTreasure, onBattl
         <div className="font-pixel text-[6px] text-retro-dim">Use arrow keys or WASD to move</div>
       </div>
 
-      <div ref={viewportRef} className="relative overflow-hidden bg-retro-bg shrink-0" style={{ height: 300 }}>
+      <div ref={viewportRef} className={`relative overflow-hidden bg-retro-bg shrink-0${hl('map')}`} style={{ height: 300 }}>
         <div
           className="absolute inset-0"
           style={{
@@ -643,7 +646,7 @@ export function ExplorationMap({ area, onTreasureFound, onGuardTreasure, onBattl
       </div>
 
       {/* Mobile D-pad — placed below the map so it never covers the play area */}
-      <div className="mt-2 grid grid-cols-3 gap-1 w-max mx-auto select-none opacity-80" style={{ touchAction: 'none' }}>
+      <div className={`mt-2 grid grid-cols-3 gap-1 w-max mx-auto select-none opacity-80${hl('dpad')}`} style={{ touchAction: 'none' }}>
         <div />
         <button
           className="pixel-btn w-11 h-11 flex items-center justify-center active:scale-95"
@@ -684,9 +687,9 @@ export function ExplorationMap({ area, onTreasureFound, onGuardTreasure, onBattl
         </button>
       </div>
 
-      {!seenTutorials.exploration && onTutorialSeen && (
+      {tutActive && (
         <div className="mt-2">
-          <TutorialBanner tips={EXPLORATION_TIPS} onDone={() => onTutorialSeen('exploration')} />
+          <TutorialBanner tips={EXPLORATION_TIPS} onDone={() => onTutorialSeen('exploration')} onStepChange={setTutHighlight} />
         </div>
       )}
 

@@ -1,18 +1,29 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Sprite } from '../Sprites'
 import { SKILLS, xpForLevel } from '../gameState'
 
+// Class applied to whatever UI element the current tutorial step talks about.
+export const TUTORIAL_HIGHLIGHT_CLASS = 'ring-2 ring-retro-gold animate-pulse'
+
 // One-time step-through tutorial banner (same look as the battle tutorial).
+// Tips may be strings or { text, highlight }; the current step's highlight key is
+// reported via onStepChange so the screen can ring the element being described.
 // Render it only while its screen's seenTutorials flag is unset; onDone marks it seen.
-export function TutorialBanner({ tips, onDone }) {
+export function TutorialBanner({ tips, onDone, onStepChange }) {
   const [step, setStep] = useState(0)
+  const tip = tips?.[step]
+  const highlight = tip && typeof tip !== 'string' ? tip.highlight ?? null : null
+  useEffect(() => {
+    onStepChange?.(highlight)
+  }, [highlight, onStepChange])
   if (!tips || tips.length === 0) return null
+  const text = typeof tip === 'string' ? tip : tip.text
   return (
     <div className="pixel-panel p-2 z-40 border-2 border-retro-gold">
       <div className="flex items-center justify-between gap-2">
         <div className="flex-1">
           <div className="font-pixel text-[8px] text-retro-gold mb-0.5">TUTORIAL {step + 1}/{tips.length}</div>
-          <div className="font-pixel text-[8px] text-retro-text leading-relaxed">{tips[step]}</div>
+          <div className="font-pixel text-[8px] text-retro-text leading-relaxed">{text}</div>
         </div>
         <div className="flex gap-1 shrink-0">
           {step > 0 && (

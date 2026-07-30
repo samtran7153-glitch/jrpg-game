@@ -295,6 +295,93 @@ export function WolfSprite({ size = 64, defeated = false }) {
   )
 }
 
+// ============ TROLL ============
+export function TrollSprite({ size = 64, defeated = false }) {
+  const c = defeated ? 'opacity-20 grayscale' : ''
+  return (
+    <svg {...svgProps(size, c)}>
+      {/* Hunched head, low on the shoulders */}
+      <rect x="5" y="2" width="6" height="1" fill="#5a6a4a" />
+      <rect x="4" y="3" width="8" height="3" fill="#6a7a5a" />
+      {/* Heavy brow + eyes */}
+      <rect x="5" y="3" width="6" height="1" fill="#4a5a3a" />
+      <rect x="5" y="4" width="2" height="1" fill="#1a1a1a" />
+      <rect x="9" y="4" width="2" height="1" fill="#1a1a1a" />
+      <rect x="5" y="4" width="1" height="1" fill="#f5c518" />
+      <rect x="10" y="4" width="1" height="1" fill="#f5c518" />
+      {/* Underbite tusks */}
+      <rect x="5" y="5" width="1" height="1" fill="#e0e0d0" />
+      <rect x="10" y="5" width="1" height="1" fill="#e0e0d0" />
+      {/* Massive torso */}
+      <rect x="3" y="6" width="10" height="5" fill="#6a7a5a" />
+      <rect x="4" y="7" width="8" height="2" fill="#7a8a6a" />
+      {/* Belly */}
+      <rect x="6" y="9" width="4" height="2" fill="#8a9a7a" />
+      {/* Broad arms */}
+      <rect x="1" y="6" width="2" height="5" fill="#6a7a5a" />
+      <rect x="13" y="6" width="2" height="5" fill="#6a7a5a" />
+      <rect x="1" y="11" width="2" height="1" fill="#8a9a7a" />
+      {/* Club in right fist */}
+      <rect x="13" y="3" width="2" height="3" fill="#6a4a2a" />
+      <rect x="13" y="11" width="2" height="1" fill="#8a9a7a" />
+      {/* Stumpy legs */}
+      <rect x="4" y="11" width="3" height="3" fill="#5a6a4a" />
+      <rect x="9" y="11" width="3" height="3" fill="#5a6a4a" />
+      <rect x="3" y="14" width="4" height="1" fill="#4a5a3a" />
+      <rect x="9" y="14" width="4" height="1" fill="#4a5a3a" />
+    </svg>
+  )
+}
+
+// ============ SHADOW BEAST ============
+export function ShadowBeastSprite({ size = 64, defeated = false }) {
+  const c = defeated ? 'opacity-20 grayscale' : ''
+  const props = svgProps(size, c)
+  // Wolf-like silhouette woven from void-stuff; faces right like the rest of the cast.
+  return (
+    <svg {...props} style={{ ...props.style, transform: 'scaleX(-1)' }}>
+      {/* Ears */}
+      <rect x="3" y="1" width="1" height="2" fill="#2c2440" />
+      <rect x="3" y="3" width="2" height="1" fill="#3a2f55" />
+      <rect x="6" y="1" width="1" height="2" fill="#2c2440" />
+      <rect x="5" y="3" width="2" height="1" fill="#3a2f55" />
+      {/* Head */}
+      <rect x="2" y="4" width="5" height="1" fill="#2c2440" />
+      <rect x="2" y="5" width="5" height="3" fill="#3a2f55" />
+      {/* Muzzle */}
+      <rect x="0" y="6" width="3" height="1" fill="#3a2f55" />
+      <rect x="0" y="7" width="3" height="1" fill="#4a3f68" />
+      <rect x="0" y="8" width="3" height="1" fill="#2c2440" />
+      <rect x="0" y="6" width="1" height="1" fill="#0a0a14" />
+      {/* Burning eye */}
+      <rect x="4" y="6" width="1" height="1" fill="#e94560" />
+      {/* Chest */}
+      <rect x="4" y="8" width="2" height="2" fill="#3a2f55" />
+      {/* Body, larger than a wolf */}
+      <rect x="6" y="4" width="8" height="2" fill="#2c2440" />
+      <rect x="5" y="6" width="9" height="4" fill="#3a2f55" />
+      <rect x="6" y="10" width="7" height="1" fill="#4a3f68" />
+      {/* Void wisps rising off the back */}
+      <rect x="8" y="3" width="1" height="1" fill="#6a5f9a" />
+      <rect x="11" y="2" width="1" height="2" fill="#6a5f9a" />
+      {/* Tail */}
+      <rect x="14" y="3" width="1" height="1" fill="#2c2440" />
+      <rect x="14" y="4" width="1" height="3" fill="#3a2f55" />
+      <rect x="13" y="6" width="1" height="1" fill="#3a2f55" />
+      {/* Legs */}
+      <rect x="5" y="11" width="1" height="4" fill="#3a2f55" />
+      <rect x="7" y="11" width="1" height="4" fill="#3a2f55" />
+      <rect x="11" y="11" width="1" height="4" fill="#3a2f55" />
+      <rect x="13" y="11" width="1" height="4" fill="#3a2f55" />
+      {/* Claws */}
+      <rect x="5" y="14" width="1" height="1" fill="#0a0a14" />
+      <rect x="7" y="14" width="1" height="1" fill="#0a0a14" />
+      <rect x="11" y="14" width="1" height="1" fill="#0a0a14" />
+      <rect x="13" y="14" width="1" height="1" fill="#0a0a14" />
+    </svg>
+  )
+}
+
 // ============ SKELETON ============
 export function SkeletonSprite({ size = 64, defeated = false }) {
   const c = defeated ? 'opacity-20 grayscale' : ''
@@ -576,6 +663,8 @@ const SPRITE_MAP = {
   bat: BatSprite,
   goblin: GoblinSprite,
   wolf: WolfSprite,
+  troll: TrollSprite,
+  shadowBeast: ShadowBeastSprite,
   skeleton: SkeletonSprite,
   darkKnight: DarkKnightSprite,
   goblinKing: GoblinKingSprite,

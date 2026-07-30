@@ -48,6 +48,10 @@ export const ENEMY_TYPES = {
   goblin: { name: 'Goblin', sprite: 'goblin', maxHp: 55, maxMp: 15, attack: 16, defense: 7, speed: 12, xp: 25, gold: 27, skills: ['fireball'], weaknesses: { fire: 0.5, lightning: 1.5 }, ai: { skillChance: 0.25 } },
   wolf: { name: 'Dire Wolf', sprite: 'wolf', maxHp: 65, maxMp: 10, attack: 20, defense: 6, speed: 15, xp: 30, gold: 30, skills: ['darkSlash'], weaknesses: { ice: 1.5, fire: 1.25 }, ai: { skillChance: 0.3 } },
   alphaWolf: { name: 'Alpha Wolf', sprite: 'wolf', maxHp: 95, maxMp: 20, attack: 25, defense: 9, speed: 17, xp: 60, gold: 65, skills: ['darkSlash'], weaknesses: { ice: 1.5, fire: 1.25 }, ai: { skillChance: 0.4 } },
+  // Named secret-battle mini-bosses
+  caveTroll: { name: 'Cave Troll', sprite: 'troll', maxHp: 130, maxMp: 20, attack: 24, defense: 12, speed: 8, xp: 70, gold: 90, skills: ['shieldBash'], weaknesses: { fire: 1.5, ice: 0.75 }, ai: { skillChance: 0.35 } },
+  royalGuard: { name: 'Royal Guard Captain', sprite: 'darkKnight', maxHp: 160, maxMp: 30, attack: 30, defense: 18, speed: 13, xp: 120, gold: 220, skills: ['shieldBash', 'darkSlash'], weaknesses: { dark: 0.5, fire: 1.25, lightning: 1.25 }, ai: { skillChance: 0.45 } },
+  shadowBeast: { name: 'Shadow Beast', sprite: 'shadowBeast', maxHp: 180, maxMp: 30, attack: 30, defense: 10, speed: 19, xp: 150, gold: 260, skills: ['darkSlash'], weaknesses: { dark: 0.25, fire: 1.5, lightning: 1.25 }, ai: { skillChance: 0.45 } },
   skeleton: { name: 'Skeleton', sprite: 'skeleton', maxHp: 50, maxMp: 20, attack: 20, defense: 5, speed: 11, xp: 30, gold: 33, skills: ['boneToss'], weaknesses: { fire: 1.5, lightning: 1.25, dark: 0.25 }, ai: { skillChance: 0.3 } },
   shadow: { name: 'Shadow', sprite: 'skeleton', maxHp: 70, maxMp: 25, attack: 24, defense: 8, speed: 17, xp: 40, gold: 45, skills: ['darkSlash', 'iceLance'], weaknesses: { dark: 0.25, fire: 1.5, lightning: 1.25 }, ai: { skillChance: 0.35 } },
   darkKnight: { name: 'Dark Knight', sprite: 'darkKnight', maxHp: 120, maxMp: 30, attack: 26, defense: 15, speed: 14, xp: 80, gold: 150, skills: ['darkSlash', 'shieldBash'], weaknesses: { dark: 0.5, fire: 1.25, lightning: 1.25 }, ai: { skillChance: 0.35 } },
@@ -135,7 +139,7 @@ export const AREAS = [
       { id: 'forgotten_chest', name: 'Forgotten Chest', x: 70, y: 60, gold: 90, item: 'phoenixDown', hint: 'An old chest half-buried in rubble...', guard: ['shadow'] },
     ],
     secretBattles: [
-      { id: 'cave_troll', name: 'Cave Troll', x: 50, y: 25, enemies: ['goblin', 'goblin', 'goblin'], gold: 150, xp: 80, hint: 'Heavy footsteps echo from above...', story: ['The tunnel trembles as heavy footfalls close in from the dark.', 'Elwyn: Goblin raiders — and something bigger herding them toward us.', 'Kira: They meant to ambush us. Shall we spoil their plan, or slip past?'], lockedStory: ["The raiders hang back in the dark, waiting for their moment.", "Elwyn: Rush them blind and we walk into a dozen blades.", "Kira could thin them from afar. Without her, we hold."] },
+      { id: 'cave_troll', name: 'Cave Troll', x: 50, y: 25, enemies: ['caveTroll', 'goblin', 'goblin'], gold: 150, xp: 80, hint: 'Heavy footsteps echo from above...', story: ['The tunnel trembles as heavy footfalls close in from the dark.', 'Elwyn: Goblin raiders — and something bigger herding them toward us.', 'Kira: They meant to ambush us. Shall we spoil their plan, or slip past?'], lockedStory: ["The raiders hang back in the dark, waiting for their moment.", "Elwyn: Rush them blind and we walk into a dozen blades.", "Kira could thin them from afar. Without her, we hold."] },
     ]
   },
   {
@@ -174,7 +178,7 @@ export const AREAS = [
       { id: 'treasury', name: 'Royal Treasury', x: 75, y: 35, gold: 300, item: 'phoenixDown', hint: 'Gold coins spill from an unlocked vault...', guard: ['darkKnight', 'skeleton'] },
     ],
     secretBattles: [
-      { id: 'royal_guard', name: 'Royal Guard Captain', x: 50, y: 65, enemies: ['darkKnight', 'darkKnight'], gold: 250, xp: 120, hint: 'An imposing guard blocks the secret passage...', story: ['A towering knight steps into the passage, blade already bared.', 'Royal Guard Captain: None pass this hall while I still draw breath.', 'Aria: Then we change your mind — or we find another way. Decide.'], lockedStory: ["The captain fills the passage, shield locked and patient.", "Aria: His guard never drops. We can't break it head-on.", "We need Kira to harry him from range first."] },
+      { id: 'royal_guard', name: 'Royal Guard Captain', x: 50, y: 65, enemies: ['royalGuard', 'darkKnight'], gold: 250, xp: 120, hint: 'An imposing guard blocks the secret passage...', story: ['A towering knight steps into the passage, blade already bared.', 'Royal Guard Captain: None pass this hall while I still draw breath.', 'Aria: Then we change your mind — or we find another way. Decide.'], lockedStory: ["The captain fills the passage, shield locked and patient.", "Aria: His guard never drops. We can't break it head-on.", "We need Kira to harry him from range first."] },
     ]
   },
   {
@@ -212,7 +216,7 @@ export const AREAS = [
       { id: 'shadow_artifact', name: 'Shadow Artifact', x: 70, y: 55, gold: 500, item: 'phoenixDown', hint: 'Dark power radiates from an ancient artifact...', guard: ['darkKnight', 'shadow'] },
     ],
     secretBattles: [
-      { id: 'shadow_beast', name: 'Shadow Beast', x: 50, y: 30, enemies: ['shadow', 'shadow', 'darkKnight'], gold: 350, xp: 180, hint: 'A terrifying shadow stirs in the void...', story: ['The darkness peels off the walls and gathers into a hungering shape.', 'Sera: This thing is woven from pure void — it should not exist.', 'Elwyn: Nothing that ravenous stays hidden long. Face it, or leave it be.'], lockedStory: ["The void recoils from the light, yet never truly retreats.", "Sera: It will swallow anyone who steps too close.", "We need Kira to strike from a distance. Not yet."] },
+      { id: 'shadow_beast', name: 'Shadow Beast', x: 50, y: 30, enemies: ['shadowBeast', 'shadow', 'shadow'], gold: 350, xp: 180, hint: 'A terrifying shadow stirs in the void...', story: ['The darkness peels off the walls and gathers into a hungering shape.', 'Sera: This thing is woven from pure void — it should not exist.', 'Elwyn: Nothing that ravenous stays hidden long. Face it, or leave it be.'], lockedStory: ["The void recoils from the light, yet never truly retreats.", "Sera: It will swallow anyone who steps too close.", "We need Kira to strike from a distance. Not yet."] },
     ]
   },
 ]

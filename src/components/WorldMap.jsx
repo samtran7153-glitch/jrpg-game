@@ -1,14 +1,19 @@
+import { useState } from 'react'
 import { AREAS } from '../gameState'
 import { Sprite } from '../Sprites'
-import { TutorialBanner } from './Shared'
+import { TutorialBanner, TUTORIAL_HIGHLIGHT_CLASS } from './Shared'
 
 const WORLD_MAP_TIPS = [
-  'The World Map connects every region. Beat an area\'s boss to unlock the next one.',
-  'Careful — traveling between areas can spring a random ambush on the road.',
-  'Cleared a branching area? Revisit it to take the approach you skipped.',
+  { text: 'The World Map connects every region. Beat an area\'s boss to unlock the next one.', highlight: 'map' },
+  { text: 'The legend shows each area\'s status — locked ones stay hidden until you earn them.', highlight: 'legend' },
+  { text: 'Careful — traveling between areas can spring a random ambush on the road.', highlight: 'roads' },
+  { text: 'Cleared a branching area? Revisit it to take the approach you skipped.', highlight: 'map' },
 ]
 
 export function WorldMap({ state, onSelectArea, onBack, onTutorialSeen }) {
+  const [tutHighlight, setTutHighlight] = useState(null)
+  const tutActive = !state.seenTutorials?.world_map && onTutorialSeen
+  const hl = (key) => (tutActive && tutHighlight === key ? ` ${TUTORIAL_HIGHLIGHT_CLASS}` : '')
   const { currentAreaIndex } = state
   const maxReached = state.maxAreaReached ?? currentAreaIndex
 
@@ -113,7 +118,7 @@ export function WorldMap({ state, onSelectArea, onBack, onTutorialSeen }) {
   return (
     <div className="pixel-panel p-3 w-full space-y-2">
       <div className="text-center font-pixel text-[8px] text-retro-gold">WORLD MAP</div>
-      <div className="relative h-64 bg-retro-bg border border-retro-border rounded overflow-hidden">
+      <div className={`relative h-64 bg-retro-bg border border-retro-border rounded overflow-hidden${hl('map')}${hl('roads')}`}>
         {/* Background texture */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute inset-0 bg-gradient-to-br from-retro-green/5 via-retro-bg to-retro-purple/5" />
@@ -148,7 +153,7 @@ export function WorldMap({ state, onSelectArea, onBack, onTutorialSeen }) {
 
         {/* Map legend */}
         <div className="absolute bottom-2 left-2 pointer-events-none">
-          <div className="pixel-panel p-1 bg-retro-bg/90 border border-retro-dim/30">
+          <div className={`pixel-panel p-1 bg-retro-bg/90 border border-retro-dim/30${hl('legend')}`}>
             <div className="font-pixel text-[4px] text-retro-dim mb-0.5">LEGEND</div>
             <div className="space-y-0.5">
               <div className="flex items-center gap-1">
@@ -267,8 +272,8 @@ export function WorldMap({ state, onSelectArea, onBack, onTutorialSeen }) {
         Click any unlocked area to travel
       </div>
 
-      {!state.seenTutorials?.world_map && onTutorialSeen && (
-        <TutorialBanner tips={WORLD_MAP_TIPS} onDone={() => onTutorialSeen('world_map')} />
+      {tutActive && (
+        <TutorialBanner tips={WORLD_MAP_TIPS} onDone={() => onTutorialSeen('world_map')} onStepChange={setTutHighlight} />
       )}
 
       <button className="pixel-btn w-full" onClick={onBack}>

@@ -1,16 +1,16 @@
 import { useState, useEffect, Fragment } from 'react'
 import { Sprite } from '../Sprites'
-import { CharacterCard, GoldDisplay, HeroStatsModal, TutorialBanner } from './Shared'
+import { CharacterCard, GoldDisplay, HeroStatsModal, TutorialBanner, TUTORIAL_HIGHLIGHT_CLASS } from './Shared'
 
 const AREA_MAP_TIPS = [
-  'This is your area hub. Fight the battles in order — the current one glows gold.',
-  'ITEMS heals your party between fights, the SHOP sells supplies, and EXPLORE lets you roam the area freely.',
-  'The AREA BOSS waits at the bottom — clear the path battles first, then challenge it to finish the area.',
-  'Done here? Open the WORLD MAP to travel onward.',
+  { text: 'This is your area hub. Fight the battles in order — the current one glows gold.', highlight: 'battles' },
+  { text: 'ITEMS heals your party between fights, the SHOP sells supplies, and EXPLORE lets you roam the area freely.', highlight: 'actions' },
+  { text: 'The AREA BOSS waits at the bottom — clear the path battles first, then challenge it to finish the area.', highlight: 'boss' },
+  { text: 'Done here? Open the WORLD MAP to travel onward.', highlight: 'world_map' },
 ]
 
 const VICTORY_TIPS = [
-  'Victory! Use + and − to decide who gets the XP — favor one hero to level them faster, or keep the even split.',
+  { text: 'Victory! Use + and − to decide who gets the XP — favor one hero to level them faster, or keep the even split.', highlight: 'alloc' },
 ]
 import { AREAS, ITEMS, xpForLevel } from '../gameState'
 import { ENEMY_TYPES } from '../gameData'
@@ -274,6 +274,9 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onWorl
   const [showItems, setShowItems] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
   const [statsHero, setStatsHero] = useState(null)
+  const [tutHighlight, setTutHighlight] = useState(null)
+  const tutActive = !seenTutorials.area_map && onTutorialSeen
+  const hl = (key) => (tutActive && tutHighlight === key ? ` ${TUTORIAL_HIGHLIGHT_CLASS}` : '')
 
   const itemIds = Object.keys(state.inventory).filter((id) => state.inventory[id] > 0)
 
@@ -374,7 +377,7 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onWorl
           </button>
         </div>
       ) : (
-        <div className="pixel-panel p-2 flex-1">
+        <div className={`pixel-panel p-2 flex-1${hl('battles')}`}>
           {/* Battles */}
           <div className="font-pixel text-[8px] text-retro-gold mb-2">BATTLES</div>
           <div className="space-y-2">
@@ -438,7 +441,7 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onWorl
             const bossCurrent = clearedThrough === bossPos
             const bossDone = clearedThrough > bossPos
             return (
-              <div className="mt-3">
+              <div className={`mt-3 p-0.5${hl('boss')}`}>
                 <div className="font-pixel text-[6px] text-retro-accent tracking-widest mb-1">⚔ AREA BOSS</div>
                 <button
                   className={`pixel-btn w-full text-left flex items-center gap-2 border-retro-accent ${
@@ -466,14 +469,14 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onWorl
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-1">
+      <div className={`grid grid-cols-3 gap-1${hl('actions')}`}>
         <button className="pixel-btn" onClick={() => { setShowItems(!showItems); setSelectedItem(null) }}>Items</button>
         <button className="pixel-btn" onClick={onShop}>Shop</button>
         <button className="pixel-btn" onClick={onExplore}>Explore</button>
       </div>
 
       <div className="flex gap-1 items-stretch">
-        <button className="pixel-btn flex-1" onClick={onWorldMap}>
+        <button className={`pixel-btn flex-1${hl('world_map')}`} onClick={onWorldMap}>
           World Map
         </button>
         <button className="pixel-btn w-12 flex items-center justify-center !py-3 !px-0" onClick={onSettings} title="Settings">
@@ -483,8 +486,8 @@ export function AreaMapScreen({ state, onSelectBattle, onUseItem, onShop, onWorl
         </button>
       </div>
 
-      {!seenTutorials.area_map && onTutorialSeen && (
-        <TutorialBanner tips={AREA_MAP_TIPS} onDone={() => onTutorialSeen('area_map')} />
+      {tutActive && (
+        <TutorialBanner tips={AREA_MAP_TIPS} onDone={() => onTutorialSeen('area_map')} onStepChange={setTutHighlight} />
       )}
 
       {statsHero && <HeroStatsModal hero={statsHero} onClose={() => setStatsHero(null)} />}
@@ -702,6 +705,8 @@ function StoryStage({ state, speaker, dialogueIndex, dialogueLines }) {
 
 export function VictoryScreen({ state, onConfirm, onTutorialSeen }) {
   const { battleResult, party } = state
+  const [tutHighlight, setTutHighlight] = useState(null)
+  const tutActive = !state.seenTutorials?.victory && onTutorialSeen
   const [xpAlloc, setXpAlloc] = useState(() => {
     if (!battleResult) return {}
     const total = battleResult.xp
@@ -771,9 +776,9 @@ export function VictoryScreen({ state, onConfirm, onTutorialSeen }) {
   return (
     <div className="flex flex-col items-center justify-center flex-1 gap-3 overflow-y-auto">
       <div className="font-pixel text-lg text-retro-green">VICTORY!</div>
-      {!state.seenTutorials?.victory && onTutorialSeen && (
+      {tutActive && (
         <div className="w-full">
-          <TutorialBanner tips={VICTORY_TIPS} onDone={() => onTutorialSeen('victory')} />
+          <TutorialBanner tips={VICTORY_TIPS} onDone={() => onTutorialSeen('victory')} onStepChange={setTutHighlight} />
         </div>
       )}
       <div className="pixel-panel p-3 w-full space-y-2">
@@ -798,7 +803,7 @@ export function VictoryScreen({ state, onConfirm, onTutorialSeen }) {
         )}
       </div>
 
-      <div className="pixel-panel p-2 w-full space-y-1">
+      <div className={`pixel-panel p-2 w-full space-y-1 ${tutActive && tutHighlight === 'alloc' ? TUTORIAL_HIGHLIGHT_CLASS : ''}`}>
         <div className="text-center font-pixel text-[8px] text-retro-gold mb-1">Allocate XP</div>
         <div className="text-center font-pixel text-[6px] text-retro-dim mb-1 leading-relaxed">
           Use -5/+5 to adjust. FOC gives 50% to one hero. Split resets to even.

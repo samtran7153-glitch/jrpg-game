@@ -1,13 +1,17 @@
-import { TutorialBanner } from './Shared'
+import { useState } from 'react'
+import { TutorialBanner, TUTORIAL_HIGHLIGHT_CLASS } from './Shared'
 
 const PATH_TIPS = [
-  'A fork in the road! Pick an approach — Safer or Tougher — then both roads rejoin for the core fights.',
-  'Your choice sticks for this visit, but nothing is missed: recruits and the AREA BOSS are beyond the fork either way.',
-  'After beating the boss, revisit this area to try the other approach (finished ones show a ✓).',
+  { text: 'A fork in the road! Pick an approach — Safer or Tougher — then both roads rejoin for the core fights.', highlight: 'fork' },
+  { text: 'Your choice sticks for this visit, but nothing is missed: recruits and the AREA BOSS are beyond the fork either way.', highlight: 'core' },
+  { text: 'After beating the boss, revisit this area to try the other approach (finished ones show a ✓).', highlight: 'fork' },
 ]
 
 export function PathSelection({ area, onSelectPath, onBack, completedPaths = {}, seenTutorials = {}, onTutorialSeen }) {
+  const [tutHighlight, setTutHighlight] = useState(null)
   if (!area.paths) return null
+  const tutActive = !seenTutorials.path_selection && onTutorialSeen
+  const hl = (key) => (tutActive && tutHighlight === key ? ` ${TUTORIAL_HIGHLIGHT_CLASS}` : '')
 
   // The last core entry is the area boss — shown as its own challenge, not a core fight.
   const core = area.core || []
@@ -25,7 +29,7 @@ export function PathSelection({ area, onSelectPath, onBack, completedPaths = {},
         <div className="text-center font-pixel text-[6px] text-retro-dim">{area.description}</div>
 
         {/* The fork: two approaches, side by side */}
-        <div className="grid grid-cols-2 gap-2 items-stretch">
+        <div className={`grid grid-cols-2 gap-2 items-stretch${hl('fork')}`}>
           {Object.entries(area.paths).map(([pathKey, path]) => {
             const hard = pathKey === 'hard'
             return (
@@ -56,7 +60,7 @@ export function PathSelection({ area, onSelectPath, onBack, completedPaths = {},
             <div className="text-center font-pixel text-[6px] text-retro-dim tracking-widest">
               ▼ both roads converge ▼
             </div>
-            <div className="pixel-panel p-2 space-y-1 border-retro-gold/60">
+            <div className={`pixel-panel p-2 space-y-1 border-retro-gold/60${hl('core')}`}>
               {coreFights.length > 0 && (
                 <div className="font-pixel text-[7px] text-retro-gold">
                   CORE · {coreFights.length} shared {coreFights.length === 1 ? 'fight' : 'fights'}
@@ -73,9 +77,9 @@ export function PathSelection({ area, onSelectPath, onBack, completedPaths = {},
         )}
       </div>
 
-      {!seenTutorials.path_selection && onTutorialSeen && (
+      {tutActive && (
         <div className="w-full max-w-md">
-          <TutorialBanner tips={PATH_TIPS} onDone={() => onTutorialSeen('path_selection')} />
+          <TutorialBanner tips={PATH_TIPS} onDone={() => onTutorialSeen('path_selection')} onStepChange={setTutHighlight} />
         </div>
       )}
 
