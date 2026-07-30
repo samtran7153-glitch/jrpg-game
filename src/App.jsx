@@ -971,8 +971,10 @@ export default function App() {
       let floats = s.floatTexts
 
       if (skill.type === 'support') {
+        // Read from `party` (which already has the caster's MP deducted), not s.party —
+        // otherwise healing yourself overwrites the MP-deducted copy and MP never drains.
         const currentTarget = target?.isPlayer
-          ? s.party.find((h) => h.id === target.id)
+          ? party.find((h) => h.id === target.id)
           : target
         if (!currentTarget) return advanceTurn({ ...s, busy: false })
         const healed = { ...currentTarget, hp: Math.min(currentTarget.maxHp, currentTarget.hp + skill.heal) }
@@ -986,7 +988,7 @@ export default function App() {
           log = addLog(log, `${currentActor.name} uses ${skill.name}! Defense up for ${skill.duration || 3} turns!`)
         } else if (skill.effect === 'attack_up') {
           const currentTarget = target?.isPlayer
-            ? s.party.find((h) => h.id === target.id)
+            ? party.find((h) => h.id === target.id)
             : target
           if (!currentTarget) return advanceTurn({ ...s, busy: false })
           const buffed = applyStatusEffect(currentTarget, 'attack_up', skill.duration || 3)
