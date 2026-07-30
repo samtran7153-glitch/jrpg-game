@@ -1,8 +1,10 @@
 export function PathSelection({ area, onSelectPath, onBack, completedPaths = {} }) {
   if (!area.paths) return null
 
+  // The last core entry is the area boss — shown as its own challenge, not a core fight.
   const core = area.core || []
-  const coreRecruits = core
+  const coreFights = core.slice(0, -1)
+  const coreRecruits = coreFights
     .map((i) => area.battles[i]?.recruit)
     .filter(Boolean)
 
@@ -47,13 +49,17 @@ export function PathSelection({ area, onSelectPath, onBack, completedPaths = {} 
               ▼ both roads converge ▼
             </div>
             <div className="pixel-panel p-2 space-y-1 border-retro-gold/60">
-              <div className="font-pixel text-[7px] text-retro-gold">
-                CORE · {core.length} shared {core.length === 1 ? 'fight' : 'fights'}
-              </div>
+              {coreFights.length > 0 && (
+                <div className="font-pixel text-[7px] text-retro-gold">
+                  CORE · {coreFights.length} shared {coreFights.length === 1 ? 'fight' : 'fights'}
+                </div>
+              )}
               {coreRecruits.length > 0 && (
                 <div className="font-pixel text-[6px] text-retro-blue">• an ally joins your party</div>
               )}
-              <div className="font-pixel text-[6px] text-retro-accent">• ends with the area's guardian</div>
+              <div className="font-pixel text-[6px] text-retro-accent">
+                ⚔ AREA BOSS · awaits beyond, on the area map
+              </div>
             </div>
           </>
         )}
