@@ -444,7 +444,12 @@ export default function App() {
       if (areaIndex !== s.currentAreaIndex) {
         // Route travel through the travel animation phase
         const currentArea = AREAS[s.currentAreaIndex]
-        const randomEnemies = currentArea.battles[Math.floor(Math.random() * currentArea.battles.length)].enemies
+        // Road ambushes are common mobs only — never the area boss's entourage.
+        const nonBoss = currentArea.battles.filter(
+          (b) => !b.enemies.some((e) => ENEMY_TYPES[e]?.isBoss)
+        )
+        const ambushPool = nonBoss.length > 0 ? nonBoss : currentArea.battles
+        const randomEnemies = ambushPool[Math.floor(Math.random() * ambushPool.length)].enemies
         const hasEncounter = Math.random() < encounterChance
         return {
           ...s,
